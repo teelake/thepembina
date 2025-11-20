@@ -4,10 +4,10 @@
 RewriteEngine On
 
 # Allow existing files/folders (css, js, images) to be served directly
-RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
 # Everything else goes to index.php
 RewriteRule ^ index.php [QSA,L]
-
