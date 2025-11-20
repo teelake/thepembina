@@ -7,9 +7,6 @@
  * @author Webspace (https://www.webspace.ng)
  */
 
-// Start session
-session_start();
-
 // Error reporting (disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disabled for production
@@ -50,6 +47,11 @@ require_once APP_PATH . '/core/Autoloader.php';
 
 // Load configuration
 require_once APP_PATH . '/config/config.php';
+
+// Start session (after session configuration)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Initialize application
 $app = new App\Core\Application();
