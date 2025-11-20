@@ -8,6 +8,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\HeroSlide;
 
 class HomeController extends Controller
 {
@@ -18,10 +19,12 @@ class HomeController extends Controller
     {
         $productModel = new Product();
         $categoryModel = new Category();
+        $heroSlideModel = new HeroSlide();
 
         $data = [
             'featuredProducts' => $productModel->getFeatured(8),
-            'categories' => $categoryModel->getAllWithCount()
+            'categories' => $categoryModel->getAllWithCount(),
+            'heroSlides' => $heroSlideModel->getPublished()
         ];
 
         $this->render('home/index', $data);

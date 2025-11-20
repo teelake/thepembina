@@ -128,3 +128,122 @@
     }
 }
 
+/* Hero slider */
+.hero-slider-wrapper {
+    position: relative;
+    overflow: hidden;
+    min-height: 520px;
+    background-color: #000;
+}
+
+.hero-slider {
+    position: relative;
+    min-height: 520px;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-slide.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.hero-slide-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.05);
+    transition: transform 10s ease;
+}
+
+.hero-slide.active .hero-slide-bg {
+    transform: scale(1);
+}
+
+.hero-slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+}
+
+.hero-slide-content {
+    position: relative;
+    max-width: 1100px;
+    padding: 40px 20px;
+    text-align: left;
+    color: #fff;
+    z-index: 2;
+}
+
+.hero-slider-controls {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    pointer-events: none;
+}
+
+.hero-slider-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background-color: rgba(255,255,255,0.2);
+    color: #fff;
+    border: none;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.hero-slider-btn:hover {
+    background-color: rgba(255,255,255,0.4);
+}
+
+.hero-slider-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 2;
+}
+
+.hero-slider-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,0.6);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.hero-slider-dot.active {
+    background-color: #F4A460;
+    border-color: #F4A460;
+    width: 32px;
+}
+
+@media (max-width: 768px) {
+    .hero-slide-content {
+        text-align: center;
+    }
+    
+    .hero-slider-controls {
+        display: none;
+    }
+}
+

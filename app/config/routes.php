@@ -108,6 +108,14 @@ $router->add('POST', 'admin/settings/payment', ['controller' => 'Admin\Setting',
 $router->add('GET', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'tax']);
 $router->add('POST', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'updateTax']);
 
+// Admin - Hero Slides
+$router->add('GET', 'admin/hero-slides', ['controller' => 'Admin\HeroSlide', 'action' => 'index']);
+$router->add('GET', 'admin/hero-slides/create', ['controller' => 'Admin\HeroSlide', 'action' => 'create']);
+$router->add('POST', 'admin/hero-slides', ['controller' => 'Admin\HeroSlide', 'action' => 'store']);
+$router->add('GET', 'admin/hero-slides/{id}/edit', ['controller' => 'Admin\HeroSlide', 'action' => 'edit']);
+$router->add('POST', 'admin/hero-slides/{id}', ['controller' => 'Admin\HeroSlide', 'action' => 'update']);
+$router->add('POST', 'admin/hero-slides/{id}/delete', ['controller' => 'Admin\HeroSlide', 'action' => 'delete']);
+
 // API routes
 $router->add('GET', 'api/products', ['controller' => 'Api\Product', 'action' => 'index']);
 $router->add('GET', 'api/products/{id}', ['controller' => 'Api\Product', 'action' => 'view']);

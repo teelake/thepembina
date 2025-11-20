@@ -121,6 +121,13 @@
                         </a>
                     </li>
                     <li>
+                        <a href="<?= BASE_URL ?>/admin/hero-slides" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-images w-5 mr-3"></i>
+                            <span>Hero Slider</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?= BASE_URL ?>/admin/settings" 
                            class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'settings') ? 'bg-brand text-white' : 'text-gray-700' ?>">
                             <i class="fas fa-cog w-5 mr-3"></i>

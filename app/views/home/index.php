@@ -1,17 +1,66 @@
 <?php
 use App\Core\Helper;
 $content = ob_start();
+
+$defaultSlides = [
+    [
+        'title' => 'Welcome to The Pembina Pint',
+        'subtitle' => 'Authentic African & Nigerian Cuisine',
+        'description' => 'Experience vibrant flavors, handcrafted cocktails, and a warm atmosphere right in Manitoba.',
+        'button_text' => 'Explore Menu',
+        'button_link' => '/menu',
+        'image' => 'images/hero/default-slide.jpg'
+    ]
+];
+
+$slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
 ?>
 
-<!-- Hero Section -->
-<section class="bg-gradient-to-r from-brand to-brand-dark text-white py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-5xl font-bold mb-4">Welcome to The Pembina Pint</h1>
-        <p class="text-xl mb-8">Authentic African & Nigerian Cuisine in Morden, Manitoba</p>
-        <a href="<?= BASE_URL ?>/menu" class="bg-white text-brand px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
-            View Menu
-        </a>
+<!-- Hero Slider -->
+<section class="relative hero-slider-wrapper">
+    <div class="hero-slider">
+        <?php foreach ($slides as $index => $slide): ?>
+            <?php
+                $imagePath = $slide['image'] ?? 'images/hero/default-slide.jpg';
+                if (strpos($imagePath, 'http') === 0) {
+                    $imageUrl = $imagePath;
+                } else {
+                    $imageUrl = BASE_URL . '/public/' . ltrim($imagePath, '/');
+                }
+            ?>
+            <div class="hero-slide <?= $index === 0 ? 'active' : '' ?>" data-slide-index="<?= $index ?>">
+                <div class="hero-slide-bg" style="background-image: url('<?= $imageUrl ?>');"></div>
+                <div class="hero-slide-overlay"></div>
+                <div class="hero-slide-content">
+                    <?php if (!empty($slide['subtitle'])): ?>
+                        <p class="text-sm uppercase tracking-wide text-white/80 mb-3"><?= htmlspecialchars($slide['subtitle']) ?></p>
+                    <?php endif; ?>
+                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-4"><?= htmlspecialchars($slide['title']) ?></h1>
+                    <?php if (!empty($slide['description'])): ?>
+                        <p class="text-lg md:text-xl text-white/90 mb-6 max-w-2xl"><?= htmlspecialchars($slide['description']) ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($slide['button_text']) && !empty($slide['button_link'])): ?>
+                        <a href="<?= htmlspecialchars($slide['button_link']) ?>"
+                           class="inline-flex items-center bg-brand text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark transition transform hover:scale-105 shadow-lg">
+                            <?= htmlspecialchars($slide['button_text']) ?>
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
+    <?php if (count($slides) > 1): ?>
+        <div class="hero-slider-controls">
+            <button class="hero-slider-btn prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+            <button class="hero-slider-btn next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="hero-slider-dots">
+            <?php foreach ($slides as $index => $slide): ?>
+                <button class="hero-slider-dot <?= $index === 0 ? 'active' : '' ?>" data-slide="<?= $index ?>"></button>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </section>
 
 <!-- Featured Products -->
