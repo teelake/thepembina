@@ -119,6 +119,92 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
 </section>
 <?php endif; ?>
 
+<!-- Testimonials -->
+<?php if (!empty($testimonials)): ?>
+<section class="py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <p class="text-brand font-semibold uppercase tracking-wide">Kind Words</p>
+            <h2 class="text-3xl font-bold text-gray-900">What Guests Are Saying</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <?php foreach ($testimonials as $testimonial): ?>
+                <div class="bg-gray-50 rounded-2xl p-6 shadow hover:shadow-lg transition">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-brand/20 flex items-center justify-center text-brand font-bold">
+                            <?= strtoupper(substr($testimonial['name'], 0, 1)) ?>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900"><?= htmlspecialchars($testimonial['name']) ?></p>
+                            <?php if ($testimonial['title']): ?>
+                                <p class="text-sm text-gray-500"><?= htmlspecialchars($testimonial['title']) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4 leading-relaxed"><?= htmlspecialchars($testimonial['message']) ?></p>
+                    <div class="flex items-center text-yellow-400">
+                        <?php for ($i = 0; $i < (int)$testimonial['rating']; $i++): ?>
+                            <i class="fas fa-star"></i>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- Upcoming Events -->
+<?php if (!empty($events)): ?>
+<section class="py-12 bg-gray-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <p class="text-brand font-semibold uppercase tracking-wide">Cultural Nights</p>
+               <h2 class="text-3xl font-bold">Upcoming Events</h2>
+            </div>
+            <a href="<?= BASE_URL ?>/page/events-calendar" class="text-brand hover:text-brand-dark font-semibold">View full calendar →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <?php foreach ($events as $event): ?>
+                <div class="bg-white/10 rounded-2xl p-6 backdrop-blur">
+                    <p class="text-brand font-semibold mb-2">
+                        <?= date('M d, Y', strtotime($event['event_date'])) ?>
+                        <?php if (!empty($event['event_time'])): ?>
+                            · <?= date('g:i A', strtotime($event['event_time'])) ?>
+                        <?php endif; ?>
+                    </p>
+                    <h3 class="text-xl font-bold mb-2"><?= htmlspecialchars($event['title']) ?></h3>
+                    <?php if ($event['subtitle']): ?>
+                        <p class="text-brand mb-3"><?= htmlspecialchars($event['subtitle']) ?></p>
+                    <?php endif; ?>
+                    <p class="text-gray-200 mb-4"><?= htmlspecialchars(mb_strimwidth($event['description'], 0, 120, '...')) ?></p>
+                    <?php if ($event['location']): ?>
+                        <p class="text-sm text-gray-300"><i class="fas fa-map-marker-alt mr-2"></i><?= htmlspecialchars($event['location']) ?></p>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- Newsletter -->
+<section class="py-12 bg-brand text-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="uppercase tracking-[0.3em] text-sm font-semibold mb-3">Newsletter</p>
+        <h2 class="text-3xl font-bold mb-4">Stay in the loop with Pembina Pint</h2>
+        <p class="text-white/80 mb-8">Get event invites, menu drops, and tasting menu news straight to your inbox.</p>
+        <form id="newsletter-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            <?= $this->csrf->getTokenField() ?>
+            <input type="text" name="name" placeholder="Your name" class="form-input bg-white text-gray-900">
+            <input type="email" name="email" placeholder="Email address *" required class="form-input bg-white text-gray-900">
+            <button type="submit" class="bg-gray-900 text-white font-semibold rounded-lg px-6 py-3 hover:bg-black transition">Subscribe</button>
+        </form>
+        <p id="newsletter-feedback" class="mt-4 text-sm"></p>
+    </div>
+</section>
+
 <?php
 $content = ob_get_clean();
 $page_title = 'Home';

@@ -351,9 +351,9 @@ CREATE TABLE IF NOT EXISTS `pages` (
 
 -- Insert default pages
 INSERT INTO `pages` (`title`, `slug`, `content`, `status`) VALUES
-('Terms of Service', 'terms-of-service', '<p>Terms of Service content...</p>', 'published'),
-('Privacy Policy', 'privacy-policy', '<p>Privacy Policy content...</p>', 'published'),
-('Refund and Delivery Policy', 'refund-delivery-policy', '<p>Refund and Delivery Policy content...</p>', 'published');
+('Terms of Service', 'terms-of-service', '<h2>Dining & Ordering</h2><p>All table reservations, takeaway, delivery, and catering orders are confirmed via email or SMS. Prices may change without notice to reflect seasonal ingredients and market conditions.</p><h2>Payments</h2><p>We accept major credit cards, Interac, and Square secure payments. A 50% deposit is required for catering and private events.</p><h2>Conduct</h2><p>We reserve the right to refuse service to anyone engaging in abusive behaviour towards guests or team members. Outside food or alcohol is not permitted.</p>', 'published'),
+('Privacy Policy', 'privacy-policy', '<p>Your privacy matters to us. We collect only the information required to process orders, reservations, and newsletter opt-ins. Data is stored on encrypted servers and never sold to third parties. You may request deletion of your data at any time by emailing <a href="mailto:info@thepembina.ca">info@thepembina.ca</a>.</p>', 'published'),
+('Refund and Delivery Policy', 'refund-delivery-policy', '<h2>Pickup & Delivery</h2><p>DoorDash handles national delivery. Once a driver picks up your order, delivery timelines are subject to DoorDash networks. Local pickup orders are prepared within 25–35 minutes.</p><h2>Refunds</h2><p>If your meal arrives incorrect or damaged, contact us within 24 hours. Approved refunds are processed within 3–5 business days back to the original payment method.</p>', 'published');
 
 -- --------------------------------------------------------
 -- Table structure for table `settings`
@@ -442,4 +442,64 @@ VALUES (
   'published',
   0
 );
+
+-- --------------------------------------------------------
+-- Table structure for table `testimonials`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `testimonials` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(150) NOT NULL,
+  `title` varchar(150) DEFAULT NULL,
+  `message` text NOT NULL,
+  `rating` tinyint(1) DEFAULT 5,
+  `status` enum('published','draft') NOT NULL DEFAULT 'published',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `testimonials` (`name`, `title`, `message`, `rating`, `status`, `sort_order`)
+VALUES
+('Chinedu A.', 'Winnipeg', 'The Pembina Pint instantly reminds me of home. Their Jollof tastes exactly like what my mom makes!', 5, 'published', 0),
+('Sarah L.', 'Morden', 'We hosted our corporate mixer here—amazing cocktails, friendly staff, and incredible vibes.', 5, 'published', 1);
+
+-- --------------------------------------------------------
+-- Table structure for table `events`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `events` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `subtitle` varchar(255) DEFAULT NULL,
+  `description` text,
+  `event_date` date NOT NULL,
+  `event_time` time DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `status` enum('upcoming','completed','draft') NOT NULL DEFAULT 'upcoming',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`),
+  KEY `event_date` (`event_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `events` (`title`, `subtitle`, `description`, `event_date`, `event_time`, `location`, `image`, `status`)
+VALUES
+('Afrobeat Fridays', 'Live DJ + Cultural Cocktails', 'Join us every Friday evening for live Afrobeat sessions, signature cocktails, and chef specials.', DATE_ADD(CURDATE(), INTERVAL 7 DAY), '20:00:00', 'The Pembina Pint Lounge', 'images/hero/default-slide.jpg', 'upcoming'),
+('Taste of Nigeria Brunch', 'Featuring Suya & Palmwine', 'A curated brunch celebrating Nigerian street classics and sweet palmwine pairings.', DATE_ADD(CURDATE(), INTERVAL 21 DAY), '11:00:00', 'The Pembina Pint Main Hall', 'images/hero/default-slide.jpg', 'upcoming');
+
+-- --------------------------------------------------------
+-- Table structure for table `newsletter_subscribers`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `newsletter_subscribers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `name` varchar(150) DEFAULT NULL,
+  `status` enum('active','unsubscribed') NOT NULL DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

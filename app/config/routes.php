@@ -18,6 +18,7 @@ $router->add('GET', 'menu', ['controller' => 'Menu', 'action' => 'index']);
 $router->add('GET', 'menu/{slug}', ['controller' => 'Menu', 'action' => 'view']);
 $router->add('GET', 'product/{slug}', ['controller' => 'Product', 'action' => 'view']);
 $router->add('GET', 'page/{slug}', ['controller' => 'Page', 'action' => 'view']);
+$router->add('POST', 'newsletter/subscribe', ['controller' => 'Newsletter', 'action' => 'subscribe']);
 
 // Authentication routes
 $router->add('GET', 'login', ['controller' => 'Auth', 'action' => 'login']);
@@ -116,7 +117,48 @@ $router->add('GET', 'admin/hero-slides/{id}/edit', ['controller' => 'Admin\HeroS
 $router->add('POST', 'admin/hero-slides/{id}', ['controller' => 'Admin\HeroSlide', 'action' => 'update']);
 $router->add('POST', 'admin/hero-slides/{id}/delete', ['controller' => 'Admin\HeroSlide', 'action' => 'delete']);
 
+// Admin - Testimonials
+$router->add('GET', 'admin/testimonials', ['controller' => 'Admin\Testimonial', 'action' => 'index']);
+$router->add('GET', 'admin/testimonials/create', ['controller' => 'Admin\Testimonial', 'action' => 'create']);
+$router->add('POST', 'admin/testimonials', ['controller' => 'Admin\Testimonial', 'action' => 'store']);
+$router->add('GET', 'admin/testimonials/{id}/edit', ['controller' => 'Admin\Testimonial', 'action' => 'edit']);
+$router->add('POST', 'admin/testimonials/{id}', ['controller' => 'Admin\Testimonial', 'action' => 'update']);
+$router->add('POST', 'admin/testimonials/{id}/delete', ['controller' => 'Admin\Testimonial', 'action' => 'delete']);
+
+// Admin - Events
+$router->add('GET', 'admin/events', ['controller' => 'Admin\Event', 'action' => 'index']);
+$router->add('GET', 'admin/events/create', ['controller' => 'Admin\Event', 'action' => 'create']);
+$router->add('POST', 'admin/events', ['controller' => 'Admin\Event', 'action' => 'store']);
+$router->add('GET', 'admin/events/{id}/edit', ['controller' => 'Admin\Event', 'action' => 'edit']);
+$router->add('POST', 'admin/events/{id}', ['controller' => 'Admin\Event', 'action' => 'update']);
+$router->add('POST', 'admin/events/{id}/delete', ['controller' => 'Admin\Event', 'action' => 'delete']);
+
+// Admin - Newsletter
+$router->add('GET', 'admin/newsletter', ['controller' => 'Admin\Newsletter', 'action' => 'index']);
+
+// Admin - Testimonials
+$router->add('GET', 'admin/testimonials', ['controller' => 'Admin\Testimonial', 'action' => 'index']);
+$router->add('GET', 'admin/testimonials/create', ['controller' => 'Admin\Testimonial', 'action' => 'create']);
+$router->add('POST', 'admin/testimonials', ['controller' => 'Admin\Testimonial', 'action' => 'store']);
+$router->add('GET', 'admin/testimonials/{id}/edit', ['controller' => 'Admin\Testimonial', 'action' => 'edit']);
+$router->add('POST', 'admin/testimonials/{id}', ['controller' => 'Admin\Testimonial', 'action' => 'update']);
+$router->add('POST', 'admin/testimonials/{id}/delete', ['controller' => 'Admin\Testimonial', 'action' => 'delete']);
+
+// Admin - Events
+$router->add('GET', 'admin/events', ['controller' => 'Admin\Event', 'action' => 'index']);
+$router->add('GET', 'admin/events/create', ['controller' => 'Admin\Event', 'action' => 'create']);
+$router->add('POST', 'admin/events', ['controller' => 'Admin\Event', 'action' => 'store']);
+$router->add('GET', 'admin/events/{id}/edit', ['controller' => 'Admin\Event', 'action' => 'edit']);
+$router->add('POST', 'admin/events/{id}', ['controller' => 'Admin\Event', 'action' => 'update']);
+$router->add('POST', 'admin/events/{id}/delete', ['controller' => 'Admin\Event', 'action' => 'delete']);
+
+// Admin - Newsletter Subscribers
+$router->add('GET', 'admin/newsletter', ['controller' => 'Admin\Newsletter', 'action' => 'index']);
+
 // API routes
 $router->add('GET', 'api/products', ['controller' => 'Api\Product', 'action' => 'index']);
 $router->add('GET', 'api/products/{id}', ['controller' => 'Api\Product', 'action' => 'view']);
+
+// Newsletter subscribe
+$router->add('POST', 'newsletter/subscribe', ['controller' => 'Newsletter', 'action' => 'subscribe']);
 

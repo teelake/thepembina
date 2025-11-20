@@ -29,6 +29,11 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/style.css">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/images/logo.png">
+    <script>
+        window.BASE_URL = '<?= BASE_URL ?>';
+    </script>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/images/logo.png">
     
     <?php if (isset($additional_css)): ?>
         <?php foreach ($additional_css as $css): ?>

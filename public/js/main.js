@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     initHeroSlider();
+    initNewsletterForm();
 });
 
 // Form validation helper
@@ -164,5 +165,34 @@ function initHeroSlider() {
 
     showSlide(0);
     startAutoplay();
+}
+
+function initNewsletterForm() {
+    const form = document.getElementById('newsletter-form');
+    if (!form) return;
+
+    const feedback = document.getElementById('newsletter-feedback');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        fetch(`${window.BASE_URL || ''}/newsletter/subscribe`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            feedback.textContent = data.message || '';
+            feedback.className = data.success ? 'text-green-100' : 'text-red-200';
+            if (data.success) {
+                form.reset();
+            }
+        })
+        .catch(() => {
+            feedback.textContent = 'Something went wrong. Please try again.';
+            feedback.className = 'text-red-200';
+        });
+    });
 }
 

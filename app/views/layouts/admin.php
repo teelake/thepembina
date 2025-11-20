@@ -27,6 +27,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/css/admin.css">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/images/logo.png">
     
     <?php if (isset($additional_css)): ?>
         <?php foreach ($additional_css as $css): ?>
@@ -125,6 +126,27 @@
                            class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white' : 'text-gray-700' ?>">
                             <i class="fas fa-images w-5 mr-3"></i>
                             <span>Hero Slider</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/testimonials" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'testimonials') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-comment-dots w-5 mr-3"></i>
+                            <span>Testimonials</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/events" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'events') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-calendar-alt w-5 mr-3"></i>
+                            <span>Events</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/newsletter" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'newsletter') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-envelope-open-text w-5 mr-3"></i>
+                            <span>Newsletter</span>
                         </a>
                     </li>
                     <li>
