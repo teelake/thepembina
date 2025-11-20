@@ -33,7 +33,15 @@ class Autoloader
         }
         
         $relativeClass = substr($class, $len);
-        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+        // Convert first namespace segment to lowercase to match directory structure
+        $segments = explode('\\', $relativeClass);
+        if (!empty($segments)) {
+            $segments[0] = strtolower($segments[0]);
+        }
+        $relativePath = implode('/', $segments);
+
+        $file = $baseDir . $relativePath . '.php';
         
         if (file_exists($file)) {
             require_once $file;
