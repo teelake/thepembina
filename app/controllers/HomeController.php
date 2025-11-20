@@ -24,13 +24,15 @@ class HomeController extends Controller
         $heroSlideModel = new HeroSlide();
         $testimonialModel = new Testimonial();
         $eventModel = new Event();
+        $newsletterCsrfField = $this->csrf->getTokenField();
 
         $data = [
             'featuredProducts' => $productModel->getFeatured(8),
             'categories' => $categoryModel->getAllWithCount(),
             'heroSlides' => $heroSlideModel->getPublished(),
             'testimonials' => $testimonialModel->getPublished(6),
-            'events' => $eventModel->getUpcoming(3)
+            'events' => $eventModel->getUpcoming(3),
+            'newsletterCsrfField' => $newsletterCsrfField
         ];
 
         $this->render('home/index', $data);

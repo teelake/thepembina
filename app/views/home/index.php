@@ -196,7 +196,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
         <h2 class="text-3xl font-bold mb-4">Stay in the loop with Pembina Pint</h2>
         <p class="text-white/80 mb-8">Get event invites, menu drops, and tasting menu news straight to your inbox.</p>
         <form id="newsletter-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            <?= $this->csrf->getTokenField() ?>
+            <?= $newsletterCsrfField ?? '' ?>
             <input type="text" name="name" placeholder="Your name" class="form-input bg-white text-gray-900">
             <input type="email" name="email" placeholder="Email address *" required class="form-input bg-white text-gray-900">
             <button type="submit" class="bg-gray-900 text-white font-semibold rounded-lg px-6 py-3 hover:bg-black transition">Subscribe</button>
