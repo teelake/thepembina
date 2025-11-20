@@ -1,0 +1,49 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Configuration files with sensitive data
+/app/config/database.php
+.env
+*.env
+
+# Keep example file
+!/app/config/database.example.php
+
+# Logs
+/logs/
+*.log
+# Error logs
+php-error.log
+
+# Uploads (keep structure, ignore files)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.cache
+*.bak
+
+# Composer
+composer.lock
+
+# Database
+*.sql
+*.sqlite
+
+# Build files
+/dist/
+/build/
+

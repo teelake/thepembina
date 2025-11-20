@@ -1,0 +1,9 @@
+# Public directory .htaccess
+# This file ensures that only index.php and assets are accessible
+
+# Deny access to all files except index.php
+<FilesMatch "^(?!index\.php).*$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+

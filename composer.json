@@ -1,0 +1,29 @@
+{
+    "name": "pembina-pint/restaurant-ecommerce",
+    "description": "E-Commerce website for The Pembina Pint and Restaurant",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Webspace",
+            "email": "info@webspace.ng",
+            "homepage": "https://www.webspace.ng"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
+
