@@ -46,7 +46,7 @@ define('BASE_URL', $protocol . '://' . $host . ($basePath !== '/' ? $basePath : 
 
 // Autoloader
 require_once APP_PATH . '/core/Autoloader.php';
-Autoloader::register();
+\App\Core\Autoloader::register();
 
 // Load configuration
 require_once APP_PATH . '/config/config.php';
