@@ -2,11 +2,7 @@
 RewriteEngine On
 
 # Set RewriteBase for subdirectory
-RewriteBase /beta/pembina/
-
-# Redirect /beta/pembina/public to /beta/pembina (remove /public from URL)
-RewriteCond %{REQUEST_URI} ^/beta/pembina/public/(.*)$
-RewriteRule ^public/(.*)$ /beta/pembina/$1 [R=301,L]
+RewriteBase /beta/
 
 # Prevent directory listing
 Options -Indexes
