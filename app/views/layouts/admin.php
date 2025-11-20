@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($page_title) ? htmlspecialchars($page_title) . ' - ' : '' ?>Admin - The Pembina Pint</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (local copy) -->
+    <script src="<?= BASE_URL ?>/public/js/tailwindcdn.js"></script>
     
     <!-- Custom Brand Colors -->
     <script>
