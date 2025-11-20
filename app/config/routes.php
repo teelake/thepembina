@@ -5,7 +5,11 @@
 
 use App\Core\Router;
 
-$router = $GLOBALS['router'];
+$router = $router ?? ($GLOBALS['router'] ?? null);
+
+if (!$router instanceof App\Core\Router) {
+    throw new Exception('Router instance not available');
+}
 
 // Public routes
 $router->add('GET', '', ['controller' => 'Home', 'action' => 'index']);
