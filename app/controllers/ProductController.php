@@ -54,7 +54,18 @@ class ProductController extends Controller
             'csrfField' => $this->csrf->getTokenField()
         ];
 
-        $this->render('product/view', $data);
+        try {
+            $this->render('product/view', $data);
+        } catch (\Throwable $e) {
+            error_log(sprintf(
+                '[ProductController] View error for slug "%s" (ID: %s): %s' . PHP_EOL . '%s',
+                $slug,
+                $product['id'] ?? 'n/a',
+                $e->getMessage(),
+                $e->getTraceAsString()
+            ));
+            throw $e;
+        }
     }
 }
 
