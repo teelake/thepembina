@@ -21,7 +21,10 @@ $content = ob_start();
 <!-- Products Grid -->
 <section class="py-12 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <?php if (!empty($products)): ?>
+<?php if (!empty($products)): ?>
+            <?php
+            $totalProducts = $totalProducts ?? count($products);
+            ?>
             <div class="mb-6 flex justify-between items-center">
                 <p class="text-gray-600">Showing <?= count($products) ?> of <?= $totalProducts ?> items</p>
             </div>
