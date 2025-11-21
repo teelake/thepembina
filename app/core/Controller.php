@@ -65,6 +65,11 @@ abstract class Controller
      */
     protected function redirect($url)
     {
+        if (strpos($url, 'http://') !== 0 && strpos($url, 'https://') !== 0) {
+            $base = rtrim(BASE_URL, '/');
+            $path = '/' . ltrim($url, '/');
+            $url = $base . $path;
+        }
         header("Location: {$url}");
         exit;
     }
