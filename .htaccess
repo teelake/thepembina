@@ -1,28 +1,22 @@
+Options -Indexes
+Options -MultiViews
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
-
-    # Prevent directory listing
-    Options -Indexes
 
     # Protect sensitive files
     <FilesMatch "\.(env|ini|log|sql|md)$">
         Require all denied
     </FilesMatch>
 
-    # Route /public assets directly
-    RewriteCond %{REQUEST_URI} ^/public/(.*)$ [NC]
-    RewriteCond %{DOCUMENT_ROOT}/public/%1 -f
-    RewriteRule ^public/(.*)$ public/$1 [L]
+    # Serve existing files/directories as-is
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Remove /public from URLs if someone hits it
-    RewriteCond %{REQUEST_URI} ^/public/(.*)$ [NC]
-    RewriteRule ^public/(.*)$ /$1 [R=301,L]
-
-    # Route everything else to index.php
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [L]
+    # Front controller
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
 # Security headers
@@ -30,33 +24,7 @@
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
-</IfModule>
-# Enable Rewrite Engine
-RewriteEngine On
-
-# Set RewriteBase for subdirectory
-RewriteBase /beta/
-
-# Prevent directory listing
-Options -Indexes
-
-# Protect sensitive files
-<FilesMatch "\.(env|ini|log|sql|md)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Route all requests to index.php (Front Controller Pattern)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
-
-# Security Headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
 # Gzip Compression
