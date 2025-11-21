@@ -7,9 +7,13 @@
  * @author Webspace (https://www.webspace.ng)
  */
 
-// Error reporting (disable in production)
+// Detect environment & configure error reporting
+$env = getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? (function_exists('apache_getenv') ? apache_getenv('APP_ENV') : null)) ?: 'production';
+define('APP_ENV', $env);
+
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // disable debug output
+ini_set('display_errors', APP_ENV === 'development' ? 1 : 0);
+ini_set('display_startup_errors', APP_ENV === 'development' ? 1 : 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php-error.log');
 

@@ -26,14 +26,31 @@ class ProductController extends Controller
     public function view()
     {
         $slug = $this->params['slug'] ?? '';
-        $product = $this->productModel->findBySlug($slug);
-        
-        if (!$product) {
-            Logger::warning('Product slug not found', [
+        error_log(sprintf('[ProductController] Requested slug: %s | URI: %s', $slug ?: '(empty)', $_SERVER['REQUEST_URI'] ?? 'n/a'));
+
+        try {
+            $product = $this->productModel->findBySlug($slug);
+        } catch (\Throwable $e) {
+            error_log(sprintf('[ProductController] Product lookup failed for slug "%s": %s', $slug, $e->getMessage()));
+            Logger::error('Product lookup failed', [
                 'slug' => $slug,
                 'url' => $_SERVER['REQUEST_URI'] ?? null,
+                'trace' => $e->getTraceAsString(),
             ]);
-            throw new \Exception("Product not found", 404);
+            throw $e;
+        }
+        
+        if (!$product) {
+            $context = [
+                'slug' => $slug,
+                'url' => $_SERVER['REQUEST_URI'] ?? null,
+            ];
+            error_log(sprintf('[ProductController] Product slug not found: %s', json_encode($context)));
+            Logger::warning('Product slug not found', $context);
+            
+            http_response_code(404);
+            $this->render('errors/404');
+            return;
         }
 
         // Get product options
@@ -62,6 +79,7 @@ class ProductController extends Controller
         try {
             $this->render('product/view', $data);
         } catch (\Throwable $e) {
+            error_log(sprintf('[ProductController] View rendering failed for slug "%s": %s', $slug, $e->getMessage()));
             Logger::error('Product view rendering failed', [
                 'slug' => $slug,
                 'product_id' => $product['id'] ?? null,

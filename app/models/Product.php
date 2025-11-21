@@ -100,17 +100,22 @@ class Product extends Model
      */
     public function getOptions($productId)
     {
-        $stmt = $this->db->prepare("
-            SELECT o.*, 
-                   GROUP_CONCAT(ov.id, ':', ov.value, ':', ov.price_modifier ORDER BY ov.sort_order SEPARATOR '|') as values
-            FROM product_options o
-            LEFT JOIN product_option_values ov ON o.id = ov.option_id
-            WHERE o.product_id = :product_id
-            GROUP BY o.id
-            ORDER BY o.sort_order
-        ");
-        $stmt->execute(['product_id' => $productId]);
-        $options = $stmt->fetchAll();
+        try {
+            $stmt = $this->db->prepare("
+                SELECT o.*, 
+                       GROUP_CONCAT(ov.id, ':', ov.value, ':', ov.price_modifier ORDER BY ov.sort_order SEPARATOR '|') as values
+                FROM product_options o
+                LEFT JOIN product_option_values ov ON o.id = ov.option_id
+                WHERE o.product_id = :product_id
+                GROUP BY o.id
+                ORDER BY o.sort_order
+            ");
+            $stmt->execute(['product_id' => $productId]);
+            $options = $stmt->fetchAll();
+        } catch (\PDOException $e) {
+            error_log(sprintf('[ProductModel] Failed to load options for product %s: %s', $productId, $e->getMessage()));
+            return [];
+        }
         
         // Parse values
         foreach ($options as &$option) {
