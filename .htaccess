@@ -1,3 +1,36 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Prevent directory listing
+    Options -Indexes
+
+    # Protect sensitive files
+    <FilesMatch "\.(env|ini|log|sql|md)$">
+        Require all denied
+    </FilesMatch>
+
+    # Route /public assets directly
+    RewriteCond %{REQUEST_URI} ^/public/(.*)$ [NC]
+    RewriteCond %{DOCUMENT_ROOT}/public/%1 -f
+    RewriteRule ^public/(.*)$ public/$1 [L]
+
+    # Remove /public from URLs if someone hits it
+    RewriteCond %{REQUEST_URI} ^/public/(.*)$ [NC]
+    RewriteRule ^public/(.*)$ /$1 [R=301,L]
+
+    # Route everything else to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
 # Enable Rewrite Engine
 RewriteEngine On
 
