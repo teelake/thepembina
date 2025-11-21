@@ -38,7 +38,7 @@ $content = ob_start();
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
                             <?php if ($product['image']): ?>
-                                <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" 
+                                <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" 
                                      alt="<?= htmlspecialchars($product['name']) ?>" 
                                      class="w-16 h-16 object-cover rounded">
                             <?php else: ?>

@@ -72,7 +72,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
             <?php foreach ($featuredProducts as $product): ?>
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
                 <?php if ($product['image']): ?>
-                    <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="w-full h-48 object-cover">
+                    <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="w-full h-48 object-cover">
                 <?php else: ?>
                     <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                         <i class="fas fa-utensils text-4xl text-gray-400"></i>
@@ -104,7 +104,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
             <?php foreach ($categories as $category): ?>
             <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($category['slug']) ?>" class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition">
                 <?php if ($category['image']): ?>
-                    <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($category['image']) ?>" alt="<?= htmlspecialchars($category['name']) ?>" class="w-full h-32 object-cover rounded mb-4">
+                    <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($category['image']) ?>" alt="<?= htmlspecialchars($category['name']) ?>" class="w-full h-32 object-cover rounded mb-4">
                 <?php else: ?>
                     <div class="w-full h-32 bg-gray-200 rounded mb-4 flex items-center justify-center">
                         <i class="fas fa-folder text-4xl text-gray-400"></i>

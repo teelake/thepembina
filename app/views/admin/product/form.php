@@ -72,7 +72,7 @@ $content = ob_start();
                     <label class="form-label">Upload Image</label>
                     <input type="file" name="image" accept="image/*" class="form-input" data-preview="image-preview">
                     <?php if (isset($product['image']) && $product['image']): ?>
-                        <img id="image-preview" src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" 
+                        <img id="image-preview" src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" 
                              alt="Current image" class="image-preview">
                     <?php else: ?>
                         <img id="image-preview" src="" alt="Preview" class="image-preview" style="display: none;">

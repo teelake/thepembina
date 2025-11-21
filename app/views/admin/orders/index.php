@@ -1,4 +1,5 @@
 <?php
+use App\Core\Helper;
 $content = ob_start();
 ?>
 
@@ -51,12 +52,12 @@ $hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $
             <option value="refunded" <?= $paymentFilter === 'refunded' ? 'selected' : '' ?>>Refunded</option>
         </select>
     </div>
-    <div class="flex items-end gap-3">
-        <div class="flex-1">
+    <div class="flex flex-col sm:flex-row gap-3">
+        <div class="w-full sm:flex-1">
             <label class="form-label text-xs uppercase">From</label>
             <input type="date" name="from" value="<?= htmlspecialchars($fromFilter) ?>" class="form-input">
         </div>
-        <div class="flex-1">
+        <div class="w-full sm:flex-1">
             <label class="form-label text-xs uppercase">To</label>
             <input type="date" name="to" value="<?= htmlspecialchars($toFilter) ?>" class="form-input">
         </div>

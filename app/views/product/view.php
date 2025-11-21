@@ -21,7 +21,7 @@ $content = ob_start();
             <!-- Product Image -->
             <div class="bg-gray-100 rounded-xl overflow-hidden">
                 <?php if ($product['image']): ?>
-                    <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" 
+                    <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" 
                          alt="<?= htmlspecialchars($product['name']) ?>" 
                          class="w-full h-96 object-cover">
                 <?php else: ?>
@@ -152,7 +152,7 @@ $content = ob_start();
                         <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($related['slug']) ?>" 
                            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-2">
                             <?php if ($related['image']): ?>
-                                <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($related['image']) ?>" 
+                                <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($related['image']) ?>" 
                                      alt="<?= htmlspecialchars($related['name']) ?>" 
                                      class="w-full h-40 object-cover">
                             <?php else: ?>

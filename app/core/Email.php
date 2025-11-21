@@ -18,23 +18,21 @@ class Email
      * @param string $fromName Sender name
      * @return bool
      */
-    public static function send($to, $subject, $message, $fromEmail = null, $fromName = null)
+    public static function send($to, $subject, $message, $fromEmail = null, $fromName = null, array $attachments = [])
     {
         $fromEmail = $fromEmail ?? SMTP_FROM_EMAIL;
         $fromName = $fromName ?? SMTP_FROM_NAME;
         
         // Use PHP mail() function if SMTP not configured
         if (empty(SMTP_HOST) || empty(SMTP_USER)) {
-            $headers = "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-            $headers .= "From: {$fromName} <{$fromEmail}>\r\n";
-            $headers .= "Reply-To: {$fromEmail}\r\n";
-            
-            return mail($to, $subject, $message, $headers);
+            $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments);
+            $body = self::buildBody($message, $attachments, $headerData['boundary']);
+            $headerString = $headerData['headers'];
+            return mail($to, $subject, $body, $headerString);
         }
         
         // Use SMTP if configured
-        return self::sendSMTP($to, $subject, $message, $fromEmail, $fromName);
+        return self::sendSMTP($to, $subject, $message, $fromEmail, $fromName, $attachments);
     }
     
     /**
@@ -47,7 +45,7 @@ class Email
      * @param string $fromName
      * @return bool
      */
-    private static function sendSMTP($to, $subject, $message, $fromEmail, $fromName)
+    private static function sendSMTP($to, $subject, $message, $fromEmail, $fromName, array $attachments = [])
     {
         // Simple SMTP implementation using socket
         // For production, consider using PHPMailer or SwiftMailer
@@ -102,17 +100,12 @@ class Email
         fputs($smtp, "DATA\r\n");
         $response = fgets($smtp, 515);
         
-        // Headers and body
-        $emailData = "From: {$fromName} <{$fromEmail}>\r\n";
-        $emailData .= "To: {$to}\r\n";
-        $emailData .= "Subject: {$subject}\r\n";
-        $emailData .= "MIME-Version: 1.0\r\n";
-        $emailData .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $emailData .= "\r\n";
-        $emailData .= $message . "\r\n";
-        $emailData .= ".\r\n";
-        
-        fputs($smtp, $emailData);
+        $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments, $to, $subject);
+        $body = self::buildBody($message, $attachments, $headerData['boundary']);
+        $payload  = $headerData['smtp_headers'];
+        $payload .= "\r\n" . $body . "\r\n.\r\n";
+
+        fputs($smtp, $payload);
         $response = fgets($smtp, 515);
         
         // Quit
@@ -173,6 +166,63 @@ class Email
         ";
         
         return self::send($order['email'], $subject, $message);
+    }
+
+    private static function buildMailHeaders(string $fromName, string $fromEmail, array $attachments, string $to = '', string $subject = ''): array
+    {
+        $boundary = '=_Boundary_' . md5((string)microtime(true));
+        $headers = "From: {$fromName} <{$fromEmail}>\r\n";
+        $headers .= "Reply-To: {$fromEmail}\r\n";
+        if (!empty($attachments)) {
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
+        } else {
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        }
+
+        $smtpHeaders = "From: {$fromName} <{$fromEmail}>\r\n";
+        $smtpHeaders .= "To: {$to}\r\n";
+        $smtpHeaders .= "Subject: {$subject}\r\n";
+        if (!empty($attachments)) {
+            $smtpHeaders .= "MIME-Version: 1.0\r\n";
+            $smtpHeaders .= "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n";
+        } else {
+            $smtpHeaders .= "MIME-Version: 1.0\r\n";
+            $smtpHeaders .= "Content-Type: text/html; charset=UTF-8\r\n";
+        }
+
+        return [
+            'headers' => $headers,
+            'smtp_headers' => $smtpHeaders,
+            'boundary' => !empty($attachments) ? $boundary : null
+        ];
+    }
+
+    private static function buildBody(string $message, array $attachments, ?string $boundary): string
+    {
+        if (empty($attachments)) {
+            return $message;
+        }
+
+        $body = "--{$boundary}\r\n";
+        $body .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $body .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+        $body .= $message . "\r\n";
+
+        foreach ($attachments as $attachment) {
+            $filename = $attachment['name'] ?? 'attachment.pdf';
+            $type = $attachment['type'] ?? 'application/octet-stream';
+            $content = $attachment['content'] ?? '';
+            $body .= "--{$boundary}\r\n";
+            $body .= "Content-Type: {$type}; name=\"{$filename}\"\r\n";
+            $body .= "Content-Disposition: attachment; filename=\"{$filename}\"\r\n";
+            $body .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $body .= chunk_split(base64_encode($content)) . "\r\n";
+        }
+
+        $body .= "--{$boundary}--";
+        return $body;
     }
 }
 

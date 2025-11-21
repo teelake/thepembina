@@ -4,10 +4,11 @@ namespace App\Services;
 
 class SimplePdf
 {
-    private $lines = [];
+    private $elements = [];
     private $cursorY;
     private $pageWidth = 612;  // 8.5in
     private $pageHeight = 792; // 11in
+    private $images = [];
 
     public function __construct()
     {
@@ -16,7 +17,8 @@ class SimplePdf
 
     public function addLine(string $text, int $fontSize = 12, int $x = 40): void
     {
-        $this->lines[] = [
+        $this->elements[] = [
+            'type' => 'text',
             'text' => $text,
             'font' => $fontSize,
             'x' => $x,
@@ -28,6 +30,81 @@ class SimplePdf
     public function addSpacing(int $amount = 10): void
     {
         $this->cursorY -= $amount;
+    }
+
+    public function setCursor(int $y): void
+    {
+        $this->cursorY = $y;
+    }
+
+    public function getCursor(): int
+    {
+        return $this->cursorY;
+    }
+
+    public function addImage(string $path, int $x = 40, int $y = null, int $displayWidth = 120): void
+    {
+        if (!file_exists($path) || !is_readable($path)) {
+            return;
+        }
+
+        $info = @getimagesize($path);
+        if (!$info) {
+            return;
+        }
+        [$widthPx, $heightPx, $type] = $info;
+        $data = @file_get_contents($path);
+        if ($data === false) {
+            return;
+        }
+
+        $jpegData = $this->convertToJpeg($data, $type);
+        if (!$jpegData) {
+            return;
+        }
+
+        $ratio = $heightPx / $widthPx;
+        $displayHeight = $displayWidth * $ratio;
+        $imageName = 'Im' . (count($this->images) + 1);
+
+        $this->images[] = [
+            'name' => $imageName,
+            'data' => $jpegData,
+            'width_px' => $widthPx,
+            'height_px' => $heightPx
+        ];
+
+        $this->elements[] = [
+            'type' => 'image',
+            'name' => $imageName,
+            'x' => $x,
+            'y' => $y === null ? $this->cursorY : $y,
+            'width' => $displayWidth,
+            'height' => $displayHeight
+        ];
+
+        if ($y === null) {
+            $this->cursorY -= $displayHeight + 10;
+        }
+    }
+
+    private function convertToJpeg(string $data, int $type): ?string
+    {
+        if (!function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
+        $image = @imagecreatefromstring($data);
+        if (!$image) {
+            return null;
+        }
+
+        ob_start();
+        imagejpeg($image, null, 90);
+        $jpegData = ob_get_clean();
+        imagedestroy($image);
+
+        return $jpegData;
     }
 
     private function escape(string $text): string
@@ -42,30 +119,70 @@ class SimplePdf
     private function buildContentStream(): string
     {
         $stream = '';
-        foreach ($this->lines as $line) {
-            $stream .= sprintf(
-                "BT /F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj ET\n",
-                $line['font'],
-                $line['x'],
-                $line['y'],
-                $this->escape($line['text'])
-            );
+        foreach ($this->elements as $element) {
+            if ($element['type'] === 'text') {
+                $stream .= sprintf(
+                    "BT /F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj ET\n",
+                    $element['font'],
+                    $element['x'],
+                    $element['y'],
+                    $this->escape($element['text'])
+                );
+            } elseif ($element['type'] === 'image') {
+                $drawY = $element['y'] - $element['height'];
+                $stream .= sprintf(
+                    "q %.2F 0 0 %.2F %.2F %.2F cm /%s Do Q\n",
+                    $element['width'],
+                    $element['height'],
+                    $element['x'],
+                    $drawY,
+                    $element['name']
+                );
+            }
         }
         return $stream;
     }
 
     public function output(): string
     {
-        $objects = [];
         $contentStream = $this->buildContentStream();
+        $objects = [];
+
         $objects[] = '<< /Type /Catalog /Pages 2 0 R >>';
         $objects[] = '<< /Type /Pages /Count 1 /Kids [3 0 R] >>';
+
+        $resource = '<< /Font << /F1 4 0 R >>';
+        if (!empty($this->images)) {
+            $resource .= ' /XObject << ';
+            foreach ($this->images as $index => $image) {
+                $resource .= '/' . $image['name'] . ' ' . (5 + $index) . ' 0 R ';
+            }
+            $resource .= '>>';
+        }
+        $resource .= ' >>';
+
+        $contentObjectNumber = 5 + count($this->images);
+
         $objects[] = sprintf(
-            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] /Resources %s /Contents %d 0 R >>',
             $this->pageWidth,
-            $this->pageHeight
+            $this->pageHeight,
+            $resource,
+            $contentObjectNumber
         );
+
         $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+
+        foreach ($this->images as $image) {
+            $objects[] = sprintf(
+                "<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >>\nstream\n%s\nendstream",
+                $image['width_px'],
+                $image['height_px'],
+                strlen($image['data']),
+                $image['data']
+            );
+        }
+
         $objects[] = '<< /Length ' . strlen($contentStream) . " >>\nstream\n" . $contentStream . "endstream";
 
         $pdf = "%PDF-1.4\n";

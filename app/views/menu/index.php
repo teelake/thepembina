@@ -30,7 +30,7 @@ $content = ob_start();
             <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
                 <?php if ($product['image']): ?>
                     <div class="relative h-48 overflow-hidden">
-                        <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" 
+                        <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" 
                              alt="<?= htmlspecialchars($product['name']) ?>" 
                              class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                         <div class="absolute top-2 right-2 bg-brand text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -77,7 +77,7 @@ $content = ob_start();
                class="group bg-white rounded-xl shadow-md p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-brand">
                 <?php if ($category['image']): ?>
                     <div class="mb-4 overflow-hidden rounded-lg">
-                        <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($category['image']) ?>" 
+                        <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($category['image']) ?>" 
                              alt="<?= htmlspecialchars($category['name']) ?>" 
                              class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300">
                     </div>

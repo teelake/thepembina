@@ -31,7 +31,7 @@ $content = ob_start();
                 <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
                     <?php if ($product['image']): ?>
                         <div class="relative h-48 overflow-hidden">
-                            <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($product['image']) ?>" 
+                            <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>"
                                  alt="<?= htmlspecialchars($product['name']) ?>" 
                                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                             <?php if ($product['is_featured']): ?>

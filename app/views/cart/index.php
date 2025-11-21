@@ -16,7 +16,7 @@ $content = ob_start();
                             <?php foreach ($items as $item): ?>
                                 <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition" data-cart-id="<?= $item['id'] ?>">
                                     <?php if ($item['image']): ?>
-                                        <img src="<?= BASE_URL ?>/public/uploads/<?= htmlspecialchars($item['image']) ?>" 
+                                        <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($item['image']) ?>" 
                                              alt="<?= htmlspecialchars($item['name']) ?>" 
                                              class="w-20 h-20 object-cover rounded-lg">
                                     <?php else: ?>
