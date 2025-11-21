@@ -8,7 +8,7 @@ $content = ob_start();
     <h1 class="text-3xl font-bold mb-6"><?= $isEdit ? 'Edit' : 'Create' ?> Page</h1>
     
     <form method="POST" action="<?= BASE_URL ?>/admin/pages<?= $isEdit ? '/' . $pageData['id'] : '' ?>" data-validate>
-        <?= $this->csrf->getTokenField() ?>
+        <?= $csrfField ?? '' ?>
         
         <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
             <div class="form-group">

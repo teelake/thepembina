@@ -25,7 +25,8 @@ class PageController extends Controller
             'pages' => $pages,
             'page_title' => 'Pages',
             'current_page' => 'pages',
-            'use_tinymce' => true
+            'use_tinymce' => true,
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 
@@ -34,7 +35,8 @@ class PageController extends Controller
         $this->render('admin/pages/form', [
             'page_title' => 'Create Page',
             'current_page' => 'pages',
-            'use_tinymce' => true
+            'use_tinymce' => true,
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 
@@ -80,7 +82,8 @@ class PageController extends Controller
             'pageData' => $page,
             'page_title' => 'Edit Page',
             'current_page' => 'pages',
-            'use_tinymce' => true
+            'use_tinymce' => true,
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 

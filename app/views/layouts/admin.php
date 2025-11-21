@@ -108,6 +108,20 @@
                         <p class="px-4 text-xs font-semibold text-gray-500 uppercase">Management</p>
                     </li>
                     <li>
+                        <a href="<?= BASE_URL ?>/admin/roles" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'roles') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-user-shield w-5 mr-3"></i>
+                            <span>Roles</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/permissions" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'permissions') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-key w-5 mr-3"></i>
+                            <span>Permissions</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?= BASE_URL ?>/admin/users" 
                            class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'users') ? 'bg-brand text-white' : 'text-gray-700' ?>">
                             <i class="fas fa-users w-5 mr-3"></i>

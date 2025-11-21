@@ -94,6 +94,18 @@ $router->add('POST', 'admin/users', ['controller' => 'Admin\User', 'action' => '
 $router->add('GET', 'admin/users/{id}/edit', ['controller' => 'Admin\User', 'action' => 'edit']);
 $router->add('POST', 'admin/users/{id}', ['controller' => 'Admin\User', 'action' => 'update']);
 $router->add('POST', 'admin/users/{id}/delete', ['controller' => 'Admin\User', 'action' => 'delete']);
+$router->add('GET', 'admin/roles', ['controller' => 'Admin\Role', 'action' => 'index']);
+$router->add('GET', 'admin/roles/create', ['controller' => 'Admin\Role', 'action' => 'create']);
+$router->add('POST', 'admin/roles', ['controller' => 'Admin\Role', 'action' => 'store']);
+$router->add('GET', 'admin/roles/{id}/edit', ['controller' => 'Admin\Role', 'action' => 'edit']);
+$router->add('POST', 'admin/roles/{id}', ['controller' => 'Admin\Role', 'action' => 'update']);
+$router->add('POST', 'admin/roles/{id}/delete', ['controller' => 'Admin\Role', 'action' => 'delete']);
+$router->add('GET', 'admin/permissions', ['controller' => 'Admin\Permission', 'action' => 'index']);
+$router->add('GET', 'admin/permissions/create', ['controller' => 'Admin\Permission', 'action' => 'create']);
+$router->add('POST', 'admin/permissions', ['controller' => 'Admin\Permission', 'action' => 'store']);
+$router->add('GET', 'admin/permissions/{id}/edit', ['controller' => 'Admin\Permission', 'action' => 'edit']);
+$router->add('POST', 'admin/permissions/{id}', ['controller' => 'Admin\Permission', 'action' => 'update']);
+$router->add('POST', 'admin/permissions/{id}/delete', ['controller' => 'Admin\Permission', 'action' => 'delete']);
 
 // Admin - Pages
 $router->add('GET', 'admin/pages', ['controller' => 'Admin\Page', 'action' => 'index']);

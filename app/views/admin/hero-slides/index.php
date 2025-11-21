@@ -58,7 +58,7 @@ $content = ob_start();
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" action="<?= BASE_URL ?>/admin/hero-slides/<?= $slide['id'] ?>/delete" class="inline" data-confirm-delete>
-                                <?= $this->csrf->getTokenField() ?>
+                                <?= $csrfField ?? '' ?>
                                 <button type="submit" class="text-red-600 hover:text-red-800">
                                     <i class="fas fa-trash"></i>
                                 </button>

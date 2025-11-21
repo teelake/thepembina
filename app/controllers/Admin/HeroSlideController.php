@@ -28,7 +28,8 @@ class HeroSlideController extends Controller
         $this->render('admin/hero-slides/index', [
             'slides' => $slides,
             'page_title' => 'Hero Slider',
-            'current_page' => 'hero_slides'
+            'current_page' => 'hero_slides',
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 
@@ -36,7 +37,8 @@ class HeroSlideController extends Controller
     {
         $this->render('admin/hero-slides/form', [
             'page_title' => 'Create Hero Slide',
-            'current_page' => 'hero_slides'
+            'current_page' => 'hero_slides',
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 
@@ -84,7 +86,8 @@ class HeroSlideController extends Controller
         $this->render('admin/hero-slides/form', [
             'slide' => $slide,
             'page_title' => 'Edit Hero Slide',
-            'current_page' => 'hero_slides'
+            'current_page' => 'hero_slides',
+            'csrfField' => $this->csrf->getTokenField()
         ]);
     }
 

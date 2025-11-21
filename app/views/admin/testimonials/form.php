@@ -8,7 +8,7 @@ $content = ob_start();
     <h1 class="text-3xl font-bold mb-6"><?= $isEdit ? 'Edit' : 'Add' ?> Testimonial</h1>
     
     <form method="POST" action="<?= BASE_URL ?>/admin/testimonials<?= $isEdit ? '/' . $testimonial['id'] : '' ?>" data-validate>
-        <?= $this->csrf->getTokenField() ?>
+        <?= $csrfField ?? '' ?>
         
         <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -73,7 +73,7 @@ $content = ob_start();
     <h1 class="text-3xl font-bold mb-6"><?= $isEdit ? 'Edit' : 'Create' ?> Testimonial</h1>
     
     <form method="POST" action="<?= BASE_URL ?>/admin/testimonials<?= $isEdit ? '/' . $testimonial['id'] : '' ?>" data-validate>
-        <?= $this->csrf->getTokenField() ?>
+        <?= $csrfField ?? '' ?>
         
         <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
