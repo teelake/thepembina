@@ -20,8 +20,8 @@ $hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $
     <?php endif; ?>
 </div>
 
-<form method="GET" class="bg-white rounded-lg shadow-md p-6 mb-6 grid grid-cols-1 lg:grid-cols-5 gap-4">
-    <div>
+<form method="GET" class="bg-white rounded-lg shadow-md p-6 mb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+    <div class="xl:col-span-2">
         <label class="form-label text-xs uppercase">Search</label>
         <input type="text" name="keyword" value="<?= htmlspecialchars($keyword) ?>" placeholder="Order # or email" class="form-input">
     </div>
@@ -52,18 +52,18 @@ $hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $
             <option value="refunded" <?= $paymentFilter === 'refunded' ? 'selected' : '' ?>>Refunded</option>
         </select>
     </div>
-    <div class="flex flex-col sm:flex-row gap-3">
-        <div class="w-full sm:flex-1">
+    <div class="flex flex-col gap-3 xl:col-span-2 xl:flex-row">
+        <div class="flex-1">
             <label class="form-label text-xs uppercase">From</label>
             <input type="date" name="from" value="<?= htmlspecialchars($fromFilter) ?>" class="form-input">
         </div>
-        <div class="w-full sm:flex-1">
+        <div class="flex-1">
             <label class="form-label text-xs uppercase">To</label>
             <input type="date" name="to" value="<?= htmlspecialchars($toFilter) ?>" class="form-input">
         </div>
     </div>
-    <div class="lg:col-span-5 flex justify-end gap-3">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-filter mr-2"></i>Filter</button>
+    <div class="xl:col-span-6 flex justify-end">
+        <button type="submit" class="btn btn-primary w-full md:w-auto"><i class="fas fa-filter mr-2"></i>Filter</button>
     </div>
 </form>
 
