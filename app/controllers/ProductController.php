@@ -7,6 +7,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Logger;
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -28,6 +29,10 @@ class ProductController extends Controller
         $product = $this->productModel->findBySlug($slug);
         
         if (!$product) {
+            Logger::warning('Product slug not found', [
+                'slug' => $slug,
+                'url' => $_SERVER['REQUEST_URI'] ?? null,
+            ]);
             throw new \Exception("Product not found", 404);
         }
 
@@ -57,13 +62,12 @@ class ProductController extends Controller
         try {
             $this->render('product/view', $data);
         } catch (\Throwable $e) {
-            error_log(sprintf(
-                '[ProductController] View error for slug "%s" (ID: %s): %s' . PHP_EOL . '%s',
-                $slug,
-                $product['id'] ?? 'n/a',
-                $e->getMessage(),
-                $e->getTraceAsString()
-            ));
+            Logger::error('Product view rendering failed', [
+                'slug' => $slug,
+                'product_id' => $product['id'] ?? null,
+                'url' => $_SERVER['REQUEST_URI'] ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
             throw $e;
         }
     }

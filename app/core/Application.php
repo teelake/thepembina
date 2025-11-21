@@ -72,6 +72,13 @@ class Application
     {
         $code = $e->getCode() ?: 500;
         http_response_code($code);
+
+        Logger::error('Application exception', [
+            'code' => $code,
+            'message' => $e->getMessage(),
+            'url' => $_SERVER['REQUEST_URI'] ?? null,
+            'trace' => $e->getTraceAsString(),
+        ]);
         
         if (APP_ENV === 'development') {
             echo "<h1>Error {$code}</h1>";
