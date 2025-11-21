@@ -50,7 +50,8 @@ class ProductController extends Controller
             'options' => $options,
             'relatedProducts' => $relatedProducts,
             'page_title' => $product['name'],
-            'meta_description' => $product['meta_description'] ?? $product['short_description'] ?? ''
+            'meta_description' => $product['meta_description'] ?? $product['short_description'] ?? '',
+            'csrfField' => $this->csrf->getTokenField()
         ];
 
         $this->render('product/view', $data);

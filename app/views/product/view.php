@@ -112,7 +112,7 @@ $content = ob_start();
 
                 <!-- Add to Cart Form -->
                 <form id="add-to-cart-form" class="mb-6">
-                    <?= $this->csrf->getTokenField() ?>
+                    <?= $csrfField ?? '' ?>
                     <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                     
                     <div class="flex items-center gap-4 mb-4">
