@@ -11,9 +11,8 @@ class NewsletterSubscriber extends Model
 {
     protected $table = 'newsletter_subscribers';
 
-    public function createSubscriber($data)
+    public function createSubscriber(array $data)
     {
-        // Avoid duplicates
         $existing = $this->findByEmail($data['email']);
         if ($existing) {
             return $existing['id'];
@@ -21,35 +20,18 @@ class NewsletterSubscriber extends Model
         return $this->create($data);
     }
 
-    public function findByEmail($email)
-    {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
-        return $stmt->fetch();
-    }
-}
-
-<?php
-/**
- * Newsletter Subscriber Model
- */
-
-namespace App\Models;
-
-use App\Core\Model;
-
-class NewsletterSubscriber extends Model
-{
-    protected $table = 'newsletter_subscribers';
-
     public function subscribe($email, $name = null)
     {
         $existing = $this->findByEmail($email);
         if ($existing) {
             if ($existing['status'] === 'active') {
-                return true;
+                return $existing['id'];
             }
-            return $this->update($existing['id'], ['status' => 'active', 'name' => $name]);
+            $this->update($existing['id'], [
+                'status' => 'active',
+                'name' => $name ?? $existing['name']
+            ]);
+            return $existing['id'];
         }
         return $this->create([
             'email' => $email,

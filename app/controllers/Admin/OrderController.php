@@ -22,13 +22,23 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = $this->orderModel->findAll([], 'created_at DESC', 50);
+        $filters = [
+            'status' => $this->get('status'),
+            'order_type' => $this->get('order_type'),
+            'payment_status' => $this->get('payment_status'),
+            'from' => $this->get('from'),
+            'to' => $this->get('to'),
+            'keyword' => $this->get('keyword')
+        ];
+
+        $orders = $this->orderModel->filter($filters, 'created_at DESC', 50);
 
         $this->render('admin/orders/index', [
             'orders' => $orders,
             'page_title' => 'Orders',
             'current_page' => 'orders',
-            'csrfField' => $this->csrf->getTokenField()
+            'csrfField' => $this->csrf->getTokenField(),
+            'filters' => $filters
         ]);
     }
 
@@ -94,6 +104,58 @@ class OrderController extends Controller
         header('Content-Length: ' . strlen($pdf));
         echo $pdf;
         exit;
+    }
+
+    public function emailReceipt()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/orders');
+            return;
+        }
+
+        $id = (int)($this->params['id'] ?? 0);
+        $order = $this->orderModel->getWithItems($id);
+        if (!$order) {
+            $this->redirect('/admin/orders?error=Order not found');
+            return;
+        }
+        if (empty($order['email'])) {
+            $this->redirect("/admin/orders/{$id}?error=Order has no email address");
+            return;
+        }
+
+        if (!$this->verifyCSRF()) {
+            $this->redirect("/admin/orders/{$id}?error=Invalid security token");
+            return;
+        }
+
+        $payments = $this->paymentModel->getByOrder($id);
+        $service = new ReceiptService();
+        $pdf = $service->generate($order, $payments);
+        $filename = $service->getFilename($order);
+
+        $message = "<p>Hello,</p>";
+        $message .= "<p>Please find attached the receipt for order <strong>{$order['order_number']}</strong>.</p>";
+        $message .= "<p>Thank you for choosing " . BUSINESS_NAME . ".</p>";
+
+        $sent = \App\Core\Email::send(
+            $order['email'],
+            'Your Receipt - ' . $order['order_number'],
+            $message,
+            null,
+            null,
+            [[
+                'name' => $filename,
+                'content' => $pdf,
+                'type' => 'application/pdf'
+            ]]
+        );
+
+        if ($sent) {
+            $this->redirect("/admin/orders/{$id}?success=Receipt emailed to {$order['email']}");
+        }
+
+        $this->redirect("/admin/orders/{$id}?error=Unable to send receipt email");
     }
 }
 

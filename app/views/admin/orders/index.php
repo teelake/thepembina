@@ -2,9 +2,69 @@
 $content = ob_start();
 ?>
 
+<?php
+$statusFilter = $filters['status'] ?? '';
+$typeFilter = $filters['order_type'] ?? '';
+$paymentFilter = $filters['payment_status'] ?? '';
+$fromFilter = $filters['from'] ?? '';
+$toFilter = $filters['to'] ?? '';
+$keyword = $filters['keyword'] ?? '';
+$hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $toFilter || $keyword;
+?>
+
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Orders</h1>
+    <?php if ($hasFilters): ?>
+        <a href="<?= BASE_URL ?>/admin/orders" class="text-sm text-brand hover:text-brand-dark">Clear filters</a>
+    <?php endif; ?>
 </div>
+
+<form method="GET" class="bg-white rounded-lg shadow-md p-6 mb-6 grid grid-cols-1 lg:grid-cols-5 gap-4">
+    <div>
+        <label class="form-label text-xs uppercase">Search</label>
+        <input type="text" name="keyword" value="<?= htmlspecialchars($keyword) ?>" placeholder="Order # or email" class="form-input">
+    </div>
+    <div>
+        <label class="form-label text-xs uppercase">Status</label>
+        <select name="status" class="form-select">
+            <option value="">All</option>
+            <?php foreach (['pending','processing','confirmed','preparing','ready','out_for_delivery','delivered','cancelled','refunded'] as $status): ?>
+                <option value="<?= $status ?>" <?= $statusFilter === $status ? 'selected' : '' ?>><?= ucfirst(str_replace('_',' ', $status)) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div>
+        <label class="form-label text-xs uppercase">Order Type</label>
+        <select name="order_type" class="form-select">
+            <option value="">All</option>
+            <option value="pickup" <?= $typeFilter === 'pickup' ? 'selected' : '' ?>>Pickup</option>
+            <option value="delivery" <?= $typeFilter === 'delivery' ? 'selected' : '' ?>>Delivery</option>
+        </select>
+    </div>
+    <div>
+        <label class="form-label text-xs uppercase">Payment Status</label>
+        <select name="payment_status" class="form-select">
+            <option value="">All</option>
+            <option value="paid" <?= $paymentFilter === 'paid' ? 'selected' : '' ?>>Paid</option>
+            <option value="pending" <?= $paymentFilter === 'pending' ? 'selected' : '' ?>>Pending</option>
+            <option value="failed" <?= $paymentFilter === 'failed' ? 'selected' : '' ?>>Failed</option>
+            <option value="refunded" <?= $paymentFilter === 'refunded' ? 'selected' : '' ?>>Refunded</option>
+        </select>
+    </div>
+    <div class="flex items-end gap-3">
+        <div class="flex-1">
+            <label class="form-label text-xs uppercase">From</label>
+            <input type="date" name="from" value="<?= htmlspecialchars($fromFilter) ?>" class="form-input">
+        </div>
+        <div class="flex-1">
+            <label class="form-label text-xs uppercase">To</label>
+            <input type="date" name="to" value="<?= htmlspecialchars($toFilter) ?>" class="form-input">
+        </div>
+    </div>
+    <div class="lg:col-span-5 flex justify-end gap-3">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter mr-2"></i>Filter</button>
+    </div>
+</form>
 
 <?php if (!empty($_GET['success'])): ?>
     <div class="alert alert-success"><?= htmlspecialchars($_GET['success']) ?></div>
@@ -42,11 +102,17 @@ $content = ob_start();
                         </td>
                         <td class="px-4 py-4 font-semibold text-brand"><?= Helper::formatCurrency($order['total']) ?></td>
                         <td class="px-4 py-4 text-sm text-gray-500"><?= date('M d, Y g:i A', strtotime($order['created_at'])) ?></td>
-                        <td class="px-4 py-4 text-right space-x-4">
+                        <td class="px-4 py-4 text-right space-x-3">
                             <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" class="text-brand hover:text-brand-dark font-semibold">View</a>
                             <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" class="text-red-600 hover:text-red-800" target="_blank" title="Download receipt">
                                 <i class="fas fa-file-pdf"></i>
                             </a>
+                            <form method="POST" action="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/email-receipt" class="inline" data-confirm="Send receipt to <?= htmlspecialchars($order['email']) ?>?">
+                                <?= $csrfField ?? '' ?>
+                                <button type="submit" class="text-brand hover:text-brand-dark" title="Email receipt">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

@@ -126,5 +126,56 @@ class Order extends Model
     {
         return $this->update($id, ['status' => $status]);
     }
+
+    public function filter(array $filters = [], $orderBy = 'created_at DESC', $limit = null, $offset = null)
+    {
+        $sql = "SELECT * FROM {$this->table}";
+        $conditions = [];
+        $params = [];
+
+        if (!empty($filters['status'])) {
+            $conditions[] = 'status = :status';
+            $params['status'] = $filters['status'];
+        }
+        if (!empty($filters['order_type'])) {
+            $conditions[] = 'order_type = :order_type';
+            $params['order_type'] = $filters['order_type'];
+        }
+        if (!empty($filters['payment_status'])) {
+            $conditions[] = 'payment_status = :payment_status';
+            $params['payment_status'] = $filters['payment_status'];
+        }
+        if (!empty($filters['from'])) {
+            $conditions[] = 'DATE(created_at) >= :from_date';
+            $params['from_date'] = $filters['from'];
+        }
+        if (!empty($filters['to'])) {
+            $conditions[] = 'DATE(created_at) <= :to_date';
+            $params['to_date'] = $filters['to'];
+        }
+        if (!empty($filters['keyword'])) {
+            $conditions[] = '(order_number LIKE :keyword OR email LIKE :keyword)';
+            $params['keyword'] = '%' . $filters['keyword'] . '%';
+        }
+
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        if ($orderBy) {
+            $sql .= " ORDER BY {$orderBy}";
+        }
+
+        if ($limit) {
+            $sql .= " LIMIT {$limit}";
+            if ($offset) {
+                $sql .= " OFFSET {$offset}";
+            }
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }
 

@@ -72,20 +72,26 @@ class SettingController extends Controller
         }
 
         $fields = [
+            'payment_default_gateway',
             'payment_square_enabled',
             'payment_square_app_id',
             'payment_square_access_token',
             'payment_square_location_id',
-            'payment_square_sandbox'
+            'payment_square_sandbox',
+            'payment_paystack_enabled',
+            'payment_paystack_public_key',
+            'payment_paystack_secret_key',
+            'payment_paystack_merchant_email'
         ];
         foreach ($fields as $field) {
-            if (isset($_POST[$field])) {
-                $value = $_POST[$field];
-                if (in_array($field, ['payment_square_enabled','payment_square_sandbox'])) {
-                    $value = $value === '1' ? '1' : '0';
-                }
-                $this->settingModel->updateSetting($field, $value);
+            $value = $_POST[$field] ?? null;
+            if ($value === null) {
+                continue;
             }
+            if (in_array($field, ['payment_square_enabled','payment_square_sandbox','payment_paystack_enabled'])) {
+                $value = $value === '1' ? '1' : '0';
+            }
+            $this->settingModel->updateSetting($field, $value);
         }
         $this->redirect('/admin/settings/payment?success=Payment settings updated');
     }

@@ -26,6 +26,25 @@ class DashboardController extends Controller
     {
         $db = Database::getInstance()->getConnection();
         
+        $rangeParam = $this->get('range', '12m');
+        $rangeOptions = [
+            '7d' => ['label' => '7 Days', 'interval' => 'day', 'length' => 7],
+            '30d' => ['label' => '30 Days', 'interval' => 'day', 'length' => 30],
+            '90d' => ['label' => '90 Days', 'interval' => 'day', 'length' => 90],
+            '12m' => ['label' => '12 Months', 'interval' => 'month', 'length' => 12],
+        ];
+        if (!isset($rangeOptions[$rangeParam])) {
+            $rangeParam = '12m';
+        }
+        $rangeConfig = $rangeOptions[$rangeParam];
+
+        $endDate = new \DateTimeImmutable('today 23:59:59');
+        if ($rangeConfig['interval'] === 'day') {
+            $startDate = $endDate->modify('-' . ($rangeConfig['length'] - 1) . ' days')->setTime(0, 0, 0);
+        } else {
+            $startDate = $endDate->modify('first day of this month')->modify('-' . ($rangeConfig['length'] - 1) . ' months')->setTime(0, 0, 0);
+        }
+
         // Get statistics
         $stats = [
             'total_orders' => (int)$db->query("SELECT COUNT(*) FROM orders")->fetchColumn(),
@@ -52,21 +71,37 @@ class DashboardController extends Controller
             LIMIT 5
         ")->fetchAll();
 
-        // Trend data (last 12 months)
-        $trendRows = $db->query("
-            SELECT DATE_FORMAT(created_at, '%Y-%m') as month_key,
-                   DATE_FORMAT(created_at, '%b %Y') as month_label,
-                   SUM(total) as revenue,
-                   COUNT(*) as orders
-            FROM orders
-            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
-            GROUP BY month_key, month_label
-        ")->fetchAll();
+        // Trend data by selected range
+        if ($rangeConfig['interval'] === 'day') {
+            $trendStmt = $db->prepare("
+                SELECT DATE(created_at) as bucket,
+                       SUM(total) as revenue,
+                       COUNT(*) as orders
+                FROM orders
+                WHERE created_at BETWEEN :start AND :end
+                GROUP BY bucket
+                ORDER BY bucket
+            ");
+        } else {
+            $trendStmt = $db->prepare("
+                SELECT DATE_FORMAT(created_at, '%Y-%m') as bucket,
+                       SUM(total) as revenue,
+                       COUNT(*) as orders
+                FROM orders
+                WHERE created_at BETWEEN :start AND :end
+                GROUP BY bucket
+                ORDER BY bucket
+            ");
+        }
+        $trendStmt->execute([
+            'start' => $startDate->format('Y-m-d H:i:s'),
+            'end' => $endDate->format('Y-m-d H:i:s')
+        ]);
+        $trendRows = $trendStmt->fetchAll();
 
         $trendMap = [];
         foreach ($trendRows as $row) {
-            $trendMap[$row['month_key']] = [
-                'label' => $row['month_label'],
+            $trendMap[$row['bucket']] = [
                 'revenue' => (float)$row['revenue'],
                 'orders' => (int)$row['orders']
             ];
@@ -75,20 +110,39 @@ class DashboardController extends Controller
         $labels = [];
         $revenuePoints = [];
         $orderPoints = [];
-        $current = new \DateTimeImmutable('first day of this month');
-        for ($i = 11; $i >= 0; $i--) {
-            $month = $current->modify("-{$i} months");
-            $key = $month->format('Y-m');
-            $labels[] = $month->format('M Y');
-            $revenuePoints[] = isset($trendMap[$key]) ? round($trendMap[$key]['revenue'], 2) : 0;
-            $orderPoints[] = isset($trendMap[$key]) ? $trendMap[$key]['orders'] : 0;
+        if ($rangeConfig['interval'] === 'day') {
+            $period = new \DatePeriod($startDate, new \DateInterval('P1D'), $endDate->modify('+1 day'));
+            foreach ($period as $date) {
+                $key = $date->format('Y-m-d');
+                $labels[] = $date->format('M d');
+                $revenuePoints[] = isset($trendMap[$key]) ? round($trendMap[$key]['revenue'], 2) : 0;
+                $orderPoints[] = isset($trendMap[$key]) ? $trendMap[$key]['orders'] : 0;
+            }
+        } else {
+            $period = [];
+            $current = $startDate;
+            for ($i = 0; $i < $rangeConfig['length']; $i++) {
+                $period[] = $current->modify("+{$i} months");
+            }
+            foreach ($period as $month) {
+                $key = $month->format('Y-m');
+                $labels[] = $month->format('M Y');
+                $revenuePoints[] = isset($trendMap[$key]) ? round($trendMap[$key]['revenue'], 2) : 0;
+                $orderPoints[] = isset($trendMap[$key]) ? $trendMap[$key]['orders'] : 0;
+            }
         }
 
-        $orderTypeRows = $db->query("
+        $orderTypeStmt = $db->prepare("
             SELECT order_type, COUNT(*) as total
             FROM orders
+            WHERE created_at BETWEEN :start AND :end
             GROUP BY order_type
-        ")->fetchAll();
+        ");
+        $orderTypeStmt->execute([
+            'start' => $startDate->format('Y-m-d H:i:s'),
+            'end' => $endDate->format('Y-m-d H:i:s')
+        ]);
+        $orderTypeRows = $orderTypeStmt->fetchAll();
 
         $orderTypeLabels = [];
         $orderTypeCounts = [];
@@ -102,7 +156,9 @@ class DashboardController extends Controller
             'revenue' => $revenuePoints,
             'orders' => $orderPoints,
             'orderTypeLabels' => $orderTypeLabels,
-            'orderTypeCounts' => $orderTypeCounts
+            'orderTypeCounts' => $orderTypeCounts,
+            'rangeLabel' => $rangeOptions[$rangeParam]['label'],
+            'range' => $rangeParam
         ];
 
         $data = [
@@ -110,6 +166,8 @@ class DashboardController extends Controller
             'recentOrders' => $recentOrders,
             'topProducts' => $topProducts,
             'chartData' => $chartData,
+            'range' => $rangeParam,
+            'rangeOptions' => $rangeOptions,
             'page_title' => 'Dashboard',
             'current_page' => 'dashboard'
         ];

@@ -50,16 +50,29 @@ $content = ob_start();
 
     <!-- Revenue & Orders Trend -->
     <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Revenue & Orders Trend</h2>
-            <span class="text-sm text-gray-500">Last 12 months</span>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div>
+                <h2 class="text-2xl font-bold">Revenue & Orders Trend</h2>
+                <span class="text-sm text-gray-500">Showing <?= htmlspecialchars($chartData['rangeLabel']) ?></span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($rangeOptions as $key => $option): ?>
+                    <a href="<?= BASE_URL ?>/admin?range=<?= $key ?>"
+                       class="px-3 py-1 rounded-full border text-sm <?= $range === $key ? 'bg-brand text-white border-brand' : 'border-gray-300 text-gray-600 hover:border-brand hover:text-brand' ?>">
+                        <?= htmlspecialchars($option['label']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
         <canvas id="ordersRevenueChart" class="w-full h-64"></canvas>
     </div>
 
     <!-- Order Type Breakdown -->
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold mb-4">Order Type Breakdown</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold">Order Type Breakdown</h2>
+            <span class="text-sm text-gray-500"><?= htmlspecialchars($chartData['rangeLabel']) ?></span>
+        </div>
         <canvas id="orderTypeChart" class="w-full h-64"></canvas>
     </div>
 </div>

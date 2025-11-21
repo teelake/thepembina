@@ -86,6 +86,7 @@ $router->add('GET', 'admin/orders', ['controller' => 'Admin\Order', 'action' => 
 $router->add('GET', 'admin/orders/{id}', ['controller' => 'Admin\Order', 'action' => 'view']);
 $router->add('POST', 'admin/orders/{id}/status', ['controller' => 'Admin\Order', 'action' => 'updateStatus']);
 $router->add('GET', 'admin/orders/{id}/receipt', ['controller' => 'Admin\Order', 'action' => 'receipt']);
+$router->add('POST', 'admin/orders/{id}/email-receipt', ['controller' => 'Admin\Order', 'action' => 'emailReceipt']);
 
 // Admin - Users
 $router->add('GET', 'admin/users', ['controller' => 'Admin\User', 'action' => 'index']);

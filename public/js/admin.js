@@ -10,6 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Generic confirmation prompts
+    document.querySelectorAll('form[data-confirm]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const message = form.getAttribute('data-confirm') || 'Are you sure?';
+            if (!confirm(message)) {
+                e.preventDefault();
+            }
+        });
+    });
     
     // Image preview
     document.querySelectorAll('input[type="file"][data-preview]').forEach(input => {
