@@ -54,11 +54,15 @@
         }
 
         var labelCount = (config.labels || []).length;
+        var maxLabels = config.maxLabels || 8;
+        var labelStep = Math.max(1, Math.ceil(labelCount / maxLabels));
         ctx.textAlign = 'center';
         ctx.fillStyle = '#475569';
         (config.labels || []).forEach(function (label, index) {
             var x = padding + (chartWidth / Math.max(labelCount - 1, 1)) * index;
-            ctx.fillText(label, x, height - padding + 20);
+            if (index % labelStep === 0 || index === labelCount - 1) {
+                ctx.fillText(label, x, height - padding + 20);
+            }
         });
 
         (config.datasets || []).forEach(function (dataset, datasetIndex) {
