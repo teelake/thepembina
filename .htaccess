@@ -1,6 +1,8 @@
 Options -Indexes
 Options -MultiViews
 
+SetEnv APP_ENV production
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
