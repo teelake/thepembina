@@ -42,7 +42,8 @@ class ProductController extends Controller
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'page_title' => 'Products',
-            'current_page' => 'products'
+            'current_page' => 'products',
+            'csrfField' => $this->csrf->getTokenField()
         ];
         
         $this->render('admin/product/index', $data);
@@ -58,7 +59,8 @@ class ProductController extends Controller
         $data = [
             'categories' => $categories,
             'page_title' => 'Create Product',
-            'current_page' => 'products'
+            'current_page' => 'products',
+            'csrfField' => $this->csrf->getTokenField()
         ];
         
         $this->render('admin/product/form', $data);
@@ -138,7 +140,8 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => $categories,
             'page_title' => 'Edit Product',
-            'current_page' => 'products'
+            'current_page' => 'products',
+            'csrfField' => $this->csrf->getTokenField()
         ];
         
         $this->render('admin/product/form', $data);
@@ -249,16 +252,90 @@ class ProductController extends Controller
         }
 
         if (!$this->verifyCSRF()) {
-            $this->jsonResponse(['success' => false, 'message' => 'Invalid security token'], 403);
+            $this->redirect('/admin/products?error=Invalid security token');
             return;
         }
 
-        // Excel import will be implemented with PhpSpreadsheet library
-        // For now, return a placeholder
-        $this->jsonResponse([
-            'success' => false,
-            'message' => 'Excel import feature will be implemented with PhpSpreadsheet library'
-        ]);
+        if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+            $this->redirect('/admin/products?error=Upload a valid CSV file');
+            return;
+        }
+
+        $extension = strtolower(pathinfo($_FILES['import_file']['name'], PATHINFO_EXTENSION));
+        if ($extension !== 'csv') {
+            $this->redirect('/admin/products?error=Please upload a CSV file');
+            return;
+        }
+
+        $handle = fopen($_FILES['import_file']['tmp_name'], 'r');
+        if (!$handle) {
+            $this->redirect('/admin/products?error=Unable to read uploaded file');
+            return;
+        }
+
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            $this->redirect('/admin/products?error=CSV file is empty');
+            return;
+        }
+
+        $columns = array_map('strtolower', $header);
+        $nameIndex = array_search('name', $columns);
+        $categoryIndex = array_search('category', $columns);
+        $priceIndex = array_search('price', $columns);
+
+        if ($nameIndex === false || $categoryIndex === false || $priceIndex === false) {
+            fclose($handle);
+            $this->redirect('/admin/products?error=CSV must include name, category, and price columns');
+            return;
+        }
+
+        $descriptionIndex = array_search('description', $columns);
+        $shortDescIndex = array_search('short_description', $columns);
+        $skuIndex = array_search('sku', $columns);
+        $stockIndex = array_search('stock_quantity', $columns);
+
+        $imported = 0;
+        while (($row = fgetcsv($handle)) !== false) {
+            $name = trim($row[$nameIndex] ?? '');
+            if ($name === '') {
+                continue;
+            }
+
+            $categoryName = trim($row[$categoryIndex] ?? '');
+            $categoryId = null;
+            if ($categoryName !== '') {
+                $category = $this->categoryModel->findByName($categoryName);
+                if (!$category) {
+                    $categoryId = $this->categoryModel->createCategory([
+                        'name' => $categoryName,
+                        'slug' => Helper::slugify($categoryName),
+                        'status' => 'active'
+                    ]);
+                } else {
+                    $categoryId = $category['id'];
+                }
+            }
+
+            $data = [
+                'name' => $name,
+                'slug' => Helper::slugify($name),
+                'price' => (float)($row[$priceIndex] ?? 0),
+                'category_id' => $categoryId,
+                'description' => $descriptionIndex !== false ? $row[$descriptionIndex] : null,
+                'short_description' => $shortDescIndex !== false ? $row[$shortDescIndex] : null,
+                'sku' => $skuIndex !== false ? $row[$skuIndex] : null,
+                'stock_quantity' => $stockIndex !== false ? (int)$row[$stockIndex] : null,
+                'status' => 'active'
+            ];
+
+            $this->productModel->createProduct($data);
+            $imported++;
+        }
+
+        fclose($handle);
+        $this->redirect('/admin/products?success=' . $imported . ' products imported');
     }
 }
 

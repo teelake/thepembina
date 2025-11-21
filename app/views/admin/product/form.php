@@ -9,7 +9,7 @@ $content = ob_start();
     
     <form method="POST" action="<?= BASE_URL ?>/admin/products<?= $isEdit ? '/' . $product['id'] : '' ?>" 
           enctype="multipart/form-data" data-validate>
-        <?= $this->csrf->getTokenField() ?>
+        <?= $csrfField ?? '' ?>
         
         <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
             <!-- Basic Information -->

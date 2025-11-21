@@ -57,6 +57,7 @@ $router->add('GET', 'account/orders/{id}', ['controller' => 'Account', 'action' 
 $router->add('GET', 'account/addresses', ['controller' => 'Account', 'action' => 'addresses']);
 $router->add('POST', 'account/addresses', ['controller' => 'Account', 'action' => 'saveAddress']);
 $router->add('GET', 'account/profile', ['controller' => 'Account', 'action' => 'profile']);
+$router->add('GET', 'unauthorized', ['controller' => 'Auth', 'action' => 'unauthorized']);
 $router->add('POST', 'account/profile', ['controller' => 'Account', 'action' => 'updateProfile']);
 
 // Admin routes

@@ -6,9 +6,15 @@ $content = ob_start();
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Products</h1>
     <div class="flex gap-4">
-        <a href="<?= BASE_URL ?>/admin/products/import" class="btn btn-secondary">
-            <i class="fas fa-file-excel mr-2"></i> Import Excel
-        </a>
+        <form method="POST" action="<?= BASE_URL ?>/admin/products/import" enctype="multipart/form-data" class="flex items-center gap-2">
+            <?= $csrfField ?? '' ?>
+            <label class="cursor-pointer text-sm font-semibold">
+                <input type="file" name="import_file" accept=".csv" required class="hidden" onchange="this.form.submit()">
+                <span class="btn btn-secondary inline-flex items-center">
+                    <i class="fas fa-file-import mr-2"></i> Import CSV
+                </span>
+            </label>
+        </form>
         <a href="<?= BASE_URL ?>/admin/products/create" class="btn btn-primary">
             <i class="fas fa-plus mr-2"></i> Add Product
         </a>
@@ -71,7 +77,7 @@ $content = ob_start();
                                 </a>
                                 <form method="POST" action="<?= BASE_URL ?>/admin/products/<?= $product['id'] ?>/delete" 
                                       class="inline" data-confirm-delete>
-                                    <?= $this->csrf->getTokenField() ?>
+                                    <?= $csrfField ?? '' ?>
                                     <button type="submit" class="text-red-600 hover:text-red-800">
                                         <i class="fas fa-trash"></i>
                                     </button>

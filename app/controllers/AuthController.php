@@ -149,6 +149,13 @@ class AuthController extends Controller
         $this->redirect('/');
     }
 
+    public function unauthorized()
+    {
+        $this->render('auth/unauthorized', [
+            'page_title' => 'Unauthorized'
+        ]);
+    }
+
     /**
      * Forgot password
      */
