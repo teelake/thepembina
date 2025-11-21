@@ -6,14 +6,12 @@ $content = ob_start();
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Products</h1>
     <div class="flex gap-4">
-        <form method="POST" action="<?= BASE_URL ?>/admin/products/import" enctype="multipart/form-data" class="flex items-center gap-2">
+        <form method="POST" action="<?= BASE_URL ?>/admin/products/import" enctype="multipart/form-data" class="flex items-center gap-2" id="product-import-form">
             <?= $csrfField ?? '' ?>
-            <label class="cursor-pointer text-sm font-semibold">
-                <input type="file" name="import_file" accept=".csv" required class="hidden" onchange="this.form.submit()">
-                <span class="btn btn-secondary inline-flex items-center">
-                    <i class="fas fa-file-import mr-2"></i> Import CSV
-                </span>
+            <label for="product-import-input" class="btn btn-secondary inline-flex items-center cursor-pointer">
+                <i class="fas fa-file-import mr-2"></i> Import CSV
             </label>
+            <input type="file" id="product-import-input" name="import_file" accept=".csv" class="hidden">
         </form>
         <a href="<?= BASE_URL ?>/admin/products/create" class="btn btn-primary">
             <i class="fas fa-plus mr-2"></i> Add Product
@@ -129,6 +127,20 @@ $content = ob_start();
 
 <?php
 $content = ob_get_clean();
+$content .= <<<HTML
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var importInput = document.getElementById('product-import-input');
+    if (importInput) {
+        importInput.addEventListener('change', function () {
+            if (this.files.length) {
+                document.getElementById('product-import-form').submit();
+            }
+        });
+    }
+});
+</script>
+HTML;
 require_once APP_PATH . '/views/layouts/admin.php';
 ?>
 

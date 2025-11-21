@@ -3,8 +3,11 @@ use App\Core\Helper;
 $content = ob_start();
 ?>
 
-<div class="mb-6">
+<div class="mb-6 flex items-center justify-between flex-wrap gap-4">
     <a href="<?= BASE_URL ?>/admin/orders" class="text-brand hover:text-brand-dark"><i class="fas fa-arrow-left mr-2"></i>Back to Orders</a>
+    <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" target="_blank" class="btn btn-secondary inline-flex items-center">
+        <i class="fas fa-file-pdf mr-2"></i> Download Receipt
+    </a>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

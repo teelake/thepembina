@@ -47,6 +47,24 @@ $content = ob_start();
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- Revenue & Orders Trend -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Revenue & Orders Trend</h2>
+            <span class="text-sm text-gray-500">Last 12 months</span>
+        </div>
+        <canvas id="ordersRevenueChart" class="w-full h-64"></canvas>
+    </div>
+
+    <!-- Order Type Breakdown -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4">Order Type Breakdown</h2>
+        <canvas id="orderTypeChart" class="w-full h-64"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Today's Stats -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold mb-4">Today's Activity</h2>
@@ -155,6 +173,44 @@ $content = ob_start();
 
 <?php
 $content = ob_get_clean();
+$chartPayload = json_encode($chartData ?? [
+    'labels' => [],
+    'revenue' => [],
+    'orders' => [],
+    'orderTypeLabels' => [],
+    'orderTypeCounts' => []
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+$chartScriptPath = BASE_URL . '/public/js/simple-charts.js';
+$content .= <<<HTML
+<script src="{$chartScriptPath}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var chartData = {$chartPayload};
+    if (window.SimpleCharts) {
+        var trendCanvas = document.getElementById('ordersRevenueChart');
+        if (trendCanvas) {
+            SimpleCharts.renderLineChart(trendCanvas, {
+                labels: chartData.labels,
+                datasets: [
+                    { label: 'Revenue', data: chartData.revenue, color: '#8B4513' },
+                    { label: 'Orders', data: chartData.orders, color: '#F4A460', secondary: true }
+                ],
+                ySuffix: '$'
+            });
+        }
+
+        var typeCanvas = document.getElementById('orderTypeChart');
+        if (typeCanvas) {
+            SimpleCharts.renderBarChart(typeCanvas, {
+                labels: chartData.orderTypeLabels,
+                data: chartData.orderTypeCounts,
+                color: '#2F855A'
+            });
+        }
+    }
+});
+</script>
+HTML;
 require_once APP_PATH . '/views/layouts/admin.php';
 ?>
 

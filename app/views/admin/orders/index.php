@@ -42,8 +42,11 @@ $content = ob_start();
                         </td>
                         <td class="px-4 py-4 font-semibold text-brand"><?= Helper::formatCurrency($order['total']) ?></td>
                         <td class="px-4 py-4 text-sm text-gray-500"><?= date('M d, Y g:i A', strtotime($order['created_at'])) ?></td>
-                        <td class="px-4 py-4 text-right">
+                        <td class="px-4 py-4 text-right space-x-4">
                             <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" class="text-brand hover:text-brand-dark font-semibold">View</a>
+                            <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" class="text-red-600 hover:text-red-800" target="_blank" title="Download receipt">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

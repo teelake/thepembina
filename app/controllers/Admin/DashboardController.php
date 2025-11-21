@@ -51,11 +51,65 @@ class DashboardController extends Controller
             ORDER BY total_sold DESC
             LIMIT 5
         ")->fetchAll();
-        
+
+        // Trend data (last 12 months)
+        $trendRows = $db->query("
+            SELECT DATE_FORMAT(created_at, '%Y-%m') as month_key,
+                   DATE_FORMAT(created_at, '%b %Y') as month_label,
+                   SUM(total) as revenue,
+                   COUNT(*) as orders
+            FROM orders
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
+            GROUP BY month_key, month_label
+        ")->fetchAll();
+
+        $trendMap = [];
+        foreach ($trendRows as $row) {
+            $trendMap[$row['month_key']] = [
+                'label' => $row['month_label'],
+                'revenue' => (float)$row['revenue'],
+                'orders' => (int)$row['orders']
+            ];
+        }
+
+        $labels = [];
+        $revenuePoints = [];
+        $orderPoints = [];
+        $current = new \DateTimeImmutable('first day of this month');
+        for ($i = 11; $i >= 0; $i--) {
+            $month = $current->modify("-{$i} months");
+            $key = $month->format('Y-m');
+            $labels[] = $month->format('M Y');
+            $revenuePoints[] = isset($trendMap[$key]) ? round($trendMap[$key]['revenue'], 2) : 0;
+            $orderPoints[] = isset($trendMap[$key]) ? $trendMap[$key]['orders'] : 0;
+        }
+
+        $orderTypeRows = $db->query("
+            SELECT order_type, COUNT(*) as total
+            FROM orders
+            GROUP BY order_type
+        ")->fetchAll();
+
+        $orderTypeLabels = [];
+        $orderTypeCounts = [];
+        foreach ($orderTypeRows as $row) {
+            $orderTypeLabels[] = ucfirst($row['order_type'] ?? 'unknown');
+            $orderTypeCounts[] = (int)$row['total'];
+        }
+
+        $chartData = [
+            'labels' => $labels,
+            'revenue' => $revenuePoints,
+            'orders' => $orderPoints,
+            'orderTypeLabels' => $orderTypeLabels,
+            'orderTypeCounts' => $orderTypeCounts
+        ];
+
         $data = [
             'stats' => $stats,
             'recentOrders' => $recentOrders,
             'topProducts' => $topProducts,
+            'chartData' => $chartData,
             'page_title' => 'Dashboard',
             'current_page' => 'dashboard'
         ];

@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Core\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\ReceiptService;
 
 class OrderController extends Controller
 {
@@ -73,6 +74,26 @@ class OrderController extends Controller
         $this->orderModel->updateStatus($id, $status);
 
         $this->redirect("/admin/orders/{$id}?success=Order status updated");
+    }
+
+    public function receipt()
+    {
+        $id = (int)($this->params['id'] ?? 0);
+        $order = $this->orderModel->getWithItems($id);
+        if (!$order) {
+            $this->redirect('/admin/orders?error=Order not found');
+            return;
+        }
+        $payments = $this->paymentModel->getByOrder($id);
+
+        $service = new ReceiptService();
+        $pdf = $service->generate($order, $payments);
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="receipt-' . $order['order_number'] . '.pdf"');
+        header('Content-Length: ' . strlen($pdf));
+        echo $pdf;
+        exit;
     }
 }
 
