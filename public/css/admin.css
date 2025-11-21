@@ -1,5 +1,14 @@
 /* Admin Panel Styles */
 
+html, body {
+    overflow-x: hidden;
+}
+
+main {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Sidebar */
 aside {
     position: sticky;
