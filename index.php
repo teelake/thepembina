@@ -9,7 +9,7 @@
 
 // Error reporting (disable in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Disabled for production
+ini_set('display_errors', 0); // disable debug output
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php-error.log');
 
