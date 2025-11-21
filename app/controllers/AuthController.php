@@ -26,7 +26,10 @@ class AuthController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$this->verifyCSRF()) {
-                $this->render('auth/login', ['error' => 'Invalid security token']);
+                $this->render('auth/login', [
+                    'error' => 'Invalid security token',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
                 return;
             }
 
@@ -46,13 +49,18 @@ class AuthController extends Controller
                 $redirect = $user['role_slug'] === 'customer' ? '/account' : '/admin';
                 $this->redirect($redirect);
             } else {
-                $this->render('auth/login', ['error' => 'Invalid email or password']);
+                $this->render('auth/login', [
+                    'error' => 'Invalid email or password',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
             }
         } else {
             if (isset($_SESSION['user_id'])) {
                 $this->redirect('/');
             }
-            $this->render('auth/login');
+            $this->render('auth/login', [
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
         }
     }
 
@@ -63,7 +71,10 @@ class AuthController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$this->verifyCSRF()) {
-                $this->render('auth/register', ['error' => 'Invalid security token']);
+                $this->render('auth/register', [
+                    'error' => 'Invalid security token',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
                 return;
             }
 
@@ -87,7 +98,8 @@ class AuthController extends Controller
             if (!$this->validator->validate($data, $rules)) {
                 $this->render('auth/register', [
                     'error' => $this->validator->getFirstError(),
-                    'data' => $data
+                    'data' => $data,
+                    'csrfField' => $this->csrf->getTokenField()
                 ]);
                 return;
             }
@@ -96,7 +108,8 @@ class AuthController extends Controller
             if ($this->userModel->findByEmail($data['email'])) {
                 $this->render('auth/register', [
                     'error' => 'Email already registered',
-                    'data' => $data
+                    'data' => $data,
+                    'csrfField' => $this->csrf->getTokenField()
                 ]);
                 return;
             }
@@ -108,13 +121,18 @@ class AuthController extends Controller
                 Helper::logActivity('register', 'user', $userId, 'New user registered');
                 $this->redirect('/login?registered=1');
             } else {
-                $this->render('auth/register', ['error' => 'Registration failed. Please try again.']);
+                $this->render('auth/register', [
+                    'error' => 'Registration failed. Please try again.',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
             }
         } else {
             if (isset($_SESSION['user_id'])) {
                 $this->redirect('/');
             }
-            $this->render('auth/register');
+            $this->render('auth/register', [
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
         }
     }
 

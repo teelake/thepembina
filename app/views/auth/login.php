@@ -8,7 +8,7 @@ $content = ob_start();
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
         </div>
         <form class="mt-8 space-y-6" method="POST" action="<?= BASE_URL ?>/login">
-            <?= $this->csrf->getTokenField() ?>
+            <?= $csrfField ?? '' ?>
             
             <?php if (isset($error)): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
