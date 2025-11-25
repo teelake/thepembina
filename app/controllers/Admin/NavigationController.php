@@ -262,7 +262,7 @@ class NavigationController extends Controller
     /**
      * Update navigation settings (simple category-based)
      */
-    public function update()
+    public function updateSettings()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/admin/navigation');
