@@ -30,7 +30,8 @@ class Helper
      */
     public static function formatCurrency($amount, $currency = 'CAD')
     {
-        return $currency . ' ' . number_format($amount, 2);
+        // Format as $XX.XX (Canadian standard)
+        return '$' . number_format($amount, 2);
     }
 
     /**

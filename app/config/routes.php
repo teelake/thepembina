@@ -81,6 +81,11 @@ $router->add('GET', 'admin/categories/{id}/edit', ['controller' => 'Admin\Catego
 $router->add('POST', 'admin/categories/{id}', ['controller' => 'Admin\Category', 'action' => 'update']);
 $router->add('POST', 'admin/categories/{id}/delete', ['controller' => 'Admin\Category', 'action' => 'delete']);
 
+// Admin - Navigation Management
+$router->add('GET', 'admin/navigation', ['controller' => 'Admin\Navigation', 'action' => 'index']);
+$router->add('POST', 'admin/navigation/update', ['controller' => 'Admin\Navigation', 'action' => 'update']);
+$router->add('POST', 'admin/navigation/update-order', ['controller' => 'Admin\Navigation', 'action' => 'updateOrder']);
+
 // Admin - Orders
 $router->add('GET', 'admin/orders', ['controller' => 'Admin\Order', 'action' => 'index']);
 $router->add('GET', 'admin/orders/{id}', ['controller' => 'Admin\Order', 'action' => 'view']);

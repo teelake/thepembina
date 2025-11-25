@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pickupSection.style.display = 'none';
                 document.getElementById('delivery-fee-row').style.display = 'flex';
                 // Set delivery fee (you can make this dynamic)
-                document.getElementById('delivery-fee').textContent = 'CAD 5.00';
+                document.getElementById('delivery-fee').textContent = '$5.00';
             } else {
                 shippingSection.style.display = 'none';
                 pickupSection.style.display = 'block';
@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     const taxAmount = parseFloat(data.tax.total_tax);
-                    document.getElementById('tax-amount').textContent = Helper.formatCurrency(taxAmount);
+                    document.getElementById('tax-amount').textContent = formatCurrency(taxAmount);
                     calculateTotal();
                 } else {
                     document.getElementById('tax-amount').textContent = 'Calculating...';
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const total = subtotal + taxAmount + deliveryFee;
-        document.getElementById('order-total').textContent = Helper.formatCurrency(total);
+        document.getElementById('order-total').textContent = formatCurrency(total);
     }
     
     // Initial tax calculation if province is selected

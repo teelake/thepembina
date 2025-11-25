@@ -99,6 +99,13 @@
                             <span>Categories</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/navigation" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'navigation') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-bars w-5 mr-3"></i>
+                            <span>Navigation</span>
+                        </a>
+                    </li>
                     
                     <li class="pt-4">
                         <p class="px-4 text-xs font-semibold text-gray-500 uppercase">Orders</p>

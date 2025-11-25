@@ -150,7 +150,7 @@ class Email
                         <h3>Order Details</h3>
                         <p><strong>Order Number:</strong> {$order['order_number']}</p>
                         <p><strong>Order Type:</strong> " . ucfirst($order['order_type']) . "</p>
-                        <p><strong>Total Amount:</strong> CAD " . number_format($order['total'], 2) . "</p>
+                        <p><strong>Total Amount:</strong> " . Helper::formatCurrency($order['total']) . "</p>
                         <p><strong>Status:</strong> " . ucfirst($order['status']) . "</p>
                     </div>
                     
