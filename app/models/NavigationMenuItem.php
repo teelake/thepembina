@@ -19,20 +19,25 @@ class NavigationMenuItem extends Model
      */
     public function getActiveItems()
     {
-        $stmt = $this->db->query("
-            SELECT 
-                nmi.*,
-                c.slug as category_slug,
-                c.name as category_name,
-                p.slug as page_slug,
-                p.title as page_title
-            FROM {$this->table} nmi
-            LEFT JOIN categories c ON nmi.category_id = c.id AND nmi.type = 'category'
-            LEFT JOIN pages p ON nmi.page_id = p.id AND nmi.type = 'page'
-            WHERE nmi.status = 'active'
-            ORDER BY nmi.order ASC, nmi.label ASC
-        ");
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->query("
+                SELECT 
+                    nmi.*,
+                    c.slug as category_slug,
+                    c.name as category_name,
+                    p.slug as page_slug,
+                    p.title as page_title
+                FROM {$this->table} nmi
+                LEFT JOIN categories c ON nmi.category_id = c.id AND nmi.type = 'category'
+                LEFT JOIN pages p ON nmi.page_id = p.id AND nmi.type = 'page'
+                WHERE nmi.status = 'active'
+                ORDER BY nmi.`order` ASC, nmi.label ASC
+            ");
+            return $stmt->fetchAll() ?: [];
+        } catch (\Exception $e) {
+            error_log("NavigationMenuItem::getActiveItems error: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -95,13 +100,18 @@ class NavigationMenuItem extends Model
      */
     public function getAvailableCategories()
     {
-        $stmt = $this->db->query("
-            SELECT id, name, slug 
-            FROM categories 
-            WHERE status = 'active' 
-            ORDER BY name ASC
-        ");
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->query("
+                SELECT id, name, slug 
+                FROM categories 
+                WHERE status = 'active' 
+                ORDER BY name ASC
+            ");
+            return $stmt->fetchAll() ?: [];
+        } catch (\Exception $e) {
+            error_log("NavigationMenuItem::getAvailableCategories error: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -111,13 +121,18 @@ class NavigationMenuItem extends Model
      */
     public function getAvailablePages()
     {
-        $stmt = $this->db->query("
-            SELECT id, title, slug 
-            FROM pages 
-            WHERE status = 'published' 
-            ORDER BY title ASC
-        ");
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->query("
+                SELECT id, title, slug 
+                FROM pages 
+                WHERE status = 'published' 
+                ORDER BY title ASC
+            ");
+            return $stmt->fetchAll() ?: [];
+        } catch (\Exception $e) {
+            error_log("NavigationMenuItem::getAvailablePages error: " . $e->getMessage());
+            return [];
+        }
     }
 }
 

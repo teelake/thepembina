@@ -58,7 +58,7 @@ $content = ob_start();
                         Order Type
                     </h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <label class="border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md <?= (isset($formData['order_type']) && $formData['order_type'] === 'pickup') || !isset($formData['order_type']) ? 'border-brand bg-brand/5 shadow-sm' : 'border-gray-200 hover:border-brand/50' ?>">
+                        <label id="pickup-label" class="border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md order-type-label <?= (isset($formData['order_type']) && $formData['order_type'] === 'pickup') || !isset($formData['order_type']) ? 'border-brand bg-brand/5 shadow-sm' : 'border-gray-200 hover:border-brand/50' ?>">
                             <input type="radio" name="order_type" value="pickup" class="hidden" 
                                    <?= (isset($formData['order_type']) && $formData['order_type'] === 'pickup') || !isset($formData['order_type']) ? 'checked' : '' ?>>
                             <div class="text-center">
@@ -67,7 +67,7 @@ $content = ob_start();
                                 <p class="text-sm text-gray-600">Order ready for pickup at our location</p>
                             </div>
                         </label>
-                        <label class="border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md <?= isset($formData['order_type']) && $formData['order_type'] === 'delivery' ? 'border-brand bg-brand/5 shadow-sm' : 'border-gray-200 hover:border-brand/50' ?>">
+                        <label id="delivery-label" class="border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md order-type-label <?= isset($formData['order_type']) && $formData['order_type'] === 'delivery' ? 'border-brand bg-brand/5 shadow-sm' : 'border-gray-200 hover:border-brand/50' ?>">
                             <input type="radio" name="order_type" value="delivery" class="hidden"
                                    <?= isset($formData['order_type']) && $formData['order_type'] === 'delivery' ? 'checked' : '' ?>>
                             <div class="text-center">
@@ -372,26 +372,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutSubmitBtn = document.getElementById('checkout-submit-btn');
     
     // Order type change handler
+    const pickupLabel = document.getElementById('pickup-label');
+    const deliveryLabel = document.getElementById('delivery-label');
+    
+    function updateOrderTypeVisuals(value) {
+        if (value === 'delivery') {
+            // Highlight delivery, unhighlight pickup
+            deliveryLabel.classList.remove('border-gray-200', 'hover:border-brand/50');
+            deliveryLabel.classList.add('border-brand', 'bg-brand/5', 'shadow-sm');
+            pickupLabel.classList.remove('border-brand', 'bg-brand/5', 'shadow-sm');
+            pickupLabel.classList.add('border-gray-200', 'hover:border-brand/50');
+            
+            shippingSection.style.display = 'block';
+            pickupSection.style.display = 'none';
+            document.getElementById('delivery-fee-row').style.display = 'flex';
+            document.getElementById('delivery-fee').textContent = '$5.00';
+        } else {
+            // Highlight pickup, unhighlight delivery
+            pickupLabel.classList.remove('border-gray-200', 'hover:border-brand/50');
+            pickupLabel.classList.add('border-brand', 'bg-brand/5', 'shadow-sm');
+            deliveryLabel.classList.remove('border-brand', 'bg-brand/5', 'shadow-sm');
+            deliveryLabel.classList.add('border-gray-200', 'hover:border-brand/50');
+            
+            shippingSection.style.display = 'none';
+            pickupSection.style.display = 'block';
+            document.getElementById('delivery-fee-row').style.display = 'none';
+        }
+        calculateTotal();
+    }
+    
     orderTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            if (this.value === 'delivery') {
-                shippingSection.style.display = 'block';
-                pickupSection.style.display = 'none';
-                document.getElementById('delivery-fee-row').style.display = 'flex';
-                // Set delivery fee (you can make this dynamic)
-                document.getElementById('delivery-fee').textContent = '$5.00';
-            } else {
-                shippingSection.style.display = 'none';
-                pickupSection.style.display = 'block';
-                document.getElementById('delivery-fee-row').style.display = 'none';
-            }
-            calculateTotal();
+            updateOrderTypeVisuals(this.value);
         });
     });
     
-    // Trigger on load
+    // Trigger on load to set initial visual state
     orderTypeRadios.forEach(radio => {
-        if (radio.checked) radio.dispatchEvent(new Event('change'));
+        if (radio.checked) {
+            updateOrderTypeVisuals(radio.value);
+        }
     });
     
     // Same as billing

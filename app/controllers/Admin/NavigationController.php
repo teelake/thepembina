@@ -29,21 +29,45 @@ class NavigationController extends Controller
      */
     public function index()
     {
-        $menuItems = $this->menuItemModel->getActiveItems();
-        $allItems = $this->menuItemModel->findAll([], 'order ASC, label ASC');
-        
-        $categories = $this->menuItemModel->getAvailableCategories();
-        $pages = $this->menuItemModel->getAvailablePages();
+        try {
+            // Check if table exists
+            $tableExists = $this->menuItemModel->db->query("SHOW TABLES LIKE 'navigation_menu_items'")->rowCount() > 0;
+            
+            if (!$tableExists) {
+                $this->render('admin/navigation/migration-needed', [
+                    'page_title' => 'Navigation Management',
+                    'current_page' => 'navigation',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+                return;
+            }
 
-        $this->render('admin/navigation/index', [
-            'menuItems' => $allItems,
-            'activeItems' => $menuItems,
-            'categories' => $categories,
-            'pages' => $pages,
-            'page_title' => 'Navigation Management',
-            'current_page' => 'navigation',
-            'csrfField' => $this->csrf->getTokenField()
-        ]);
+            $menuItems = $this->menuItemModel->getActiveItems();
+            $allItems = $this->menuItemModel->findAll([], '`order` ASC, `label` ASC');
+            
+            $categories = $this->menuItemModel->getAvailableCategories();
+            $pages = $this->menuItemModel->getAvailablePages();
+
+            $this->render('admin/navigation/index', [
+                'menuItems' => $allItems ?: [],
+                'activeItems' => $menuItems ?: [],
+                'categories' => $categories ?: [],
+                'pages' => $pages ?: [],
+                'page_title' => 'Navigation Management',
+                'current_page' => 'navigation',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+        } catch (\Exception $e) {
+            // Log error
+            error_log("Navigation page error: " . $e->getMessage());
+            
+            $this->render('admin/navigation/error', [
+                'error' => $e->getMessage(),
+                'page_title' => 'Navigation Management - Error',
+                'current_page' => 'navigation',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+        }
     }
 
     /**
