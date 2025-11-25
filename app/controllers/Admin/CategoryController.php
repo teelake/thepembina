@@ -55,7 +55,9 @@ class CategoryController extends Controller
             'slug' => Helper::slugify($this->post('name')),
             'description' => $this->post('description'),
             'status' => $this->post('status', 'active'),
-            'sort_order' => (int)$this->post('sort_order', 0)
+            'sort_order' => (int)$this->post('sort_order', 0),
+            'show_in_nav' => $this->post('show_in_nav', 0) ? 1 : 0,
+            'nav_order' => (int)$this->post('nav_order', 0)
         ];
 
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -114,7 +116,9 @@ class CategoryController extends Controller
             'slug' => Helper::slugify($this->post('name')),
             'description' => $this->post('description'),
             'status' => $this->post('status', 'active'),
-            'sort_order' => (int)$this->post('sort_order', 0)
+            'sort_order' => (int)$this->post('sort_order', 0),
+            'show_in_nav' => $this->post('show_in_nav', 0) ? 1 : 0,
+            'nav_order' => (int)$this->post('nav_order', 0)
         ];
 
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {

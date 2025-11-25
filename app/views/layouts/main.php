@@ -87,11 +87,12 @@
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                         </a>
                         <?php
-                        // Get all categories excluding main ones for dropdown
+                        // Get all categories excluding main nav ones for dropdown
                         $allCategories = $catModel->getAllWithCount();
                         $mainCategoryIds = array_column($mainCategories, 'id');
                         $otherCategories = array_filter($allCategories, function($cat) use ($mainCategoryIds) {
-                            return !in_array($cat['id'], $mainCategoryIds);
+                            // Exclude categories that are in main nav OR marked to show in nav
+                            return !in_array($cat['id'], $mainCategoryIds) && empty($cat['show_in_nav']);
                         });
                         ?>
                         <?php if (!empty($otherCategories)): ?>

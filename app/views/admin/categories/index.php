@@ -24,6 +24,7 @@ $content = ob_start();
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sort Order</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Navigation</th>
                     <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -49,6 +50,16 @@ $content = ob_start();
                             </span>
                         </td>
                         <td class="px-6 py-4"><?= $category['sort_order'] ?></td>
+                        <td class="px-6 py-4">
+                            <?php if (!empty($category['show_in_nav'])): ?>
+                                <span class="badge badge-info flex items-center w-fit">
+                                    <i class="fas fa-bars mr-1"></i>
+                                    Nav (<?= $category['nav_order'] ?? 0 ?>)
+                                </span>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-sm">—</span>
+                            <?php endif; ?>
+                        </td>
                         <td class="px-6 py-4 text-right">
                             <a href="<?= BASE_URL ?>/admin/categories/<?= $category['id'] ?>/edit" class="text-blue-600 hover:text-blue-800 mr-3">
                                 <i class="fas fa-edit"></i>

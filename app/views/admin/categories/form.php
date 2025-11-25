@@ -25,6 +25,7 @@ $content = ob_start();
                 <div class="form-group">
                     <label class="form-label">Sort Order</label>
                     <input type="number" name="sort_order" class="form-input" value="<?= htmlspecialchars($category['sort_order'] ?? 0) ?>">
+                    <p class="text-xs text-gray-500 mt-1">Controls display order in category lists</p>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Status</label>
@@ -41,6 +42,34 @@ $content = ob_start();
                     <?php else: ?>
                         <img id="category-image-preview" src="" alt="Preview" class="image-preview" style="display:none;">
                     <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Navigation Settings -->
+            <div class="border-t pt-6 mt-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-bars mr-2 text-brand"></i>
+                    Navigation Settings
+                </h3>
+                <p class="text-sm text-gray-600 mb-4">Control how this category appears in the main website navigation</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" name="show_in_nav" value="1" 
+                                   class="w-5 h-5 text-brand border-gray-300 rounded focus:ring-brand" 
+                                   <?= (isset($category['show_in_nav']) && $category['show_in_nav'] == 1) ? 'checked' : '' ?>>
+                            <span class="ml-3 font-medium">Show in Main Navigation</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1 ml-8">Display as a direct link in the header (max 3 categories)</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Navigation Order</label>
+                        <input type="number" name="nav_order" class="form-input" 
+                               value="<?= htmlspecialchars($category['nav_order'] ?? 0) ?>" 
+                               min="0" max="100">
+                        <p class="text-xs text-gray-500 mt-1">Lower numbers appear first (0-100)</p>
+                    </div>
                 </div>
             </div>
             

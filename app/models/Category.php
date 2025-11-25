@@ -128,43 +128,39 @@ class Category extends Model
     }
 
     /**
-     * Find main navigation categories (Food, As E Dey Hot, Drinks)
-     * Tries multiple name variations
+     * Get main navigation categories (admin-managed)
+     * Returns categories marked to show in navigation, ordered by nav_order
      * 
      * @return array
      */
     public function getMainNavigationCategories()
     {
-        // Try to find by common names/variations (in order of preference)
-        $variations = [
-            ['Food', 'food', 'Main Meals', 'Main Meal'],
-            ['As E Dey Hot', 'as e dey hot', 'As Per Menu', 'Hot Items', 'Pepper Soup'],
-            ['Drinks', 'drinks', 'All Drinks', 'Beverages', 'Beverage']
-        ];
+        $stmt = $this->db->query("
+            SELECT c.*, COUNT(p.id) as product_count 
+            FROM {$this->table} c
+            LEFT JOIN products p ON c.id = p.category_id AND p.status = 'active'
+            WHERE c.status = 'active' AND c.show_in_nav = 1
+            GROUP BY c.id
+            ORDER BY c.nav_order ASC, c.sort_order ASC, c.name ASC
+            LIMIT 3
+        ");
+        $categories = $stmt->fetchAll();
         
-        $found = [];
-        foreach ($variations as $varGroup) {
-            $placeholders = implode(',', array_fill(0, count($varGroup), '?'));
-            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name IN ($placeholders) AND status = 'active' LIMIT 1");
-            $stmt->execute($varGroup);
-            $category = $stmt->fetch();
-            if ($category) {
-                $found[] = $category;
-            }
+        // If no categories are marked for navigation, fallback to top 3 by sort_order
+        if (empty($categories)) {
+            $stmt = $this->db->query("
+                SELECT c.*, COUNT(p.id) as product_count 
+                FROM {$this->table} c
+                LEFT JOIN products p ON c.id = p.category_id AND p.status = 'active'
+                WHERE c.status = 'active'
+                GROUP BY c.id
+                ORDER BY c.sort_order ASC, c.name ASC
+                LIMIT 3
+            ");
+            $categories = $stmt->fetchAll();
         }
         
-        // If we found less than 3, fill with top categories
-        if (count($found) < 3) {
-            $allCategories = $this->getAllWithCount();
-            $foundIds = array_column($found, 'id');
-            foreach ($allCategories as $cat) {
-                if (!in_array($cat['id'], $foundIds) && count($found) < 3) {
-                    $found[] = $cat;
-                }
-            }
-        }
-        
-        return array_slice($found, 0, 3);
+        return $categories;
     }
 }
 
