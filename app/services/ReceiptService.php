@@ -28,6 +28,8 @@ class ReceiptService
             }
             $pdf->addRectangle(40, $currentTop + 28, 70, 10, self::THEME_COLOR);
             $pdf->addRectangle(540, $currentTop + 10, 50, 10, self::THEME_COLOR);
+            $pdf->addLine('THE PEMBINA PINT & RESTAURANT', 13, 540, self::TEXT_MAIN, true);
+            $pdf->addSpacing(4);
 
             $businessName = defined('BUSINESS_NAME') ? BUSINESS_NAME : 'The Pembina Pint and Restaurant';
             $businessPhone = defined('BUSINESS_PHONE') ? BUSINESS_PHONE : '';
