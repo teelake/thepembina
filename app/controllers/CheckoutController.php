@@ -66,7 +66,8 @@ class CheckoutController extends Controller
             'items' => $items,
             'subtotal' => $subtotal,
             'isGuest' => !$userId,
-            'page_title' => 'Checkout'
+            'page_title' => 'Checkout',
+            'csrfField' => $this->csrf->getTokenField()
         ];
 
         $this->render('checkout/index', $data);
