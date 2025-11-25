@@ -53,30 +53,51 @@
                     </a>
                 </div>
                 
-                <div class="hidden md:flex items-center space-x-6">
+                <div class="hidden md:flex items-center space-x-4 lg:space-x-6">
                     <a href="<?= BASE_URL ?>" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
                         Home
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                     </a>
                     
-                    <!-- Menu Dropdown -->
+                    <?php
+                    // Get main categories (Food, As E Dey Hot, Drinks) for direct navigation
+                    require_once APP_PATH . '/models/Category.php';
+                    $catModel = new \App\Models\Category();
+                    $mainCategories = $catModel->getMainNavigationCategories();
+                    
+                    // Display main categories as direct links
+                    if (!empty($mainCategories)):
+                        foreach ($mainCategories as $mainCat):
+                    ?>
+                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($mainCat['slug']) ?>" 
+                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
+                            <?= htmlspecialchars($mainCat['name']) ?>
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                        </a>
+                    <?php 
+                        endforeach;
+                    endif;
+                    ?>
+                    
+                    <!-- Menu Dropdown (for all other categories) -->
                     <div class="relative menu-dropdown">
                         <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
-                            Menu
+                            More
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                         </a>
                         <?php
-                        // Get main categories for dropdown
-                        require_once APP_PATH . '/models/Category.php';
-                        $catModel = new \App\Models\Category();
-                        $navCategories = $catModel->getAllWithCount();
-                        $topCategories = array_slice($navCategories, 0, 3);
+                        // Get all categories excluding main ones for dropdown
+                        $allCategories = $catModel->getAllWithCount();
+                        $mainCategoryIds = array_column($mainCategories, 'id');
+                        $otherCategories = array_filter($allCategories, function($cat) use ($mainCategoryIds) {
+                            return !in_array($cat['id'], $mainCategoryIds);
+                        });
                         ?>
-                        <?php if (!empty($topCategories)): ?>
+                        <?php if (!empty($otherCategories)): ?>
                         <div class="menu-dropdown-content">
                             <div class="py-2">
-                                <?php foreach ($topCategories as $cat): ?>
+                                <?php foreach ($otherCategories as $cat): ?>
                                 <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
                                    class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
                                     <?= htmlspecialchars($cat['name']) ?>
@@ -85,7 +106,7 @@
                                 <?php endforeach; ?>
                                 <div class="border-t border-gray-200 my-1"></div>
                                 <a href="<?= BASE_URL ?>/menu" class="block px-4 py-2 text-brand hover:bg-brand hover:text-white transition-colors font-semibold">
-                                    View All Categories <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                    View All Menu <i class="fas fa-arrow-right ml-1 text-xs"></i>
                                 </a>
                             </div>
                         </div>
@@ -151,7 +172,18 @@
         <div class="md:hidden hidden transition-all duration-300 ease-in-out" id="mobile-menu" role="menu">
             <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t shadow-lg">
                 <a href="<?= BASE_URL ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Home</a>
-                <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Menu</a>
+                <?php
+                // Get main categories for mobile menu
+                require_once APP_PATH . '/models/Category.php';
+                $catModel = new \App\Models\Category();
+                $mobileMainCategories = $catModel->getMainNavigationCategories();
+                foreach ($mobileMainCategories as $cat):
+                ?>
+                    <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
+                        <?= htmlspecialchars($cat['name']) ?>
+                    </a>
+                <?php endforeach; ?>
+                <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">All Menu</a>
                 <a href="<?= BASE_URL ?>/cart" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium flex items-center justify-between" role="menuitem">
                     <span>Cart</span>
                     <span id="cart-count-badge-mobile" class="bg-brand text-white rounded-full px-2 py-0.5 text-xs font-semibold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>

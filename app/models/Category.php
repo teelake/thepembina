@@ -102,5 +102,69 @@ class Category extends Model
         $stmt->execute(['name' => $name]);
         return $stmt->fetch() ?: null;
     }
+
+    /**
+     * Find categories by names (for main navigation)
+     * 
+     * @param array $names Array of category names to find
+     * @return array
+     */
+    public function findByNames($names)
+    {
+        if (empty($names)) {
+            return [];
+        }
+        
+        // Remove duplicates and empty values
+        $names = array_unique(array_filter($names));
+        if (empty($names)) {
+            return [];
+        }
+        
+        $placeholders = implode(',', array_fill(0, count($names), '?'));
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name IN ($placeholders) AND status = 'active' ORDER BY FIELD(name, $placeholders)");
+        $stmt->execute(array_merge($names, $names));
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Find main navigation categories (Food, As E Dey Hot, Drinks)
+     * Tries multiple name variations
+     * 
+     * @return array
+     */
+    public function getMainNavigationCategories()
+    {
+        // Try to find by common names/variations (in order of preference)
+        $variations = [
+            ['Food', 'food', 'Main Meals', 'Main Meal'],
+            ['As E Dey Hot', 'as e dey hot', 'As Per Menu', 'Hot Items', 'Pepper Soup'],
+            ['Drinks', 'drinks', 'All Drinks', 'Beverages', 'Beverage']
+        ];
+        
+        $found = [];
+        foreach ($variations as $varGroup) {
+            $placeholders = implode(',', array_fill(0, count($varGroup), '?'));
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name IN ($placeholders) AND status = 'active' LIMIT 1");
+            $stmt->execute($varGroup);
+            $category = $stmt->fetch();
+            if ($category) {
+                $found[] = $category;
+            }
+        }
+        
+        // If we found less than 3, fill with top categories
+        if (count($found) < 3) {
+            $allCategories = $this->getAllWithCount();
+            $foundIds = array_column($found, 'id');
+            foreach ($allCategories as $cat) {
+                if (!in_array($cat['id'], $foundIds) && count($found) < 3) {
+                    $found[] = $cat;
+                }
+            }
+        }
+        
+        return array_slice($found, 0, 3);
+    }
 }
 
