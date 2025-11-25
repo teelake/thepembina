@@ -15,6 +15,7 @@ class NavigationController extends Controller
 {
     private $menuItemModel;
     private $categoryModel;
+    private $navigationTableExists;
 
     public function __construct($params = [])
     {
@@ -22,6 +23,16 @@ class NavigationController extends Controller
         $this->requireRole(['super_admin', 'admin', 'data_entry']);
         $this->menuItemModel = new NavigationMenuItem();
         $this->categoryModel = new Category();
+        $this->navigationTableExists = $this->menuItemModel->tableExists();
+    }
+
+    private function renderMigrationNeeded()
+    {
+        $this->render('admin/navigation/migration-needed', [
+            'page_title' => 'Navigation Management',
+            'current_page' => 'navigation',
+            'csrfField' => $this->csrf->getTokenField()
+        ]);
     }
 
     /**
@@ -43,19 +54,18 @@ class NavigationController extends Controller
                 return $orderA <=> $orderB;
             });
 
-            $hasCustomNav = $this->menuItemModel->tableExists();
             $menuItems = [];
-            if ($hasCustomNav) {
+            if ($this->navigationTableExists) {
                 $menuItems = $this->menuItemModel->getAllItems();
             }
 
-            $view = $hasCustomNav ? 'admin/navigation/index' : 'admin/navigation/index-simple';
+            $view = $this->navigationTableExists ? 'admin/navigation/index' : 'admin/navigation/index-simple';
 
             $this->render($view, [
                 'categories' => $categories,
                 'navCategories' => $navCategories,
                 'menuItems' => $menuItems,
-                'hasCustomNav' => $hasCustomNav,
+                'hasCustomNav' => $this->navigationTableExists,
                 'page_title' => 'Navigation Management',
                 'current_page' => 'navigation',
                 'csrfField' => $this->csrf->getTokenField()
@@ -80,6 +90,11 @@ class NavigationController extends Controller
      */
     public function create()
     {
+        if (!$this->navigationTableExists) {
+            $this->renderMigrationNeeded();
+            return;
+        }
+
         try {
             $categories = $this->menuItemModel->getAvailableCategories();
             $pages = $this->menuItemModel->getAvailablePages();
@@ -108,6 +123,11 @@ class NavigationController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/admin/navigation');
+            return;
+        }
+
+        if (!$this->navigationTableExists) {
+            $this->redirect('/admin/navigation?error=' . urlencode('Navigation menu table not found. Please run the migration first.'));
             return;
         }
 
@@ -154,6 +174,11 @@ class NavigationController extends Controller
      */
     public function edit()
     {
+        if (!$this->navigationTableExists) {
+            $this->renderMigrationNeeded();
+            return;
+        }
+
         try {
             $id = (int)($this->params['id'] ?? 0);
             $item = $this->menuItemModel->getWithDetails($id);
@@ -191,6 +216,11 @@ class NavigationController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/admin/navigation');
+            return;
+        }
+
+        if (!$this->navigationTableExists) {
+            $this->redirect('/admin/navigation?error=' . urlencode('Navigation menu table not found. Please run the migration first.'));
             return;
         }
 
@@ -246,6 +276,11 @@ class NavigationController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/admin/navigation');
+            return;
+        }
+
+        if (!$this->navigationTableExists) {
+            $this->redirect('/admin/navigation?error=' . urlencode('Navigation menu table not found. Please run the migration first.'));
             return;
         }
 
@@ -320,6 +355,12 @@ class NavigationController extends Controller
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            return;
+        }
+
+        if (!$this->navigationTableExists) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Navigation menu table not found. Please run the migration first.']);
             return;
         }
 
