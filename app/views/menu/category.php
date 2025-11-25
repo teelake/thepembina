@@ -4,7 +4,7 @@ $content = ob_start();
 ?>
 
 <!-- Category Header -->
-<section class="bg-gradient-to-r from-brand to-brand-dark text-white py-12">
+<section class="hero-brand-gradient text-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="mb-4 text-sm">
             <a href="<?= BASE_URL ?>" class="hover:underline">Home</a> / 

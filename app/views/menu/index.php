@@ -4,15 +4,15 @@ $content = ob_start();
 ?>
 
 <!-- Hero Section -->
-<section class="bg-gradient-to-r from-brand via-yellow-500 to-brand-dark text-white py-16">
+<section class="hero-brand-gradient text-white py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-5xl md:text-6xl font-bold mb-4 animate-fade-in">Our Delicious Menu</h1>
         <p class="text-xl md:text-2xl mb-8">Authentic African & Nigerian Cuisine</p>
         <div class="flex flex-wrap justify-center gap-4 text-sm">
-            <span class="bg-white/20 px-4 py-2 rounded-full">🍛 Jollof Rice</span>
-            <span class="bg-white/20 px-4 py-2 rounded-full">🍖 Suya</span>
-            <span class="bg-white/20 px-4 py-2 rounded-full">🥘 Egusi Soup</span>
-            <span class="bg-white/20 px-4 py-2 rounded-full">🍌 Plantain Delights</span>
+            <span class="hero-pill">🍛 Jollof Rice</span>
+            <span class="hero-pill">🍖 Suya</span>
+            <span class="hero-pill">🥘 Egusi Soup</span>
+            <span class="hero-pill">🍌 Plantain Delights</span>
         </div>
     </div>
 </section>

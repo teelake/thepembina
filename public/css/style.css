@@ -4,6 +4,7 @@
 :root {
     --brand-primary: #F4A460;
     --brand-dark: #8B4513;
+    --brand-highlight: #facc15;
 }
 
 /* Smooth transitions - optimized for performance */
@@ -205,6 +206,45 @@ textarea::placeholder {
     }
 }
 
+/* Global Hero Styling */
+.hero-brand-gradient {
+    background: linear-gradient(115deg, var(--brand-dark) 0%, var(--brand-primary) 45%, var(--brand-highlight) 65%, var(--brand-dark) 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-brand-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(255,255,255,0.25), transparent 55%);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.hero-brand-gradient > * {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-pill {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 600;
+    backdrop-filter: blur(6px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.hero-pill:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
 /* Hero slider */
 .hero-slider-wrapper {
     position: relative;
@@ -249,7 +289,7 @@ textarea::placeholder {
 .hero-slide-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+    background: linear-gradient(115deg, rgba(139,69,19,0.95) 0%, rgba(244,164,96,0.9) 45%, rgba(250,204,21,0.85) 65%, rgba(139,69,19,0.95) 100%);
 }
 
 .hero-slide-content {
