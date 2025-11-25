@@ -390,3 +390,37 @@ h1, h2, h3, h4, h5, h6 {
     top: 0;
 }
 
+/* Modern Add to Cart Button */
+.add-to-cart-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.add-to-cart-btn:active {
+    transform: scale(0.95);
+}
+
+.add-to-cart-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Product card button container */
+.product-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .add-to-cart-btn span {
+        display: none;
+    }
+    
+    .add-to-cart-btn {
+        min-width: 40px;
+        justify-content: center;
+    }
+}
+

@@ -52,13 +52,15 @@ $content = ob_start();
                         <span class="text-2xl font-bold text-brand"><?= Helper::formatCurrency($product['price']) ?></span>
                         <div class="flex gap-2">
                             <button type="button" 
-                                    class="add-to-cart-btn bg-brand text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-dark transition transform hover:scale-105"
+                                    class="add-to-cart-btn bg-brand text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-dark transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5 text-sm"
                                     data-product-id="<?= $product['id'] ?>"
-                                    data-product-name="<?= htmlspecialchars($product['name']) ?>">
-                                <i class="fas fa-shopping-cart mr-1"></i> Add to Cart
+                                    data-product-name="<?= htmlspecialchars($product['name']) ?>"
+                                    aria-label="Add to cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="hidden sm:inline">Add</span>
                             </button>
                             <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($product['slug']) ?>" 
-                               class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition transform hover:scale-105">
+                               class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm flex items-center">
                                 View
                             </a>
                         </div>

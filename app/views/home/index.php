@@ -81,11 +81,22 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
                 <div class="p-4">
                     <h3 class="text-xl font-semibold mb-2"><?= htmlspecialchars($product['name']) ?></h3>
                     <p class="text-gray-600 text-sm mb-3"><?= htmlspecialchars(substr($product['short_description'] ?? $product['description'] ?? '', 0, 100)) ?>...</p>
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center gap-2">
                         <span class="text-2xl font-bold text-brand"><?= Helper::formatCurrency($product['price']) ?></span>
-                        <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($product['slug']) ?>" class="bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark transition">
-                            View
-                        </a>
+                        <div class="flex gap-2">
+                            <button type="button" 
+                                    class="add-to-cart-btn bg-brand text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-dark transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5 text-sm"
+                                    data-product-id="<?= $product['id'] ?>"
+                                    data-product-name="<?= htmlspecialchars($product['name']) ?>"
+                                    aria-label="Add to cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="hidden sm:inline">Add</span>
+                            </button>
+                            <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($product['slug']) ?>" 
+                               class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 text-sm flex items-center">
+                                View
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -204,6 +215,36 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
         <p id="newsletter-feedback" class="mt-4 text-sm"></p>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize add to cart buttons on home page
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const productName = this.dataset.productName;
+            
+            // Disable button during request
+            this.disabled = true;
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            addToCartAjax(productId, 1, {}, function(success, message, cartCount) {
+                // Re-enable button
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+                
+                if (success) {
+                    showPopupAlert('success', message || 'Item added to cart!');
+                    updateCartCount(cartCount);
+                } else {
+                    showPopupAlert('error', message || 'Failed to add item to cart');
+                }
+            }.bind(this));
+        });
+    });
+});
+</script>
 
 <?php
 $content = ob_get_clean();
