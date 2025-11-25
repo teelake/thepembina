@@ -390,6 +390,20 @@ h1, h2, h3, h4, h5, h6 {
     top: 0;
 }
 
+/* Logo - Remove white background */
+.logo-image {
+    background: transparent !important;
+    background-color: transparent !important;
+    mix-blend-mode: normal;
+    object-fit: contain;
+}
+
+/* Ensure logo container doesn't add background */
+nav .flex.items-center a img {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
 /* Modern Add to Cart Button */
 .add-to-cart-btn {
     position: relative;
@@ -447,6 +461,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .menu-dropdown:hover .menu-dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Account Dropdown */
+.account-dropdown {
+    position: relative;
+}
+
+.account-dropdown-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    width: 14rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 50;
+}
+
+.account-dropdown:hover .account-dropdown-content {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);

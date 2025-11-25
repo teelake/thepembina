@@ -48,7 +48,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="<?= BASE_URL ?>" class="flex items-center group" aria-label="Home">
-                        <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-12 w-12 mr-3 transition-transform group-hover:scale-105">
+                        <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-12 w-12 mr-3 transition-transform group-hover:scale-105 logo-image">
                         <span class="text-xl font-bold text-brand">The Pembina Pint</span>
                     </a>
                 </div>
@@ -92,26 +92,49 @@
                         <?php endif; ?>
                     </div>
                     
-                    <a href="<?= BASE_URL ?>/cart" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
-                        <i class="fas fa-shopping-cart mr-1"></i> Cart
-                        <span id="cart-count-badge" class="ml-1 bg-brand text-white rounded-full px-2 py-0.5 text-xs font-semibold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                    <!-- Cart - Primary CTA (Most Prominent) -->
+                    <a href="<?= BASE_URL ?>/cart" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center relative">
+                        <i class="fas fa-shopping-cart mr-2"></i> Cart
+                        <span id="cart-count-badge" class="ml-2 bg-white text-brand rounded-full px-2 py-0.5 text-xs font-bold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
                     </a>
+                    
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="<?= BASE_URL ?>/account" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
-                            Account
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
-                        </a>
-                        <?php if (in_array($_SESSION['user_role'], ['super_admin', 'admin', 'data_entry'])): ?>
-                            <a href="<?= BASE_URL ?>/admin" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
-                                Admin
-                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                        <!-- Account Dropdown (When Logged In) -->
+                        <div class="relative account-dropdown">
+                            <a href="<?= BASE_URL ?>/account" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                                <i class="fas fa-user-circle mr-1 text-lg"></i>
+                                <span class="hidden lg:inline"><?= htmlspecialchars(explode(' ', $_SESSION['user_name'] ?? 'Account')[0]) ?></span>
+                                <span class="lg:hidden">Account</span>
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             </a>
-                        <?php endif; ?>
-                        <a href="<?= BASE_URL ?>/logout" class="text-gray-700 hover:text-red-600 transition-colors duration-200 font-medium">Logout</a>
+                            <div class="account-dropdown-content">
+                                <div class="py-2">
+                                    <a href="<?= BASE_URL ?>/account" class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
+                                        <i class="fas fa-user mr-2"></i> My Account
+                                    </a>
+                                    <a href="<?= BASE_URL ?>/account/orders" class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
+                                        <i class="fas fa-shopping-bag mr-2"></i> My Orders
+                                    </a>
+                                    <?php if (in_array($_SESSION['user_role'], ['super_admin', 'admin', 'data_entry'])): ?>
+                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <a href="<?= BASE_URL ?>/admin" class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
+                                            <i class="fas fa-cog mr-2"></i> Admin Panel
+                                        </a>
+                                    <?php endif; ?>
+                                    <div class="border-t border-gray-200 my-1"></div>
+                                    <a href="<?= BASE_URL ?>/logout" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition-colors">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     <?php else: ?>
-                        <a href="<?= BASE_URL ?>/login" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium">Login</a>
-                        <a href="<?= BASE_URL ?>/register" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">Register</a>
+                        <!-- Login/Register - Subtle (Don't Create Friction) -->
+                        <div class="flex items-center gap-2 text-sm">
+                            <a href="<?= BASE_URL ?>/login" class="text-gray-600 hover:text-brand transition-colors duration-200">Login</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="<?= BASE_URL ?>/register" class="text-gray-600 hover:text-brand transition-colors duration-200">Sign Up</a>
+                        </div>
                     <?php endif; ?>
                 </div>
                 
@@ -134,11 +157,23 @@
                     <span id="cart-count-badge-mobile" class="bg-brand text-white rounded-full px-2 py-0.5 text-xs font-semibold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
                 </a>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="<?= BASE_URL ?>/account" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Account</a>
-                    <a href="<?= BASE_URL ?>/logout" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium" role="menuitem">Logout</a>
+                    <a href="<?= BASE_URL ?>/account" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
+                        <i class="fas fa-user-circle mr-2"></i> Account
+                    </a>
+                    <a href="<?= BASE_URL ?>/account/orders" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
+                        <i class="fas fa-shopping-bag mr-2"></i> Orders
+                    </a>
+                    <?php if (in_array($_SESSION['user_role'], ['super_admin', 'admin', 'data_entry'])): ?>
+                        <a href="<?= BASE_URL ?>/admin" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
+                            <i class="fas fa-cog mr-2"></i> Admin
+                        </a>
+                    <?php endif; ?>
+                    <a href="<?= BASE_URL ?>/logout" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium" role="menuitem">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </a>
                 <?php else: ?>
                     <a href="<?= BASE_URL ?>/login" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Login</a>
-                    <a href="<?= BASE_URL ?>/register" class="block px-3 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors font-medium text-center" role="menuitem">Register</a>
+                    <a href="<?= BASE_URL ?>/register" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Sign Up</a>
                 <?php endif; ?>
             </div>
         </div>
