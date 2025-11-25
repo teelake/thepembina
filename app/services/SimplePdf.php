@@ -15,8 +15,12 @@ class SimplePdf
         $this->cursorY = $this->pageHeight - 40;
     }
 
-    public function addLine(string $text, int $fontSize = 12, int $x = 40, array $color = [0, 0, 0]): void
+    public function addLine(string $text, int $fontSize = 12, int $x = 40, array $color = [0, 0, 0], bool $rightAlign = false): void
     {
+        if ($rightAlign) {
+            $x = $this->calculateRightAlignedX($text, $fontSize, $x);
+        }
+
         $this->elements[] = [
             'type' => 'text',
             'text' => $text,
@@ -56,11 +60,18 @@ class SimplePdf
      * @param array $positions X coordinate for each column
      * @param int   $fontSize  Font size to use
      */
-    public function addTableRow(array $columns, array $positions, int $fontSize = 11, array $color = [0, 0, 0]): void
+    public function addTableRow(array $columns, array $positions, int $fontSize = 11, array $color = [0, 0, 0], array $alignments = []): void
     {
         $y = $this->cursorY;
         foreach ($columns as $index => $text) {
             $x = $positions[$index] ?? ($positions[0] ?? 40);
+            $alignment = strtolower($alignments[$index] ?? 'left');
+            if ($alignment === 'right') {
+                $x = $this->calculateRightAlignedX($text, $fontSize, $x);
+            } elseif ($alignment === 'center') {
+                $x = $this->calculateCenteredX($text, $fontSize, $x);
+            }
+
             $this->elements[] = [
                 'type' => 'text',
                 'text' => $text,
@@ -308,6 +319,25 @@ class SimplePdf
             (float)number_format($g, 3, '.', ''),
             (float)number_format($b, 3, '.', '')
         ];
+    }
+
+    private function calculateRightAlignedX(string $text, int $fontSize, int $x): int
+    {
+        $width = $this->estimateTextWidth($text, $fontSize);
+        return max(40, (int)round($x - $width));
+    }
+
+    private function calculateCenteredX(string $text, int $fontSize, int $x): int
+    {
+        $width = $this->estimateTextWidth($text, $fontSize);
+        return max(40, (int)round($x - ($width / 2)));
+    }
+
+    private function estimateTextWidth(string $text, int $fontSize): float
+    {
+        $cleanText = strip_tags($text);
+        $length = function_exists('mb_strlen') ? mb_strlen($cleanText) : strlen($cleanText);
+        return $length * ($fontSize * 0.5);
     }
 }
 

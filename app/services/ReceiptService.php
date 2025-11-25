@@ -6,9 +6,9 @@ use App\Core\Helper;
 
 class ReceiptService
 {
-    private const HEADER_COLS = [40, 420];
+    private const HEADER_COLS = [40, 500];
     private const ADDRESS_COLS = [40, 300];
-    private const SUMMARY_COLS = [360, 480];
+    private const SUMMARY_COLS = [360, 520];
     private const ITEMS_COLS = [40, 240, 320, 400, 480];
     private const PAYMENT_COLS = [40, 320, 420];
     private const THEME_COLOR = [0.957, 0.643, 0.376];
@@ -38,11 +38,11 @@ class ReceiptService
             $pdf->addTableRow([
                 'Date: ' . date('M d, Y g:i A', strtotime($order['created_at'])),
                 'Support: ' . $businessEmail
-            ], self::HEADER_COLS, 10, self::TEXT_MUTED);
+            ], self::HEADER_COLS, 10, self::TEXT_MUTED, ['left', 'right']);
             $pdf->addTableRow([
                 'Order Type: ' . ucfirst($order['order_type'] ?? 'pickup'),
                 !empty($businessPhone) ? 'Phone: ' . $businessPhone : ''
-            ], self::HEADER_COLS, 10, self::TEXT_MUTED);
+            ], self::HEADER_COLS, 10, self::TEXT_MUTED, ['left', 'right']);
             $pdf->addSpacing(8);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
             $pdf->addSpacing(8);
@@ -73,26 +73,31 @@ class ReceiptService
             $shippingAmount = isset($order['shipping_amount']) ? $order['shipping_amount'] : 0;
             $total = isset($order['total']) ? $order['total'] : ($subtotal + $taxAmount + $shippingAmount);
             $discount = isset($order['discount_amount']) ? $order['discount_amount'] : 0;
+            $paidAmount = $this->calculatePaidAmount($payments);
+            $grandTotal = $total - $discount;
+            $totalDue = max(0, $grandTotal - $paidAmount);
 
             $this->addTotalsTable($pdf, [
                 'Subtotal' => Helper::formatCurrency($subtotal),
                 'Tax' => Helper::formatCurrency($taxAmount),
                 'Delivery' => Helper::formatCurrency($shippingAmount),
                 'Discount' => $discount > 0 ? '-' . Helper::formatCurrency($discount) : Helper::formatCurrency(0),
-                'Grand Total' => Helper::formatCurrency($total - $discount),
+                'Grand Total' => Helper::formatCurrency($grandTotal),
+                'Total Amount Paid' => Helper::formatCurrency($paidAmount),
+                'Total Due' => Helper::formatCurrency($totalDue),
             ]);
 
-            $pdf->addLine('Payments', 14);
+            $pdf->addLine('Payments', 14, 40, self::TEXT_MAIN);
             $pdf->addSpacing(4);
             $this->addPaymentsTable($pdf, $payments);
 
             $pdf->addSpacing(12);
-            $pdf->addHorizontalRule();
+            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
             $pdf->addSpacing(6);
-            $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, 120);
-            $pdf->addLine('We look forward to serving you again.', 11, 120);
+            $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, 120, self::TEXT_MAIN);
+            $pdf->addLine('We look forward to serving you again.', 11, 120, self::TEXT_MUTED);
             $pdf->addSpacing(6);
-            $pdf->addLine('Please note that depending on availability, your order will be ready within the advised window.', 9, 40);
+            $pdf->addLine('Please note that depending on availability, your order will be ready within the advised window.', 9, 40, self::TEXT_MUTED);
 
             return $pdf->output();
         } catch (\Exception $e) {
@@ -141,11 +146,23 @@ class ReceiptService
     {
         $headerY = $pdf->getCursor() + 18;
         $pdf->addRectangle(40, $headerY, 520, 18, self::THEME_COLOR);
-        $pdf->addTableRow(['Product Description', 'Qty', 'Unit Price', 'Discount', 'Total'], self::ITEMS_COLS, 12, self::TEXT_LIGHT);
+        $pdf->addTableRow(
+            ['Product Description', 'Qty', 'Unit Price', 'Discount', 'Total'],
+            self::ITEMS_COLS,
+            12,
+            self::TEXT_LIGHT,
+            ['left', 'center', 'right', 'right', 'right']
+        );
         $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
 
         if (empty($items)) {
-            $pdf->addTableRow(['No items found in order.', '', '', '', ''], self::ITEMS_COLS, 11, self::TEXT_MUTED);
+            $pdf->addTableRow(
+                ['No items found in order.', '', '', '', ''],
+                self::ITEMS_COLS,
+                11,
+                self::TEXT_MUTED,
+                ['left', 'center', 'right', 'right', 'right']
+            );
             $pdf->addSpacing(4);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
             $pdf->addSpacing(6);
@@ -168,7 +185,8 @@ class ReceiptService
                 ],
                 self::ITEMS_COLS,
                 11,
-                self::TEXT_MAIN
+                self::TEXT_MAIN,
+                ['left', 'center', 'right', 'right', 'right']
             );
 
             if (!empty($item['options'])) {
@@ -185,7 +203,13 @@ class ReceiptService
                         ));
                     }
                 }
-                $pdf->addTableRow(['   ' . strip_tags($options), '', '', '', ''], self::ITEMS_COLS, 9, self::TEXT_MUTED);
+                $pdf->addTableRow(
+                    ['   ' . strip_tags($options), '', '', '', ''],
+                    self::ITEMS_COLS,
+                    9,
+                    self::TEXT_MUTED,
+                    ['left', 'center', 'right', 'right', 'right']
+                );
             }
         }
 
@@ -202,11 +226,17 @@ class ReceiptService
         $columns = self::PAYMENT_COLS;
         $headerY = $pdf->getCursor() + 16;
         $pdf->addRectangle(40, $headerY, 520, 16, self::THEME_COLOR);
-        $pdf->addTableRow(['Method', 'Status', 'Amount'], $columns, 12, self::TEXT_LIGHT);
+        $pdf->addTableRow(['Method', 'Status', 'Amount'], $columns, 12, self::TEXT_LIGHT, ['left', 'center', 'right']);
         $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
 
         if (empty($payments)) {
-            $pdf->addTableRow(['Payment record not found.', '', ''], $columns, 11, self::TEXT_MUTED);
+            $pdf->addTableRow(
+                ['Payment record not found.', '', ''],
+                $columns,
+                11,
+                self::TEXT_MUTED,
+                ['left', 'center', 'right']
+            );
             $pdf->addSpacing(4);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
             $pdf->addSpacing(6);
@@ -218,10 +248,16 @@ class ReceiptService
             $status = isset($payment['status']) ? ucfirst($payment['status']) : 'Unknown';
             $amount = isset($payment['amount']) ? Helper::formatCurrency($payment['amount']) : Helper::formatCurrency(0);
 
-            $pdf->addTableRow([$gateway, $status, $amount], $columns, 11, self::TEXT_MAIN);
+            $pdf->addTableRow([$gateway, $status, $amount], $columns, 11, self::TEXT_MAIN, ['left', 'center', 'right']);
 
             if (!empty($payment['transaction_id'])) {
-                $pdf->addTableRow(['   Txn: ' . $payment['transaction_id'], '', ''], $columns, 9, self::TEXT_MUTED);
+                $pdf->addTableRow(
+                    ['   Txn: ' . $payment['transaction_id'], '', ''],
+                    $columns,
+                    9,
+                    self::TEXT_MUTED,
+                    ['left', 'center', 'right']
+                );
             }
         }
 
@@ -239,9 +275,9 @@ class ReceiptService
             if ($label === 'Total Due') {
                 $highlightY = $pdf->getCursor() + 18;
                 $pdf->addRectangle(self::SUMMARY_COLS[0] - 20, $highlightY, 220, 18, self::THEME_COLOR);
-                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 12, self::TEXT_LIGHT);
+                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 12, self::TEXT_LIGHT, ['left', 'right']);
             } else {
-                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 11, self::TEXT_MAIN);
+                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
             }
         }
         $pdf->addSpacing(10);
