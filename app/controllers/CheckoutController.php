@@ -271,6 +271,15 @@ class CheckoutController extends Controller
                 'is_guest' => !$userId
             ]);
             
+            // Send order invoice email (before payment)
+            try {
+                $orderWithItems = $this->orderModel->getWithItems($orderId);
+                \App\Core\Email::sendOrderInvoice($orderWithItems);
+            } catch (\Exception $e) {
+                error_log("Failed to send order invoice email: " . $e->getMessage());
+                // Don't fail the order if email fails
+            }
+            
             // Store order ID in session for payment
             $_SESSION['pending_order_id'] = $orderId;
             

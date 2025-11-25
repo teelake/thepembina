@@ -196,6 +196,85 @@ class Email
         return self::send($order['email'], $subject, $message, null, null, $attachments);
     }
 
+    /**
+     * Send order invoice email (before payment)
+     * 
+     * @param array $order
+     * @return bool
+     */
+    public static function sendOrderInvoice($order)
+    {
+        $subject = "Order Invoice - {$order['order_number']} - Payment Required";
+        
+        // Build order items list
+        $itemsHtml = '';
+        if (isset($order['items']) && !empty($order['items'])) {
+            $itemsHtml = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">';
+            $itemsHtml .= '<tr style="background-color: #f5f5f5;"><th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Item</th><th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th></tr>';
+            foreach ($order['items'] as $item) {
+                $itemsHtml .= '<tr>';
+                $itemsHtml .= '<td style="padding: 8px; border-bottom: 1px solid #eee;">' . htmlspecialchars($item['product_name']) . ' x ' . $item['quantity'] . '</td>';
+                $itemsHtml .= '<td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">' . Helper::formatCurrency($item['subtotal']) . '</td>';
+                $itemsHtml .= '</tr>';
+            }
+            $itemsHtml .= '</table>';
+        }
+        
+        $paymentUrl = (defined('BASE_URL') ? BASE_URL : '') . '/payment?order_id=' . $order['id'];
+        
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #F4A460; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background-color: #f9f9f9; }
+                .order-details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .button { display: inline-block; padding: 12px 24px; background-color: #F4A460; color: white; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>The Pembina Pint and Restaurant</h1>
+                </div>
+                <div class='content'>
+                    <h2>Order Received - Payment Required</h2>
+                    <p>Thank you for your order! Please complete payment to confirm your order.</p>
+                    
+                    <div class='order-details'>
+                        <h3>Order Details</h3>
+                        <p><strong>Order Number:</strong> {$order['order_number']}</p>
+                        <p><strong>Order Type:</strong> " . ucfirst($order['order_type']) . "</p>
+                        <p><strong>Order Date:</strong> " . date('M d, Y g:i A', strtotime($order['created_at'])) . "</p>
+                        {$itemsHtml}
+                        <p style='margin-top: 15px;'><strong>Subtotal:</strong> " . Helper::formatCurrency($order['subtotal']) . "</p>
+                        <p><strong>Tax:</strong> " . Helper::formatCurrency($order['tax_amount'] ?? 0) . "</p>
+                        " . (!empty($order['shipping_amount']) ? "<p><strong>Delivery Fee:</strong> " . Helper::formatCurrency($order['shipping_amount']) . "</p>" : "") . "
+                        <p style='font-size: 18px; font-weight: bold; margin-top: 10px;'><strong>Total Amount:</strong> " . Helper::formatCurrency($order['total']) . "</p>
+                        <p><strong>Payment Status:</strong> <span style='color: #d97706; font-weight: bold;'>Pending Payment</span></p>
+                    </div>
+                    
+                    <div style='text-align: center; margin: 20px 0;'>
+                        <a href='{$paymentUrl}' class='button'>Complete Payment</a>
+                    </div>
+                    
+                    <p style='margin-top: 20px;'>Click the button above to complete your payment. Your order will be processed once payment is confirmed.</p>
+                </div>
+                <div class='footer'>
+                    <p>The Pembina Pint and Restaurant<br>
+                    282 Loren Drive, Morden, Manitoba, Canada</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+        
+        return self::send($order['email'], $subject, $message);
+    }
+
     private static function buildMailHeaders(string $fromName, string $fromEmail, array $attachments, string $to = '', string $subject = ''): array
     {
         $boundary = '=_Boundary_' . md5((string)microtime(true));

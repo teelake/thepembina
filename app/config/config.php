@@ -54,7 +54,7 @@ define('RATE_LIMIT_WINDOW', 3600); // 1 hour in seconds
 define('SMTP_HOST', 'mail.thepembina.ca');
 define('SMTP_PORT', 587);
 define('SMTP_USER', 'no-reply@thepembina.ca');
-define('SMTP_PASS', ''); // Set via admin email settings
+define('SMTP_PASS', 'Temp_Pass123@'); // Default password - can be changed via admin email settings
 define('SMTP_FROM_EMAIL', 'no-reply@thepembina.ca');
 define('SMTP_FROM_NAME', 'The Pembina Pint and Restaurant');
 
