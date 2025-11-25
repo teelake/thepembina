@@ -54,6 +54,7 @@ $router->add('GET', 'payment/cancel', ['controller' => 'Payment', 'action' => 'c
 $router->add('GET', 'account', ['controller' => 'Account', 'action' => 'index']);
 $router->add('GET', 'account/orders', ['controller' => 'Account', 'action' => 'orders']);
 $router->add('GET', 'account/orders/{id}', ['controller' => 'Account', 'action' => 'viewOrder']);
+$router->add('GET', 'account/orders/{id}/receipt', ['controller' => 'Account', 'action' => 'receipt']);
 $router->add('GET', 'account/addresses', ['controller' => 'Account', 'action' => 'addresses']);
 $router->add('POST', 'account/addresses', ['controller' => 'Account', 'action' => 'saveAddress']);
 $router->add('GET', 'account/profile', ['controller' => 'Account', 'action' => 'profile']);
@@ -83,6 +84,7 @@ $router->add('POST', 'admin/categories/{id}/delete', ['controller' => 'Admin\Cat
 
 // Admin - Navigation Management
 $router->add('GET', 'admin/navigation', ['controller' => 'Admin\Navigation', 'action' => 'index']);
+$router->add('POST', 'admin/navigation/update', ['controller' => 'Admin\Navigation', 'action' => 'update']);
 $router->add('GET', 'admin/navigation/create', ['controller' => 'Admin\Navigation', 'action' => 'create']);
 $router->add('POST', 'admin/navigation', ['controller' => 'Admin\Navigation', 'action' => 'store']);
 $router->add('GET', 'admin/navigation/{id}/edit', ['controller' => 'Admin\Navigation', 'action' => 'edit']);
@@ -132,6 +134,8 @@ $router->add('GET', 'admin/settings/payment', ['controller' => 'Admin\Setting', 
 $router->add('POST', 'admin/settings/payment', ['controller' => 'Admin\Setting', 'action' => 'updatePayment']);
 $router->add('GET', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'tax']);
 $router->add('POST', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'updateTax']);
+$router->add('GET', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'email']);
+$router->add('POST', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'updateEmail']);
 
 // Admin - Hero Slides
 $router->add('GET', 'admin/hero-slides', ['controller' => 'Admin\HeroSlide', 'action' => 'index']);

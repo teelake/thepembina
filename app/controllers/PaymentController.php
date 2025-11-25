@@ -50,9 +50,17 @@ class PaymentController extends Controller
             return;
         }
 
+        // Ensure order has required fields with defaults
+        if (!isset($order['total']) || $order['total'] <= 0) {
+            error_log("Payment page: Order #{$orderId} has invalid total: " . ($order['total'] ?? 'null'));
+            $this->redirect('/checkout?error=Order total is invalid');
+            return;
+        }
+
         $data = [
             'order' => $order,
-            'page_title' => 'Complete Payment'
+            'page_title' => 'Complete Payment',
+            'csrfField' => $this->csrf->getTokenField()
         ];
 
         $this->render('checkout/payment', $data);
@@ -129,6 +137,29 @@ class PaymentController extends Controller
                 'gateway' => $gatewayName,
                 'amount' => $order['total']
             ]);
+
+            // Send order confirmation email with receipt
+            try {
+                $orderWithItems = $this->orderModel->getWithItems($orderId);
+                $payments = $this->paymentModel->getByOrder($orderId);
+                
+                // Generate receipt PDF
+                $receiptService = new \App\Services\ReceiptService();
+                $pdf = $receiptService->generate($orderWithItems, $payments);
+                $filename = $receiptService->getFilename($orderWithItems);
+                
+                // Send email with receipt attachment
+                \App\Core\Email::sendOrderConfirmation($orderWithItems, [
+                    [
+                        'name' => $filename,
+                        'content' => $pdf,
+                        'type' => 'application/pdf'
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                error_log("Failed to send order confirmation email: " . $e->getMessage());
+                // Don't fail the payment if email fails
+            }
 
             // Redirect to success page
             $this->redirect('/payment/success?order_id=' . $orderId);

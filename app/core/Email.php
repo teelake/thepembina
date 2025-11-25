@@ -50,7 +50,12 @@ class Email
         // Simple SMTP implementation using socket
         // For production, consider using PHPMailer or SwiftMailer
         
-        $smtp = fsockopen(SMTP_HOST, SMTP_PORT, $errno, $errstr, 30);
+        $smtpHost = defined('SMTP_HOST') ? SMTP_HOST : Helper::getSetting('smtp_host', '');
+        $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : (int)Helper::getSetting('smtp_port', 587);
+        $smtpUser = defined('SMTP_USER') ? SMTP_USER : Helper::getSetting('smtp_user', '');
+        $smtpPass = defined('SMTP_PASS') ? SMTP_PASS : Helper::getSetting('smtp_pass', '');
+        
+        $smtp = fsockopen($smtpHost, $smtpPort, $errno, $errstr, 30);
         
         if (!$smtp) {
             error_log("SMTP Connection Error: {$errstr} ({$errno})");
@@ -60,7 +65,7 @@ class Email
         $response = fgets($smtp, 515);
         
         // EHLO
-        fputs($smtp, "EHLO " . SMTP_HOST . "\r\n");
+        fputs($smtp, "EHLO " . $smtpHost . "\r\n");
         $response = fgets($smtp, 515);
         
         // Start TLS if available
@@ -68,7 +73,7 @@ class Email
             fputs($smtp, "STARTTLS\r\n");
             $response = fgets($smtp, 515);
             stream_socket_enable_crypto($smtp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-            fputs($smtp, "EHLO " . SMTP_HOST . "\r\n");
+            fputs($smtp, "EHLO " . $smtpHost . "\r\n");
             $response = fgets($smtp, 515);
         }
         
@@ -76,10 +81,10 @@ class Email
         fputs($smtp, "AUTH LOGIN\r\n");
         $response = fgets($smtp, 515);
         
-        fputs($smtp, base64_encode(SMTP_USER) . "\r\n");
+        fputs($smtp, base64_encode($smtpUser) . "\r\n");
         $response = fgets($smtp, 515);
         
-        fputs($smtp, base64_encode(SMTP_PASS) . "\r\n");
+        fputs($smtp, base64_encode($smtpPass) . "\r\n");
         $response = fgets($smtp, 515);
         
         if (strpos($response, '235') === false) {
@@ -119,11 +124,26 @@ class Email
      * Send order confirmation email
      * 
      * @param array $order
+     * @param array $attachments Optional attachments (e.g., receipt PDF)
      * @return bool
      */
-    public static function sendOrderConfirmation($order)
+    public static function sendOrderConfirmation($order, array $attachments = [])
     {
         $subject = "Order Confirmation - {$order['order_number']}";
+        
+        // Build order items list
+        $itemsHtml = '';
+        if (isset($order['items']) && !empty($order['items'])) {
+            $itemsHtml = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">';
+            $itemsHtml .= '<tr style="background-color: #f5f5f5;"><th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Item</th><th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th></tr>';
+            foreach ($order['items'] as $item) {
+                $itemsHtml .= '<tr>';
+                $itemsHtml .= '<td style="padding: 8px; border-bottom: 1px solid #eee;">' . htmlspecialchars($item['product_name']) . ' x ' . $item['quantity'] . '</td>';
+                $itemsHtml .= '<td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">' . Helper::formatCurrency($item['subtotal']) . '</td>';
+                $itemsHtml .= '</tr>';
+            }
+            $itemsHtml .= '</table>';
+        }
         
         $message = "
         <html>
@@ -150,9 +170,17 @@ class Email
                         <h3>Order Details</h3>
                         <p><strong>Order Number:</strong> {$order['order_number']}</p>
                         <p><strong>Order Type:</strong> " . ucfirst($order['order_type']) . "</p>
-                        <p><strong>Total Amount:</strong> " . Helper::formatCurrency($order['total']) . "</p>
+                        <p><strong>Order Date:</strong> " . date('M d, Y g:i A', strtotime($order['created_at'])) . "</p>
+                        {$itemsHtml}
+                        <p style='margin-top: 15px;'><strong>Subtotal:</strong> " . Helper::formatCurrency($order['subtotal']) . "</p>
+                        <p><strong>Tax:</strong> " . Helper::formatCurrency($order['tax_amount'] ?? 0) . "</p>
+                        " . (!empty($order['shipping_amount']) ? "<p><strong>Delivery Fee:</strong> " . Helper::formatCurrency($order['shipping_amount']) . "</p>" : "") . "
+                        <p style='font-size: 18px; font-weight: bold; margin-top: 10px;'><strong>Total Amount:</strong> " . Helper::formatCurrency($order['total']) . "</p>
+                        <p><strong>Payment Status:</strong> " . ucfirst($order['payment_status']) . "</p>
                         <p><strong>Status:</strong> " . ucfirst($order['status']) . "</p>
                     </div>
+                    
+                    " . (!empty($attachments) ? "<p style='margin-top: 15px;'><strong>📎 Your receipt is attached to this email.</strong></p>" : "") . "
                     
                     <p>We'll notify you when your order is ready!</p>
                 </div>
@@ -165,7 +193,7 @@ class Email
         </html>
         ";
         
-        return self::send($order['email'], $subject, $message);
+        return self::send($order['email'], $subject, $message, null, null, $attachments);
     }
 
     private static function buildMailHeaders(string $fromName, string $fromEmail, array $attachments, string $to = '', string $subject = ''): array

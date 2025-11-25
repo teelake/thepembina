@@ -49,11 +49,12 @@ define('RATE_LIMIT_REQUESTS', 100); // requests per window
 define('RATE_LIMIT_WINDOW', 3600); // 1 hour in seconds
 
 // Email settings
-// NOTE: Update these on your production server with actual credentials
-define('SMTP_HOST', 'mail.thepembina.ca'); // Update if different
+// NOTE: These can be overridden by database settings (smtp_host, smtp_port, etc.)
+// Default values - will be overridden by database settings in Email class if they exist
+define('SMTP_HOST', 'mail.thepembina.ca');
 define('SMTP_PORT', 587);
 define('SMTP_USER', 'no-reply@thepembina.ca');
-define('SMTP_PASS', ''); // Set on production server: Temp_Pass123
+define('SMTP_PASS', ''); // Set via admin email settings
 define('SMTP_FROM_EMAIL', 'no-reply@thepembina.ca');
 define('SMTP_FROM_NAME', 'The Pembina Pint and Restaurant');
 

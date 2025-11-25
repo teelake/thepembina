@@ -60,48 +60,42 @@
                     </a>
                     
                     <?php
-                    // Get navigation menu items (hybrid: categories, pages, custom links)
-                    require_once APP_PATH . '/models/NavigationMenuItem.php';
-                    $navModel = new \App\Models\NavigationMenuItem();
-                    $menuItems = $navModel->getActiveItems();
-                    
-                    // Display menu items
-                    if (!empty($menuItems)):
-                        foreach ($menuItems as $menuItem):
-                            $menuUrl = $navModel->getUrl($menuItem);
-                    ?>
-                        <a href="<?= htmlspecialchars($menuUrl) ?>" 
-                           target="<?= htmlspecialchars($menuItem['target'] ?? '_self') ?>"
-                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
-                            <?php if ($menuItem['icon']): ?>
-                                <i class="<?= htmlspecialchars($menuItem['icon']) ?> mr-1"></i>
-                            <?php endif; ?>
-                            <?= htmlspecialchars($menuItem['label']) ?>
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
-                        </a>
-                    <?php 
-                        endforeach;
-                    endif;
-                    ?>
-                    
-                    <!-- Menu Dropdown (for all categories not in navigation) -->
-                    <?php
+                    // Get navigation menu items - use category-based approach (simpler, more reliable)
                     require_once APP_PATH . '/models/Category.php';
                     $catModel = new \App\Models\Category();
                     $allCategories = $catModel->getAllWithCount();
                     
-                    // Get category IDs that are in navigation
-                    $navCategoryIds = [];
-                    if (!empty($menuItems)) {
-                        foreach ($menuItems as $item) {
-                            if ($item['type'] === 'category' && !empty($item['category_id'])) {
-                                $navCategoryIds[] = $item['category_id'];
-                            }
+                    // Get categories marked to show in nav
+                    $menuItems = [];
+                    $otherCategories = [];
+                    foreach ($allCategories as $cat) {
+                        if (isset($cat['show_in_nav']) && $cat['show_in_nav'] == 1) {
+                            $menuItems[] = $cat;
+                        } else {
+                            $otherCategories[] = $cat;
                         }
                     }
                     
-                    // Filter out categories already in navigation
-                    $otherCategories = array_filter($allCategories, function($cat) use ($navCategoryIds) {
+                    // Sort menu items by nav_order
+                    usort($menuItems, function($a, $b) {
+                        $orderA = isset($a['nav_order']) ? (int)$a['nav_order'] : 999;
+                        $orderB = isset($b['nav_order']) ? (int)$b['nav_order'] : 999;
+                        return $orderA <=> $orderB;
+                    });
+                    ?>
+                    
+                    <?php foreach ($menuItems as $cat): ?>
+                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>"
+                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                            <?= htmlspecialchars($cat['name']) ?>
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                        </a>
+                    <?php endforeach; ?>
+                    
+                    <!-- More Dropdown (for all other categories) -->
+                    <?php
+                    $navCategoryIds = array_column($menuItems, 'id');
+                    $otherCategories = array_filter($otherCategories, function($cat) use ($navCategoryIds) {
                         return !in_array($cat['id'], $navCategoryIds);
                     });
                     ?>

@@ -106,6 +106,46 @@ class SettingController extends Controller
         ]);
     }
 
+    public function email()
+    {
+        $settings = $this->settingModel->getAll();
+        $this->render('admin/settings/email', [
+            'settings' => $settings,
+            'page_title' => 'Email Settings',
+            'current_page' => 'settings',
+            'csrfField' => $this->csrf->getTokenField()
+        ]);
+    }
+
+    public function updateEmail()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/settings/email');
+            return;
+        }
+        if (!$this->verifyCSRF()) {
+            $this->redirect('/admin/settings/email?error=Invalid security token');
+            return;
+        }
+
+        $fields = [
+            'smtp_host',
+            'smtp_port',
+            'smtp_user',
+            'smtp_pass',
+            'smtp_from_email',
+            'smtp_from_name'
+        ];
+        
+        foreach ($fields as $field) {
+            if (isset($_POST[$field])) {
+                $this->settingModel->updateSetting($field, $_POST[$field]);
+            }
+        }
+        
+        $this->redirect('/admin/settings/email?success=Email settings updated');
+    }
+
     public function updateTax()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

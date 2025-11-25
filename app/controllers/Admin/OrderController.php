@@ -96,14 +96,19 @@ class OrderController extends Controller
         }
         $payments = $this->paymentModel->getByOrder($id);
 
-        $service = new ReceiptService();
-        $pdf = $service->generate($order, $payments);
+        try {
+            $service = new ReceiptService();
+            $pdf = $service->generate($order, $payments);
 
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="receipt-' . $order['order_number'] . '.pdf"');
-        header('Content-Length: ' . strlen($pdf));
-        echo $pdf;
-        exit;
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="receipt-' . $order['order_number'] . '.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (\Exception $e) {
+            error_log("Receipt generation error: " . $e->getMessage());
+            $this->redirect("/admin/orders/{$id}?error=Failed to generate receipt: " . $e->getMessage());
+        }
     }
 
     public function emailReceipt()

@@ -32,8 +32,17 @@ class Category extends Model
      */
     public function getAllWithCount()
     {
+        // Check if show_in_nav and nav_order columns exist
+        $columns = $this->db->query("SHOW COLUMNS FROM {$this->table}")->fetchAll(\PDO::FETCH_COLUMN);
+        $hasNavFields = in_array('show_in_nav', $columns) && in_array('nav_order', $columns);
+        
+        $selectFields = "c.*, COUNT(p.id) as product_count";
+        if ($hasNavFields) {
+            $selectFields .= ", c.show_in_nav, c.nav_order";
+        }
+        
         $stmt = $this->db->query("
-            SELECT c.*, COUNT(p.id) as product_count 
+            SELECT {$selectFields}
             FROM {$this->table} c
             LEFT JOIN products p ON c.id = p.category_id AND p.status = 'active'
             WHERE c.status = 'active'
