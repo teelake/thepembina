@@ -369,9 +369,26 @@ class ProductController extends Controller
             return;
         }
 
-        // Clean and normalize column names (trim whitespace, convert to lowercase)
+        // Clean and normalize column names (trim whitespace, convert to lowercase, remove BOM)
         $columns = array_map(function($col) {
-            return strtolower(trim($col));
+            if (empty($col)) {
+                return '';
+            }
+            
+            // Remove UTF-8 BOM (Byte Order Mark) - multiple methods to catch all cases
+            // Method 1: Remove BOM bytes directly
+            $col = preg_replace('/^\xEF\xBB\xBF/', '', $col);
+            $col = str_replace("\xEF\xBB\xBF", '', $col);
+            
+            // Method 2: Remove Unicode BOM character (U+FEFF)
+            $col = preg_replace('/^\x{FEFF}/u', '', $col);
+            $col = str_replace("\x{FEFF}", '', $col);
+            
+            // Method 3: Remove any invisible BOM characters
+            $col = trim($col, "\xEF\xBB\xBF");
+            $col = trim($col);
+            
+            return strtolower($col);
         }, $header);
         
         // Find required columns (case-insensitive, whitespace-tolerant)
@@ -382,6 +399,32 @@ class ProductController extends Controller
         // Build error message if columns are missing
         if ($nameIndex === false || $categoryIndex === false || $priceIndex === false) {
             fclose($handle);
+            
+            $missing = [];
+            if ($nameIndex === false) $missing[] = 'name';
+            if ($categoryIndex === false) $missing[] = 'category';
+            if ($priceIndex === false) $missing[] = 'price';
+            
+            $foundColumns = array_map(function($col) {
+                // Show BOM characters in a readable way for debugging
+                $display = str_replace("\xEF\xBB\xBF", '[BOM]', $col);
+                return "'{$display}'";
+            }, $header);
+            $foundColumnsStr = implode(', ', $foundColumns);
+            
+            $errorMsg = 'CSV is missing required columns: ' . implode(', ', $missing) . '. ';
+            $errorMsg .= 'Found columns: ' . $foundColumnsStr . '. ';
+            $errorMsg .= 'Please download the sample CSV template for the correct format.';
+            
+            // Log the error with full details
+            $this->logError('CSV Import: Missing required columns', [
+                'file_name' => $_FILES['import_file']['name'],
+                'missing_columns' => $missing,
+                'found_columns' => $header,
+                'normalized_columns' => $columns,
+                'raw_first_column' => bin2hex(substr($header[0] ?? '', 0, 10)), // Hex dump of first few bytes
+                'user_id' => $this->getUserId()
+            ]);
             $missing = [];
             if ($nameIndex === false) $missing[] = 'name';
             if ($categoryIndex === false) $missing[] = 'category';
