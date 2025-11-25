@@ -92,8 +92,11 @@ if (!$customNavEnabled) {
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="<?= BASE_URL ?>" class="flex items-center group" aria-label="Home">
-                        <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-12 w-12 mr-3 transition-transform group-hover:scale-105 logo-image">
-                        <span class="text-xl font-bold text-brand">The Pembina Pint</span>
+                        <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-12 w-12 sm:h-14 sm:w-14 mr-2 sm:mr-3 transition-transform group-hover:scale-105 logo-image flex-shrink-0">
+                        <span class="text-lg sm:text-xl font-bold text-brand whitespace-nowrap">
+                            <span class="hidden sm:inline">The Pembina Pint & Restaurant</span>
+                            <span class="sm:hidden">The Pembina Pint</span>
+                        </span>
                     </a>
                 </div>
                 
@@ -300,7 +303,7 @@ if (!$customNavEnabled) {
                 $socialTwitter = Helper::getSetting('social_twitter', '');
                 ?>
                 <div>
-                    <h3 class="text-xl font-bold mb-4">The Pembina Pint</h3>
+                    <h3 class="text-xl font-bold mb-4">The Pembina Pint & Restaurant</h3>
                     <p class="text-gray-400"><?= htmlspecialchars($footerAddress) ?></p>
                     <p class="text-gray-400 mt-2">African & Nigerian Restaurant | Bar | Catering Services</p>
                     <?php if ($footerHours): ?>
