@@ -15,14 +15,15 @@ class SimplePdf
         $this->cursorY = $this->pageHeight - 40;
     }
 
-    public function addLine(string $text, int $fontSize = 12, int $x = 40): void
+    public function addLine(string $text, int $fontSize = 12, int $x = 40, array $color = [0, 0, 0]): void
     {
         $this->elements[] = [
             'type' => 'text',
             'text' => $text,
             'font' => $fontSize,
             'x' => $x,
-            'y' => $this->cursorY
+            'y' => $this->cursorY,
+            'color' => $color
         ];
         $this->cursorY -= $fontSize + 6;
     }
@@ -35,14 +36,15 @@ class SimplePdf
     /**
      * Draw a horizontal divider line.
      */
-    public function addHorizontalRule(int $x = 40, int $width = 520, float $thickness = 0.5): void
+    public function addHorizontalRule(int $x = 40, int $width = 520, float $thickness = 0.5, array $color = [0, 0, 0]): void
     {
         $this->elements[] = [
             'type' => 'rule',
             'x' => $x,
             'y' => $this->cursorY,
             'width' => $width,
-            'thickness' => $thickness
+            'thickness' => $thickness,
+            'color' => $color
         ];
         $this->cursorY -= 8;
     }
@@ -54,7 +56,7 @@ class SimplePdf
      * @param array $positions X coordinate for each column
      * @param int   $fontSize  Font size to use
      */
-    public function addTableRow(array $columns, array $positions, int $fontSize = 11): void
+    public function addTableRow(array $columns, array $positions, int $fontSize = 11, array $color = [0, 0, 0]): void
     {
         $y = $this->cursorY;
         foreach ($columns as $index => $text) {
@@ -64,10 +66,27 @@ class SimplePdf
                 'text' => $text,
                 'font' => $fontSize,
                 'x' => $x,
-                'y' => $y
+                'y' => $y,
+                'color' => $color
             ];
         }
         $this->cursorY = $y - ($fontSize + 6);
+    }
+
+    /**
+     * Draw a rectangle (filled highlight or border).
+     */
+    public function addRectangle(int $x, int $y, int $width, int $height, array $color = [0, 0, 0], bool $filled = true): void
+    {
+        $this->elements[] = [
+            'type' => 'rect',
+            'x' => $x,
+            'y' => $y,
+            'width' => $width,
+            'height' => $height,
+            'color' => $color,
+            'filled' => $filled
+        ];
     }
 
     public function setCursor(int $y): void
@@ -159,21 +178,46 @@ class SimplePdf
         $stream = '';
         foreach ($this->elements as $element) {
             if ($element['type'] === 'text') {
+                $color = $this->formatColor($element['color'] ?? [0, 0, 0]);
                 $stream .= sprintf(
-                    "BT /F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj ET\n",
+                    "%.3F %.3F %.3F rg BT /F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj ET\n",
+                    $color[0],
+                    $color[1],
+                    $color[2],
                     $element['font'],
                     $element['x'],
                     $element['y'],
                     $this->escape($element['text'])
                 );
             } elseif ($element['type'] === 'rule') {
+                $color = $this->formatColor($element['color'] ?? [0, 0, 0]);
                 $stream .= sprintf(
-                    "%.2F w %d %d m %d %d l S\n",
+                    "%.3F %.3F %.3F RG %.2F w %d %d m %d %d l S\n",
+                    $color[0],
+                    $color[1],
+                    $color[2],
                     $element['thickness'],
                     $element['x'],
                     $element['y'],
                     $element['x'] + $element['width'],
                     $element['y']
+                );
+            } elseif ($element['type'] === 'rect') {
+                $color = $this->formatColor($element['color'] ?? [0, 0, 0]);
+                $drawY = $element['y'] - $element['height'];
+                $stream .= sprintf(
+                    "q %.3F %.3F %.3F rg %.3F %.3F %.3F RG %d %d %d %d re %s Q\n",
+                    $color[0],
+                    $color[1],
+                    $color[2],
+                    $color[0],
+                    $color[1],
+                    $color[2],
+                    $element['x'],
+                    $drawY,
+                    $element['width'],
+                    $element['height'],
+                    $element['filled'] ? 'f' : 'S'
                 );
             } elseif ($element['type'] === 'image') {
                 $drawY = $element['y'] - $element['height'];
@@ -252,6 +296,18 @@ class SimplePdf
         $pdf .= "startxref\n" . $xrefPosition . "\n%%EOF";
 
         return $pdf;
+    }
+
+    private function formatColor(array $color): array
+    {
+        $r = isset($color[0]) ? max(0, min(1, $color[0])) : 0;
+        $g = isset($color[1]) ? max(0, min(1, $color[1])) : 0;
+        $b = isset($color[2]) ? max(0, min(1, $color[2])) : 0;
+        return [
+            (float)number_format($r, 3, '.', ''),
+            (float)number_format($g, 3, '.', ''),
+            (float)number_format($b, 3, '.', '')
+        ];
     }
 }
 
