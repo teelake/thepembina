@@ -130,7 +130,55 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
 </section>
 <?php endif; ?>
 
-<!-- Testimonials -->
+<!-- Quick Order CTA -->
+<section class="py-12 bg-gradient-to-r from-brand to-brand-dark text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Order?</h2>
+        <p class="text-xl mb-6 text-white/90">Experience authentic African flavors delivered to your door</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="<?= BASE_URL ?>/menu" class="bg-white text-brand px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition transform hover:scale-105 shadow-lg">
+                <i class="fas fa-utensils mr-2"></i> Browse Menu
+            </a>
+            <a href="<?= BASE_URL ?>/cart" class="bg-brand-dark text-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition transform hover:scale-105 border-2 border-white">
+                <i class="fas fa-shopping-cart mr-2"></i> View Cart
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Business Info -->
+<section class="py-12 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-brand/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-map-marker-alt text-2xl text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Location</h3>
+                <p class="text-gray-600"><?= htmlspecialchars($businessAddress ?? '282 Loren Drive, Morden, Manitoba, Canada') ?></p>
+            </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-brand/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-2xl text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Hours</h3>
+                <p class="text-gray-600"><?= htmlspecialchars($businessHours ?? 'Mon-Sat: 11AM-10PM, Sun: 12PM-9PM') ?></p>
+            </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-brand/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-phone text-2xl text-brand"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Contact</h3>
+                <p class="text-gray-600">
+                    <a href="mailto:<?= htmlspecialchars($contactEmail ?? 'info@pembinapint.com') ?>" class="hover:text-brand transition"><?= htmlspecialchars($contactEmail ?? 'info@pembinapint.com') ?></a><br>
+                    <a href="tel:<?= htmlspecialchars($contactPhone ?? '') ?>" class="hover:text-brand transition"><?= htmlspecialchars($contactPhone ?? '(204) XXX-XXXX') ?></a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials (Social Proof - Before Events) -->
 <?php if (!empty($testimonials)): ?>
 <section class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,7 +213,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
 </section>
 <?php endif; ?>
 
-<!-- Upcoming Events -->
+<!-- Upcoming Events (After Social Proof) -->
 <?php if (!empty($events)): ?>
 <section class="py-12 bg-gray-900 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -200,7 +248,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
 </section>
 <?php endif; ?>
 
-<!-- Newsletter -->
+<!-- Newsletter (Final CTA) -->
 <section class="py-12 bg-brand text-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <p class="uppercase tracking-[0.3em] text-sm font-semibold mb-3">Newsletter</p>

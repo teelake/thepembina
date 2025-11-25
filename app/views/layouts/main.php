@@ -58,10 +58,40 @@
                         Home
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                     </a>
-                    <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
-                        Menu
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
-                    </a>
+                    
+                    <!-- Menu Dropdown -->
+                    <div class="relative menu-dropdown">
+                        <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                            Menu
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                        </a>
+                        <?php
+                        // Get main categories for dropdown
+                        require_once APP_PATH . '/models/Category.php';
+                        $catModel = new \App\Models\Category();
+                        $navCategories = $catModel->getAllWithCount();
+                        $topCategories = array_slice($navCategories, 0, 3);
+                        ?>
+                        <?php if (!empty($topCategories)): ?>
+                        <div class="menu-dropdown-content">
+                            <div class="py-2">
+                                <?php foreach ($topCategories as $cat): ?>
+                                <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
+                                   class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
+                                    <?= htmlspecialchars($cat['name']) ?>
+                                    <span class="text-xs text-gray-500 ml-2">(<?= $cat['product_count'] ?>)</span>
+                                </a>
+                                <?php endforeach; ?>
+                                <div class="border-t border-gray-200 my-1"></div>
+                                <a href="<?= BASE_URL ?>/menu" class="block px-4 py-2 text-brand hover:bg-brand hover:text-white transition-colors font-semibold">
+                                    View All Categories <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    
                     <a href="<?= BASE_URL ?>/cart" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
                         <i class="fas fa-shopping-cart mr-1"></i> Cart
                         <span id="cart-count-badge" class="ml-1 bg-brand text-white rounded-full px-2 py-0.5 text-xs font-semibold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
@@ -133,10 +163,25 @@
     <footer class="bg-gray-800 text-white mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <?php
+                use App\Core\Helper;
+                $footerEmail = Helper::getSetting('site_email', 'info@pembinapint.com');
+                $footerPhone = Helper::getSetting('site_phone', '(204) XXX-XXXX');
+                $footerAddress = Helper::getSetting('site_address', '282 Loren Drive, Morden, Manitoba, Canada');
+                $footerHours = Helper::getSetting('business_hours', 'Mon-Sat: 11AM-10PM, Sun: 12PM-9PM');
+                $socialFacebook = Helper::getSetting('social_facebook', '');
+                $socialInstagram = Helper::getSetting('social_instagram', '');
+                $socialTwitter = Helper::getSetting('social_twitter', '');
+                ?>
                 <div>
                     <h3 class="text-xl font-bold mb-4">The Pembina Pint</h3>
-                    <p class="text-gray-400">282 Loren Drive, Morden, Manitoba, Canada</p>
+                    <p class="text-gray-400"><?= htmlspecialchars($footerAddress) ?></p>
                     <p class="text-gray-400 mt-2">African & Nigerian Restaurant | Bar | Catering Services</p>
+                    <?php if ($footerHours): ?>
+                        <p class="text-gray-400 mt-2">
+                            <i class="fas fa-clock mr-2"></i><?= htmlspecialchars($footerHours) ?>
+                        </p>
+                    <?php endif; ?>
                 </div>
                 
                 <div>
@@ -151,8 +196,33 @@
                 
                 <div>
                     <h3 class="text-xl font-bold mb-4">Contact</h3>
-                    <p class="text-gray-400">Email: info@pembinapint.com</p>
-                    <p class="text-gray-400 mt-2">Phone: (204) XXX-XXXX</p>
+                    <p class="text-gray-400">
+                        <i class="fas fa-envelope mr-2"></i>
+                        <a href="mailto:<?= htmlspecialchars($footerEmail) ?>" class="hover:text-white transition"><?= htmlspecialchars($footerEmail) ?></a>
+                    </p>
+                    <p class="text-gray-400 mt-2">
+                        <i class="fas fa-phone mr-2"></i>
+                        <a href="tel:<?= htmlspecialchars($footerPhone) ?>" class="hover:text-white transition"><?= htmlspecialchars($footerPhone) ?></a>
+                    </p>
+                    <?php if ($socialFacebook || $socialInstagram || $socialTwitter): ?>
+                        <div class="flex gap-4 mt-4">
+                            <?php if ($socialFacebook): ?>
+                                <a href="<?= htmlspecialchars($socialFacebook) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Facebook">
+                                    <i class="fab fa-facebook text-xl"></i>
+                                </a>
+                            <?php endif; ?>
+                            <?php if ($socialInstagram): ?>
+                                <a href="<?= htmlspecialchars($socialInstagram) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Instagram">
+                                    <i class="fab fa-instagram text-xl"></i>
+                                </a>
+                            <?php endif; ?>
+                            <?php if ($socialTwitter): ?>
+                                <a href="<?= htmlspecialchars($socialTwitter) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition" aria-label="Twitter">
+                                    <i class="fab fa-twitter text-xl"></i>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             
