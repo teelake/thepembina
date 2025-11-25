@@ -60,18 +60,23 @@
                     </a>
                     
                     <?php
-                    // Get main categories (Food, As E Dey Hot, Drinks) for direct navigation
-                    require_once APP_PATH . '/models/Category.php';
-                    $catModel = new \App\Models\Category();
-                    $mainCategories = $catModel->getMainNavigationCategories();
+                    // Get navigation menu items (hybrid: categories, pages, custom links)
+                    require_once APP_PATH . '/models/NavigationMenuItem.php';
+                    $navModel = new \App\Models\NavigationMenuItem();
+                    $menuItems = $navModel->getActiveItems();
                     
-                    // Display main categories as direct links
-                    if (!empty($mainCategories)):
-                        foreach ($mainCategories as $mainCat):
+                    // Display menu items
+                    if (!empty($menuItems)):
+                        foreach ($menuItems as $menuItem):
+                            $menuUrl = $navModel->getUrl($menuItem);
                     ?>
-                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($mainCat['slug']) ?>" 
-                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group">
-                            <?= htmlspecialchars($mainCat['name']) ?>
+                        <a href="<?= htmlspecialchars($menuUrl) ?>" 
+                           target="<?= htmlspecialchars($menuItem['target'] ?? '_self') ?>"
+                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                            <?php if ($menuItem['icon']): ?>
+                                <i class="<?= htmlspecialchars($menuItem['icon']) ?> mr-1"></i>
+                            <?php endif; ?>
+                            <?= htmlspecialchars($menuItem['label']) ?>
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                         </a>
                     <?php 
@@ -79,23 +84,34 @@
                     endif;
                     ?>
                     
-                    <!-- Menu Dropdown (for all other categories) -->
+                    <!-- Menu Dropdown (for all categories not in navigation) -->
+                    <?php
+                    require_once APP_PATH . '/models/Category.php';
+                    $catModel = new \App\Models\Category();
+                    $allCategories = $catModel->getAllWithCount();
+                    
+                    // Get category IDs that are in navigation
+                    $navCategoryIds = [];
+                    if (!empty($menuItems)) {
+                        foreach ($menuItems as $item) {
+                            if ($item['type'] === 'category' && !empty($item['category_id'])) {
+                                $navCategoryIds[] = $item['category_id'];
+                            }
+                        }
+                    }
+                    
+                    // Filter out categories already in navigation
+                    $otherCategories = array_filter($allCategories, function($cat) use ($navCategoryIds) {
+                        return !in_array($cat['id'], $navCategoryIds);
+                    });
+                    ?>
+                    <?php if (!empty($otherCategories)): ?>
                     <div class="relative menu-dropdown">
                         <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
                             More
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                         </a>
-                        <?php
-                        // Get all categories excluding main nav ones for dropdown
-                        $allCategories = $catModel->getAllWithCount();
-                        $mainCategoryIds = array_column($mainCategories, 'id');
-                        $otherCategories = array_filter($allCategories, function($cat) use ($mainCategoryIds) {
-                            // Exclude categories that are in main nav OR marked to show in nav
-                            return !in_array($cat['id'], $mainCategoryIds) && empty($cat['show_in_nav']);
-                        });
-                        ?>
-                        <?php if (!empty($otherCategories)): ?>
                         <div class="menu-dropdown-content">
                             <div class="py-2">
                                 <?php foreach ($otherCategories as $cat): ?>
@@ -111,8 +127,8 @@
                                 </a>
                             </div>
                         </div>
-                        <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                     
                     <!-- Cart - Primary CTA (Most Prominent) -->
                     <a href="<?= BASE_URL ?>/cart" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center relative">
@@ -174,14 +190,21 @@
             <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t shadow-lg">
                 <a href="<?= BASE_URL ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Home</a>
                 <?php
-                // Get main categories for mobile menu
-                require_once APP_PATH . '/models/Category.php';
-                $catModel = new \App\Models\Category();
-                $mobileMainCategories = $catModel->getMainNavigationCategories();
-                foreach ($mobileMainCategories as $cat):
+                // Get navigation menu items for mobile menu
+                require_once APP_PATH . '/models/NavigationMenuItem.php';
+                $navModel = new \App\Models\NavigationMenuItem();
+                $mobileMenuItems = $navModel->getActiveItems();
+                foreach ($mobileMenuItems as $menuItem):
+                    $menuUrl = $navModel->getUrl($menuItem);
                 ?>
-                    <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
-                        <?= htmlspecialchars($cat['name']) ?>
+                    <a href="<?= htmlspecialchars($menuUrl) ?>" 
+                       target="<?= htmlspecialchars($menuItem['target'] ?? '_self') ?>"
+                       class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" 
+                       role="menuitem">
+                        <?php if ($menuItem['icon']): ?>
+                            <i class="<?= htmlspecialchars($menuItem['icon']) ?> mr-2"></i>
+                        <?php endif; ?>
+                        <?= htmlspecialchars($menuItem['label']) ?>
                     </a>
                 <?php endforeach; ?>
                 <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">All Menu</a>

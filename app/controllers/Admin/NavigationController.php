@@ -1,22 +1,26 @@
 <?php
 /**
  * Navigation Management Controller
- * Manages which categories appear in main navigation
+ * Manages navigation menu items (categories, pages, custom links)
  */
 
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Models\NavigationMenuItem;
 use App\Models\Category;
+use App\Core\Helper;
 
 class NavigationController extends Controller
 {
+    private $menuItemModel;
     private $categoryModel;
 
     public function __construct($params = [])
     {
         parent::__construct($params);
         $this->requireRole(['super_admin', 'admin', 'data_entry']);
+        $this->menuItemModel = new NavigationMenuItem();
         $this->categoryModel = new Category();
     }
 
@@ -25,25 +29,17 @@ class NavigationController extends Controller
      */
     public function index()
     {
-        // Get all active categories with navigation status
-        $categories = $this->categoryModel->getAllWithCount();
+        $menuItems = $this->menuItemModel->getActiveItems();
+        $allItems = $this->menuItemModel->findAll([], 'order ASC, label ASC');
         
-        // Sort: navigation categories first, then others
-        usort($categories, function($a, $b) {
-            // Navigation categories first
-            if ($a['show_in_nav'] != $b['show_in_nav']) {
-                return $b['show_in_nav'] - $a['show_in_nav'];
-            }
-            // Then by nav_order
-            if ($a['show_in_nav'] && $b['show_in_nav']) {
-                return ($a['nav_order'] ?? 0) - ($b['nav_order'] ?? 0);
-            }
-            // Then by sort_order
-            return ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0);
-        });
+        $categories = $this->menuItemModel->getAvailableCategories();
+        $pages = $this->menuItemModel->getAvailablePages();
 
         $this->render('admin/navigation/index', [
+            'menuItems' => $allItems,
+            'activeItems' => $menuItems,
             'categories' => $categories,
+            'pages' => $pages,
             'page_title' => 'Navigation Management',
             'current_page' => 'navigation',
             'csrfField' => $this->csrf->getTokenField()
@@ -51,58 +47,177 @@ class NavigationController extends Controller
     }
 
     /**
-     * Update navigation settings (AJAX)
+     * Create menu item form
      */
-    public function update()
+    public function create()
+    {
+        $categories = $this->menuItemModel->getAvailableCategories();
+        $pages = $this->menuItemModel->getAvailablePages();
+
+        $this->render('admin/navigation/form', [
+            'categories' => $categories,
+            'pages' => $pages,
+            'page_title' => 'Add Menu Item',
+            'current_page' => 'navigation',
+            'csrfField' => $this->csrf->getTokenField()
+        ]);
+    }
+
+    /**
+     * Store menu item
+     */
+    public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            $this->redirect('/admin/navigation');
             return;
         }
 
         if (!$this->verifyCSRF()) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Invalid security token']);
+            $this->redirect('/admin/navigation?error=Invalid security token');
             return;
         }
 
-        $categoryId = (int)$this->post('category_id');
-        $showInNav = $this->post('show_in_nav') ? 1 : 0;
-        $navOrder = (int)$this->post('nav_order', 0);
-
-        // Limit to 3 categories in navigation
-        if ($showInNav) {
-            $currentNavCount = $this->categoryModel->db->query(
-                "SELECT COUNT(*) FROM categories WHERE show_in_nav = 1 AND id != {$categoryId}"
-            )->fetchColumn();
-            
-            if ($currentNavCount >= 3) {
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Maximum 3 categories can be shown in navigation. Please remove one first.'
-                ]);
-                return;
-            }
-        }
-
+        $type = $this->post('type');
         $data = [
-            'show_in_nav' => $showInNav,
-            'nav_order' => $navOrder
+            'label' => $this->post('label'),
+            'type' => $type,
+            'order' => (int)$this->post('order', 0),
+            'status' => $this->post('status', 'active'),
+            'target' => $this->post('target', '_self'),
+            'icon' => $this->post('icon') ?: null
         ];
 
-        if ($this->categoryModel->update($categoryId, $data)) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Navigation updated successfully']);
+        // Set type-specific fields
+        if ($type === 'category') {
+            $data['category_id'] = (int)$this->post('category_id');
+            $data['page_id'] = null;
+            $data['url'] = null;
+        } elseif ($type === 'page') {
+            $data['page_id'] = (int)$this->post('page_id');
+            $data['category_id'] = null;
+            $data['url'] = null;
+        } elseif ($type === 'custom') {
+            $data['url'] = $this->post('url');
+            $data['category_id'] = null;
+            $data['page_id'] = null;
+        }
+
+        $id = $this->menuItemModel->create($data);
+        if ($id) {
+            $this->redirect('/admin/navigation?success=Menu item created successfully');
         } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Failed to update navigation']);
+            $this->redirect('/admin/navigation?error=Failed to create menu item');
         }
     }
 
     /**
-     * Bulk update navigation order
+     * Edit menu item form
+     */
+    public function edit()
+    {
+        $id = (int)($this->params['id'] ?? 0);
+        $item = $this->menuItemModel->getWithDetails($id);
+        
+        if (!$item) {
+            $this->redirect('/admin/navigation?error=Menu item not found');
+            return;
+        }
+
+        $categories = $this->menuItemModel->getAvailableCategories();
+        $pages = $this->menuItemModel->getAvailablePages();
+
+        $this->render('admin/navigation/form', [
+            'item' => $item,
+            'categories' => $categories,
+            'pages' => $pages,
+            'page_title' => 'Edit Menu Item',
+            'current_page' => 'navigation',
+            'csrfField' => $this->csrf->getTokenField()
+        ]);
+    }
+
+    /**
+     * Update menu item
+     */
+    public function update()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/navigation');
+            return;
+        }
+
+        $id = (int)($this->params['id'] ?? 0);
+        $item = $this->menuItemModel->find($id);
+        
+        if (!$item) {
+            $this->redirect('/admin/navigation?error=Menu item not found');
+            return;
+        }
+
+        if (!$this->verifyCSRF()) {
+            $this->redirect("/admin/navigation/{$id}/edit?error=Invalid security token");
+            return;
+        }
+
+        $type = $this->post('type');
+        $data = [
+            'label' => $this->post('label'),
+            'type' => $type,
+            'order' => (int)$this->post('order', 0),
+            'status' => $this->post('status', 'active'),
+            'target' => $this->post('target', '_self'),
+            'icon' => $this->post('icon') ?: null
+        ];
+
+        // Set type-specific fields
+        if ($type === 'category') {
+            $data['category_id'] = (int)$this->post('category_id');
+            $data['page_id'] = null;
+            $data['url'] = null;
+        } elseif ($type === 'page') {
+            $data['page_id'] = (int)$this->post('page_id');
+            $data['category_id'] = null;
+            $data['url'] = null;
+        } elseif ($type === 'custom') {
+            $data['url'] = $this->post('url');
+            $data['category_id'] = null;
+            $data['page_id'] = null;
+        }
+
+        if ($this->menuItemModel->update($id, $data)) {
+            $this->redirect('/admin/navigation?success=Menu item updated successfully');
+        } else {
+            $this->redirect("/admin/navigation/{$id}/edit?error=Failed to update menu item");
+        }
+    }
+
+    /**
+     * Delete menu item
+     */
+    public function delete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/navigation');
+            return;
+        }
+
+        $id = (int)($this->params['id'] ?? 0);
+        
+        if (!$this->verifyCSRF()) {
+            $this->redirect('/admin/navigation?error=Invalid security token');
+            return;
+        }
+
+        if ($this->menuItemModel->delete($id)) {
+            $this->redirect('/admin/navigation?success=Menu item deleted successfully');
+        } else {
+            $this->redirect('/admin/navigation?error=Failed to delete menu item');
+        }
+    }
+
+    /**
+     * Update order (AJAX)
      */
     public function updateOrder()
     {
@@ -126,23 +241,23 @@ class NavigationController extends Controller
             return;
         }
 
-        $db = $this->categoryModel->db;
+        $db = $this->menuItemModel->db;
         $db->beginTransaction();
         
         try {
             foreach ($orders as $order) {
-                $categoryId = (int)($order['id'] ?? 0);
-                $navOrder = (int)($order['nav_order'] ?? 0);
+                $id = (int)($order['id'] ?? 0);
+                $orderValue = (int)($order['order'] ?? 0);
                 
-                if ($categoryId > 0) {
-                    $db->prepare("UPDATE categories SET nav_order = ? WHERE id = ?")
-                       ->execute([$navOrder, $categoryId]);
+                if ($id > 0) {
+                    $db->prepare("UPDATE navigation_menu_items SET `order` = ? WHERE id = ?")
+                       ->execute([$orderValue, $id]);
                 }
             }
             
             $db->commit();
             header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Navigation order updated successfully']);
+            echo json_encode(['success' => true, 'message' => 'Order updated successfully']);
         } catch (\Exception $e) {
             $db->rollBack();
             header('Content-Type: application/json');
@@ -150,4 +265,3 @@ class NavigationController extends Controller
         }
     }
 }
-

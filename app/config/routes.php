@@ -83,7 +83,11 @@ $router->add('POST', 'admin/categories/{id}/delete', ['controller' => 'Admin\Cat
 
 // Admin - Navigation Management
 $router->add('GET', 'admin/navigation', ['controller' => 'Admin\Navigation', 'action' => 'index']);
-$router->add('POST', 'admin/navigation/update', ['controller' => 'Admin\Navigation', 'action' => 'update']);
+$router->add('GET', 'admin/navigation/create', ['controller' => 'Admin\Navigation', 'action' => 'create']);
+$router->add('POST', 'admin/navigation', ['controller' => 'Admin\Navigation', 'action' => 'store']);
+$router->add('GET', 'admin/navigation/{id}/edit', ['controller' => 'Admin\Navigation', 'action' => 'edit']);
+$router->add('POST', 'admin/navigation/{id}', ['controller' => 'Admin\Navigation', 'action' => 'update']);
+$router->add('POST', 'admin/navigation/{id}/delete', ['controller' => 'Admin\Navigation', 'action' => 'delete']);
 $router->add('POST', 'admin/navigation/update-order', ['controller' => 'Admin\Navigation', 'action' => 'updateOrder']);
 
 // Admin - Orders
