@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Core\Helper;
 use App\Core\AuditTrail;
+use App\Core\Logger;
 
 class ProductController extends Controller
 {
@@ -314,23 +315,45 @@ class ProductController extends Controller
         }
 
         if (!$this->verifyCSRF()) {
+            $context = [
+                'file' => $_FILES['import_file']['name'] ?? 'unknown',
+                'user_id' => $this->getUserId()
+            ];
+            $this->logError('CSV Import: Invalid CSRF token', $context);
+            Logger::error('CSV Import: Invalid CSRF token', $context);
             $this->redirect('/admin/products?error=Invalid security token');
             return;
         }
 
         if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+            $errorCode = $_FILES['import_file']['error'] ?? 'no_file';
+            $this->logError('CSV Import: File upload error', [
+                'error_code' => $errorCode,
+                'file_name' => $_FILES['import_file']['name'] ?? 'unknown',
+                'user_id' => $this->getUserId()
+            ]);
             $this->redirect('/admin/products?error=Upload a valid CSV file');
             return;
         }
 
         $extension = strtolower(pathinfo($_FILES['import_file']['name'], PATHINFO_EXTENSION));
         if ($extension !== 'csv') {
+            $this->logError('CSV Import: Invalid file extension', [
+                'file_name' => $_FILES['import_file']['name'],
+                'extension' => $extension,
+                'user_id' => $this->getUserId()
+            ]);
             $this->redirect('/admin/products?error=Please upload a CSV file');
             return;
         }
 
         $handle = fopen($_FILES['import_file']['tmp_name'], 'r');
         if (!$handle) {
+            $this->logError('CSV Import: Unable to open file', [
+                'file_name' => $_FILES['import_file']['name'],
+                'tmp_name' => $_FILES['import_file']['tmp_name'],
+                'user_id' => $this->getUserId()
+            ]);
             $this->redirect('/admin/products?error=Unable to read uploaded file');
             return;
         }
@@ -338,18 +361,49 @@ class ProductController extends Controller
         $header = fgetcsv($handle);
         if (!$header) {
             fclose($handle);
+            $this->logError('CSV Import: Empty CSV file', [
+                'file_name' => $_FILES['import_file']['name'],
+                'user_id' => $this->getUserId()
+            ]);
             $this->redirect('/admin/products?error=CSV file is empty');
             return;
         }
 
-        $columns = array_map('strtolower', $header);
+        // Clean and normalize column names (trim whitespace, convert to lowercase)
+        $columns = array_map(function($col) {
+            return strtolower(trim($col));
+        }, $header);
+        
+        // Find required columns (case-insensitive, whitespace-tolerant)
         $nameIndex = array_search('name', $columns);
         $categoryIndex = array_search('category', $columns);
         $priceIndex = array_search('price', $columns);
 
+        // Build error message if columns are missing
         if ($nameIndex === false || $categoryIndex === false || $priceIndex === false) {
             fclose($handle);
-            $this->redirect('/admin/products?error=CSV must include name, category, and price columns');
+            $missing = [];
+            if ($nameIndex === false) $missing[] = 'name';
+            if ($categoryIndex === false) $missing[] = 'category';
+            if ($priceIndex === false) $missing[] = 'price';
+            
+            $foundColumns = implode(', ', array_map(function($col, $idx) {
+                return "'{$col}'";
+            }, $header, array_keys($header)));
+            
+            $errorMsg = 'CSV is missing required columns: ' . implode(', ', $missing) . '. ';
+            $errorMsg .= 'Found columns: ' . $foundColumns . '. ';
+            $errorMsg .= 'Please download the sample CSV template for the correct format.';
+            
+            $this->logError('CSV Import: Missing required columns', [
+                'file_name' => $_FILES['import_file']['name'],
+                'missing_columns' => $missing,
+                'found_columns' => $header,
+                'normalized_columns' => $columns,
+                'user_id' => $this->getUserId()
+            ]);
+            
+            $this->redirect('/admin/products?error=' . urlencode($errorMsg));
             return;
         }
 
@@ -359,45 +413,82 @@ class ProductController extends Controller
         $stockIndex = array_search('stock_quantity', $columns);
 
         $imported = 0;
+        $errors = [];
+        $rowNumber = 1; // Start at 1 since header is row 0
+        
         while (($row = fgetcsv($handle)) !== false) {
+            $rowNumber++;
             $name = trim($row[$nameIndex] ?? '');
             if ($name === '') {
                 continue;
             }
 
-            $categoryName = trim($row[$categoryIndex] ?? '');
-            $categoryId = null;
-            if ($categoryName !== '') {
-                $category = $this->categoryModel->findByName($categoryName);
-                if (!$category) {
-                    $categoryId = $this->categoryModel->createCategory([
-                        'name' => $categoryName,
-                        'slug' => Helper::slugify($categoryName),
-                        'status' => 'active'
-                    ]);
-                } else {
-                    $categoryId = $category['id'];
+            try {
+                $categoryName = trim($row[$categoryIndex] ?? '');
+                $categoryId = null;
+                if ($categoryName !== '') {
+                    $category = $this->categoryModel->findByName($categoryName);
+                    if (!$category) {
+                        $categoryId = $this->categoryModel->createCategory([
+                            'name' => $categoryName,
+                            'slug' => Helper::slugify($categoryName),
+                            'status' => 'active'
+                        ]);
+                    } else {
+                        $categoryId = $category['id'];
+                    }
                 }
+
+                $data = [
+                    'name' => $name,
+                    'slug' => Helper::slugify($name),
+                    'price' => (float)($row[$priceIndex] ?? 0),
+                    'category_id' => $categoryId,
+                    'description' => $descriptionIndex !== false ? $row[$descriptionIndex] : null,
+                    'short_description' => $shortDescIndex !== false ? $row[$shortDescIndex] : null,
+                    'sku' => $skuIndex !== false ? $row[$skuIndex] : null,
+                    'stock_quantity' => $stockIndex !== false ? (int)$row[$stockIndex] : null,
+                    'status' => 'active'
+                ];
+
+                $productId = $this->productModel->createProduct($data);
+                if ($productId) {
+                    $imported++;
+                } else {
+                    $errors[] = "Row {$rowNumber}: Failed to create product '{$name}'";
+                }
+            } catch (\Exception $e) {
+                $errors[] = "Row {$rowNumber}: Error importing '{$name}' - " . $e->getMessage();
+                $this->logError('CSV Import: Error importing product row', [
+                    'file_name' => $_FILES['import_file']['name'],
+                    'row_number' => $rowNumber,
+                    'product_name' => $name,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $this->getUserId()
+                ]);
             }
-
-            $data = [
-                'name' => $name,
-                'slug' => Helper::slugify($name),
-                'price' => (float)($row[$priceIndex] ?? 0),
-                'category_id' => $categoryId,
-                'description' => $descriptionIndex !== false ? $row[$descriptionIndex] : null,
-                'short_description' => $shortDescIndex !== false ? $row[$shortDescIndex] : null,
-                'sku' => $skuIndex !== false ? $row[$skuIndex] : null,
-                'stock_quantity' => $stockIndex !== false ? (int)$row[$stockIndex] : null,
-                'status' => 'active'
-            ];
-
-            $this->productModel->createProduct($data);
-            $imported++;
         }
 
         fclose($handle);
-        $this->redirect('/admin/products?success=' . $imported . ' products imported');
+        
+        // Log import summary
+        if ($imported > 0 || !empty($errors)) {
+            $this->logError('CSV Import: Import completed', [
+                'file_name' => $_FILES['import_file']['name'],
+                'imported_count' => $imported,
+                'error_count' => count($errors),
+                'errors' => $errors,
+                'user_id' => $this->getUserId()
+            ]);
+        }
+        
+        if (!empty($errors)) {
+            $errorSummary = $imported . ' products imported. ' . count($errors) . ' errors occurred.';
+            $this->redirect('/admin/products?error=' . urlencode($errorSummary));
+        } else {
+            $this->redirect('/admin/products?success=' . $imported . ' products imported');
+        }
     }
 
     /**
