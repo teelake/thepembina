@@ -6,9 +6,10 @@ use App\Core\Helper;
 
 class ReceiptService
 {
-    private const LABEL_COL = 40;
-    private const VALUE_COL = 250;
-    private const ITEMS_COLS = [40, 330, 400, 480];
+    private const HEADER_COLS = [40, 420];
+    private const ADDRESS_COLS = [40, 300];
+    private const SUMMARY_COLS = [360, 480];
+    private const ITEMS_COLS = [40, 240, 320, 400, 480];
 
     public function generate(array $order, array $payments = []): string
     {
@@ -24,44 +25,54 @@ class ReceiptService
             $businessPhone = defined('BUSINESS_PHONE') ? BUSINESS_PHONE : '';
             $businessEmail = defined('BUSINESS_EMAIL') ? BUSINESS_EMAIL : 'no-reply@thepembina.ca';
 
-            $pdf->addLine($businessName, 18, 170);
-            $pdf->addLine('Official Receipt', 14, 170);
-            $pdf->addLine($businessAddress, 11, 170);
+            $pdf->addTableRow(['Invoice', $businessName], self::HEADER_COLS, 22);
+            $pdf->addTableRow(['#' . ($order['order_number'] ?? $order['id']), ''], self::HEADER_COLS, 14);
+            $pdf->addSpacing(2);
+            $pdf->addTableRow([
+                'Date: ' . date('M d, Y g:i A', strtotime($order['created_at'])),
+                'Email: ' . $businessEmail
+            ], self::HEADER_COLS, 10);
             if (!empty($businessPhone)) {
-                $pdf->addLine('Phone: ' . $businessPhone, 11, 170);
+                $pdf->addTableRow(['', 'Phone: ' . $businessPhone], self::HEADER_COLS, 10);
             }
-            $pdf->addLine('Email: ' . $businessEmail, 11, 170);
-            $pdf->addSpacing(12);
+            $pdf->addSpacing(6);
             $pdf->addHorizontalRule();
             $pdf->addSpacing(8);
 
-            $pdf->addLine('Order Details', 14);
-            $pdf->addSpacing(4);
-            $this->addKeyValueRows($pdf, [
-                'Order #' => $order['order_number'] ?? $order['id'],
-                'Order Date' => date('M d, Y g:i A', strtotime($order['created_at'])),
-                'Customer Email' => $order['email'] ?? 'Guest',
-                'Customer Phone' => $order['phone'] ?? 'N/A',
-                'Fulfilment' => ucfirst($order['order_type'] ?? 'pickup')
-            ]);
+            $billingAddress = $this->formatAddress(json_decode($order['billing_address'] ?? '[]', true), 'Billing');
+            $shippingData = $order['shipping_address'] ? json_decode($order['shipping_address'], true) : null;
+            $shippingAddress = $this->formatAddress($shippingData, $order['order_type'] === 'delivery' ? 'Delivery' : 'Pickup');
+
+            $pdf->addTableRow(['Billing Address', 'Shipping Address'], self::ADDRESS_COLS, 12);
+            $pdf->addHorizontalRule(40, 520);
+            $maxLines = max(count($billingAddress), count($shippingAddress));
+            for ($i = 0; $i < $maxLines; $i++) {
+                $pdf->addTableRow([
+                    $billingAddress[$i] ?? '',
+                    $shippingAddress[$i] ?? ''
+                ], self::ADDRESS_COLS, 10);
+            }
+            $pdf->addSpacing(10);
+            $pdf->addHorizontalRule();
+            $pdf->addSpacing(8);
 
             $pdf->addLine('Items', 14);
             $pdf->addSpacing(4);
             $this->addItemsTable($pdf, $order['items'] ?? []);
 
-            $pdf->addLine('Totals', 14);
-            $pdf->addSpacing(4);
             $subtotal = isset($order['subtotal']) ? $order['subtotal'] : 0;
             $taxAmount = isset($order['tax_amount']) ? $order['tax_amount'] : 0;
             $shippingAmount = isset($order['shipping_amount']) ? $order['shipping_amount'] : 0;
             $total = isset($order['total']) ? $order['total'] : ($subtotal + $taxAmount + $shippingAmount);
+            $discount = isset($order['discount_amount']) ? $order['discount_amount'] : 0;
 
-            $this->addKeyValueRows($pdf, [
+            $this->addTotalsTable($pdf, [
                 'Subtotal' => Helper::formatCurrency($subtotal),
                 'Tax' => Helper::formatCurrency($taxAmount),
                 'Delivery' => Helper::formatCurrency($shippingAmount),
-                'Grand Total' => Helper::formatCurrency($total),
-            ], [self::LABEL_COL, 420]);
+                'Discount' => $discount > 0 ? '-' . Helper::formatCurrency($discount) : Helper::formatCurrency(0),
+                'Grand Total' => Helper::formatCurrency($total - $discount),
+            ]);
 
             $pdf->addLine('Payments', 14);
             $pdf->addSpacing(4);
@@ -72,6 +83,8 @@ class ReceiptService
             $pdf->addSpacing(6);
             $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, 120);
             $pdf->addLine('We look forward to serving you again.', 11, 120);
+            $pdf->addSpacing(6);
+            $pdf->addLine('Please note that depending on availability, your order will be ready within the advised window.', 9, 40);
 
             return $pdf->output();
         } catch (\Exception $e) {
@@ -114,31 +127,15 @@ class ReceiptService
     }
 
     /**
-     * Render label/value rows as a two-column table.
-     */
-    private function addKeyValueRows(SimplePdf $pdf, array $rows, array $positions = [self::LABEL_COL, self::VALUE_COL]): void
-    {
-        foreach ($rows as $label => $value) {
-            $pdf->addTableRow(
-                [$label . ':', (string)$value],
-                $positions
-            );
-        }
-        $pdf->addSpacing(4);
-        $pdf->addHorizontalRule();
-        $pdf->addSpacing(6);
-    }
-
-    /**
      * Render items table with headers.
      */
     private function addItemsTable(SimplePdf $pdf, array $items): void
     {
-        $pdf->addTableRow(['Item', 'Qty', 'Price', 'Subtotal'], self::ITEMS_COLS, 12);
+        $pdf->addTableRow(['Product Description', 'Qty', 'Unit Price', 'Discount', 'Total'], self::ITEMS_COLS, 12);
         $pdf->addHorizontalRule(40, 520);
 
         if (empty($items)) {
-            $pdf->addTableRow(['No items found in order.', '', '', ''], self::ITEMS_COLS);
+            $pdf->addTableRow(['No items found in order.', '', '', '', ''], self::ITEMS_COLS);
             $pdf->addSpacing(4);
             $pdf->addHorizontalRule();
             $pdf->addSpacing(6);
@@ -156,6 +153,7 @@ class ReceiptService
                     $productName,
                     (string)$quantity,
                     Helper::formatCurrency($price),
+                    '—',
                     Helper::formatCurrency($subtotal)
                 ],
                 self::ITEMS_COLS
@@ -175,7 +173,7 @@ class ReceiptService
                         ));
                     }
                 }
-                $pdf->addTableRow(['   ' . strip_tags($options), '', '', ''], self::ITEMS_COLS, 9);
+                $pdf->addTableRow(['   ' . strip_tags($options), '', '', '', ''], self::ITEMS_COLS, 9);
             }
         }
 
@@ -216,6 +214,57 @@ class ReceiptService
         $pdf->addSpacing(4);
         $pdf->addHorizontalRule();
         $pdf->addSpacing(6);
+    }
+
+    /**
+     * Render totals table aligned to right.
+     */
+    private function addTotalsTable(SimplePdf $pdf, array $rows): void
+    {
+        foreach ($rows as $label => $value) {
+            $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 12);
+        }
+        $pdf->addSpacing(10);
+        $pdf->addHorizontalRule();
+        $pdf->addSpacing(8);
+    }
+
+    /**
+     * Format address lines for output.
+     */
+    private function formatAddress(?array $address, string $fallbackTitle): array
+    {
+        if (empty($address)) {
+            return [$fallbackTitle . ' details not provided.'];
+        }
+
+        $lines = [];
+        $name = trim(($address['first_name'] ?? '') . ' ' . ($address['last_name'] ?? ''));
+        if ($name !== '') {
+            $lines[] = $name;
+        }
+        if (!empty($address['address_line1'])) {
+            $lines[] = $address['address_line1'];
+        }
+        if (!empty($address['address_line2'])) {
+            $lines[] = $address['address_line2'];
+        }
+        $cityLine = trim(($address['city'] ?? '') . ', ' . ($address['province'] ?? '') . ' ' . ($address['postal_code'] ?? ''));
+        if (trim($cityLine, ', ') !== '') {
+            $lines[] = $cityLine;
+        }
+        if (!empty($address['country'])) {
+            $lines[] = $address['country'];
+        }
+        if (!empty($address['phone'])) {
+            $lines[] = 'Phone: ' . $address['phone'];
+        }
+
+        if (empty($lines)) {
+            $lines[] = $fallbackTitle . ' details not provided.';
+        }
+
+        return $lines;
     }
 }
 

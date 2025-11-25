@@ -80,30 +80,35 @@ class Email
             return false;
         }
         
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         // EHLO
         fputs($smtp, "EHLO " . $smtpHost . "\r\n");
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         // Start TLS if available
-        if (strpos($response, 'STARTTLS') !== false) {
+        if (stripos($response, 'STARTTLS') !== false) {
             fputs($smtp, "STARTTLS\r\n");
-            $response = fgets($smtp, 515);
+            self::readResponse($smtp);
             stream_socket_enable_crypto($smtp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
             fputs($smtp, "EHLO " . $smtpHost . "\r\n");
-            $response = fgets($smtp, 515);
+            $response = self::readResponse($smtp);
         }
         
         // Auth
         fputs($smtp, "AUTH LOGIN\r\n");
-        $response = fgets($smtp, 515);
-        
+        $response = self::readResponse($smtp);
+        if (strpos($response, '334') !== 0) {
+            self::logEmail("SMTP AUTH LOGIN not accepted: {$response}");
+            fclose($smtp);
+            return false;
+        }
+
         fputs($smtp, base64_encode($smtpUser) . "\r\n");
-        $response = fgets($smtp, 515);
-        
+        $response = self::readResponse($smtp);
+
         fputs($smtp, base64_encode($smtpPass) . "\r\n");
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         if (strpos($response, '235') === false) {
             self::logEmail("SMTP Authentication failed: {$response} | User: {$smtpUser}, Host: {$smtpHost}");
@@ -113,15 +118,15 @@ class Email
         
         // Mail from
         fputs($smtp, "MAIL FROM: <{$fromEmail}>\r\n");
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         // RCPT to
         fputs($smtp, "RCPT TO: <{$to}>\r\n");
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         // Data
         fputs($smtp, "DATA\r\n");
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments, $to, $subject);
         $body = self::buildBody($message, $attachments, $headerData['boundary']);
@@ -129,13 +134,31 @@ class Email
         $payload .= "\r\n" . $body . "\r\n.\r\n";
 
         fputs($smtp, $payload);
-        $response = fgets($smtp, 515);
+        $response = self::readResponse($smtp);
         
         // Quit
         fputs($smtp, "QUIT\r\n");
         fclose($smtp);
         
         return strpos($response, '250') !== false;
+    }
+
+    /**
+     * Read complete SMTP response, handling multi-line replies.
+     */
+    private static function readResponse($smtp): string
+    {
+        $response = '';
+        while (($line = fgets($smtp, 515)) !== false) {
+            $response .= $line;
+            if (strlen($line) < 4) {
+                break;
+            }
+            if ($line[3] !== '-') {
+                break;
+            }
+        }
+        return trim($response);
     }
     
     /**
