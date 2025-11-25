@@ -134,5 +134,38 @@ class NavigationMenuItem extends Model
             return [];
         }
     }
+
+    /**
+     * Get all menu items with related data (including inactive)
+     */
+    public function getAllItems(): array
+    {
+        $stmt = $this->db->query("
+            SELECT 
+                nmi.*,
+                c.slug as category_slug,
+                c.name as category_name,
+                p.slug as page_slug,
+                p.title as page_title
+            FROM {$this->table} nmi
+            LEFT JOIN categories c ON nmi.category_id = c.id AND nmi.type = 'category'
+            LEFT JOIN pages p ON nmi.page_id = p.id AND nmi.type = 'page'
+            ORDER BY nmi.`order` ASC, nmi.label ASC
+        ");
+        return $stmt->fetchAll() ?: [];
+    }
+
+    /**
+     * Determine if navigation table exists in DB
+     */
+    public function tableExists(): bool
+    {
+        try {
+            $stmt = $this->db->query("SHOW TABLES LIKE 'navigation_menu_items'");
+            return (bool)$stmt->fetch();
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 }
 

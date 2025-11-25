@@ -29,29 +29,33 @@ class NavigationController extends Controller
      */
     public function index()
     {
-        // Simple approach: Use category-based navigation (previous method)
-        // This works even if navigation_menu_items table doesn't exist
         try {
             $categories = $this->categoryModel->getAllWithCount();
-            
-            // Get categories that are set to show in nav (using show_in_nav field)
             $navCategories = [];
             foreach ($categories as $cat) {
                 if (isset($cat['show_in_nav']) && $cat['show_in_nav'] == 1) {
                     $navCategories[] = $cat;
                 }
             }
-            
-            // Sort by nav_order if available
             usort($navCategories, function($a, $b) {
                 $orderA = isset($a['nav_order']) ? (int)$a['nav_order'] : 999;
                 $orderB = isset($b['nav_order']) ? (int)$b['nav_order'] : 999;
                 return $orderA <=> $orderB;
             });
-            
-            $this->render('admin/navigation/index-simple', [
+
+            $hasCustomNav = $this->menuItemModel->tableExists();
+            $menuItems = [];
+            if ($hasCustomNav) {
+                $menuItems = $this->menuItemModel->getAllItems();
+            }
+
+            $view = $hasCustomNav ? 'admin/navigation/index' : 'admin/navigation/index-simple';
+
+            $this->render($view, [
                 'categories' => $categories,
                 'navCategories' => $navCategories,
+                'menuItems' => $menuItems,
+                'hasCustomNav' => $hasCustomNav,
                 'page_title' => 'Navigation Management',
                 'current_page' => 'navigation',
                 'csrfField' => $this->csrf->getTokenField()

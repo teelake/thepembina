@@ -41,6 +41,50 @@
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
+<?php
+use App\Models\NavigationMenuItem;
+use App\Models\Category;
+
+$headerNavItems = [];
+$navModel = null;
+$customNavEnabled = false;
+
+try {
+    require_once APP_PATH . '/models/NavigationMenuItem.php';
+    $navModel = new NavigationMenuItem();
+    if ($navModel->tableExists()) {
+        $headerNavItems = $navModel->getActiveItems();
+        $customNavEnabled = !empty($headerNavItems);
+    }
+} catch (\Exception $e) {
+    $headerNavItems = [];
+    $customNavEnabled = false;
+}
+
+$primaryCategories = [];
+$otherCategories = [];
+
+if (!$customNavEnabled) {
+    require_once APP_PATH . '/models/Category.php';
+    $catModel = new Category();
+    $allCategories = $catModel->getAllWithCount();
+
+    foreach ($allCategories as $cat) {
+        if (isset($cat['show_in_nav']) && $cat['show_in_nav'] == 1) {
+            $primaryCategories[] = $cat;
+        } else {
+            $otherCategories[] = $cat;
+        }
+    }
+
+    usort($primaryCategories, function($a, $b) {
+        $orderA = isset($a['nav_order']) ? (int)$a['nav_order'] : 999;
+        $orderB = isset($b['nav_order']) ? (int)$b['nav_order'] : 999;
+        return $orderA <=> $orderB;
+    });
+}
+?>
+
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow-md sticky top-0 z-50 backdrop-blur-sm bg-white/95" role="navigation" aria-label="Main navigation">
@@ -59,69 +103,54 @@
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
                     </a>
                     
-                    <?php
-                    // Get navigation menu items - use category-based approach (simpler, more reliable)
-                    require_once APP_PATH . '/models/Category.php';
-                    $catModel = new \App\Models\Category();
-                    $allCategories = $catModel->getAllWithCount();
-                    
-                    // Get categories marked to show in nav
-                    $menuItems = [];
-                    $otherCategories = [];
-                    foreach ($allCategories as $cat) {
-                        if (isset($cat['show_in_nav']) && $cat['show_in_nav'] == 1) {
-                            $menuItems[] = $cat;
-                        } else {
-                            $otherCategories[] = $cat;
-                        }
-                    }
-                    
-                    // Sort menu items by nav_order
-                    usort($menuItems, function($a, $b) {
-                        $orderA = isset($a['nav_order']) ? (int)$a['nav_order'] : 999;
-                        $orderB = isset($b['nav_order']) ? (int)$b['nav_order'] : 999;
-                        return $orderA <=> $orderB;
-                    });
-                    ?>
-                    
-                    <?php foreach ($menuItems as $cat): ?>
-                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>"
-                           class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
-                            <?= htmlspecialchars($cat['name']) ?>
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
-                        </a>
-                    <?php endforeach; ?>
-                    
-                    <!-- More Dropdown (for all other categories) -->
-                    <?php
-                    $navCategoryIds = array_column($menuItems, 'id');
-                    $otherCategories = array_filter($otherCategories, function($cat) use ($navCategoryIds) {
-                        return !in_array($cat['id'], $navCategoryIds);
-                    });
-                    ?>
-                    <?php if (!empty($otherCategories)): ?>
-                    <div class="relative menu-dropdown">
-                        <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
-                            More
-                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
-                        </a>
-                        <div class="menu-dropdown-content">
-                            <div class="py-2">
-                                <?php foreach ($otherCategories as $cat): ?>
-                                <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
-                                   class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
-                                    <?= htmlspecialchars($cat['name']) ?>
-                                    <span class="text-xs text-gray-500 ml-2">(<?= $cat['product_count'] ?>)</span>
-                                </a>
-                                <?php endforeach; ?>
-                                <div class="border-t border-gray-200 my-1"></div>
-                                <a href="<?= BASE_URL ?>/menu" class="block px-4 py-2 text-brand hover:bg-brand hover:text-white transition-colors font-semibold">
-                                    View All Menu <i class="fas fa-arrow-right ml-1 text-xs"></i>
-                                </a>
+                    <?php if (!empty($headerNavItems)): ?>
+                        <?php foreach ($headerNavItems as $item): ?>
+                            <?php
+                                $url = $navModel ? $navModel->getUrl($item) : '#';
+                                $target = htmlspecialchars($item['target'] ?? '_self');
+                            ?>
+                            <a href="<?= htmlspecialchars($url) ?>"
+                               target="<?= $target ?>"
+                               class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center gap-1">
+                                <?php if (!empty($item['icon'])): ?>
+                                    <i class="<?= htmlspecialchars($item['icon']) ?> text-sm"></i>
+                                <?php endif; ?>
+                                <?= htmlspecialchars($item['label']) ?>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <?php foreach ($primaryCategories as $cat): ?>
+                            <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>"
+                               class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                                <?= htmlspecialchars($cat['name']) ?>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                            </a>
+                        <?php endforeach; ?>
+                        <?php if (!empty($otherCategories)): ?>
+                        <div class="relative menu-dropdown">
+                            <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center">
+                                More
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                            </a>
+                            <div class="menu-dropdown-content">
+                                <div class="py-2">
+                                    <?php foreach ($otherCategories as $cat): ?>
+                                    <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
+                                       class="block px-4 py-2 text-gray-700 hover:bg-brand hover:text-white transition-colors">
+                                        <?= htmlspecialchars($cat['name']) ?>
+                                        <span class="text-xs text-gray-500 ml-2">(<?= $cat['product_count'] ?>)</span>
+                                    </a>
+                                    <?php endforeach; ?>
+                                    <div class="border-t border-gray-200 my-1"></div>
+                                    <a href="<?= BASE_URL ?>/menu" class="block px-4 py-2 text-brand hover:bg-brand hover:text-white transition-colors font-semibold">
+                                        View All Menu <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <?php endif; ?>
                     <?php endif; ?>
                     
                     <!-- Cart - Primary CTA (Most Prominent) -->
@@ -183,24 +212,36 @@
         <div class="md:hidden hidden transition-all duration-300 ease-in-out" id="mobile-menu" role="menu">
             <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t shadow-lg">
                 <a href="<?= BASE_URL ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">Home</a>
-                <?php
-                // Get navigation menu items for mobile menu
-                require_once APP_PATH . '/models/NavigationMenuItem.php';
-                $navModel = new \App\Models\NavigationMenuItem();
-                $mobileMenuItems = $navModel->getActiveItems();
-                foreach ($mobileMenuItems as $menuItem):
-                    $menuUrl = $navModel->getUrl($menuItem);
-                ?>
-                    <a href="<?= htmlspecialchars($menuUrl) ?>" 
-                       target="<?= htmlspecialchars($menuItem['target'] ?? '_self') ?>"
-                       class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" 
-                       role="menuitem">
-                        <?php if ($menuItem['icon']): ?>
-                            <i class="<?= htmlspecialchars($menuItem['icon']) ?> mr-2"></i>
-                        <?php endif; ?>
-                        <?= htmlspecialchars($menuItem['label']) ?>
-                    </a>
-                <?php endforeach; ?>
+                <?php if (!empty($headerNavItems)): ?>
+                    <?php foreach ($headerNavItems as $menuItem):
+                        $menuUrl = $navModel ? $navModel->getUrl($menuItem) : '#';
+                    ?>
+                        <a href="<?= htmlspecialchars($menuUrl) ?>" 
+                           target="<?= htmlspecialchars($menuItem['target'] ?? '_self') ?>"
+                           class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" 
+                           role="menuitem">
+                            <?php if ($menuItem['icon']): ?>
+                                <i class="<?= htmlspecialchars($menuItem['icon']) ?> mr-2"></i>
+                            <?php endif; ?>
+                            <?= htmlspecialchars($menuItem['label']) ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <?php foreach ($primaryCategories as $cat): ?>
+                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
+                           class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" 
+                           role="menuitem">
+                            <?= htmlspecialchars($cat['name']) ?>
+                        </a>
+                    <?php endforeach; ?>
+                    <?php foreach ($otherCategories as $cat): ?>
+                        <a href="<?= BASE_URL ?>/menu/<?= htmlspecialchars($cat['slug']) ?>" 
+                           class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" 
+                           role="menuitem">
+                            <?= htmlspecialchars($cat['name']) ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">All Menu</a>
                 <a href="<?= BASE_URL ?>/cart" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium flex items-center justify-between" role="menuitem">
                     <span>Cart</span>
