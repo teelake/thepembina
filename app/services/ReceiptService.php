@@ -10,6 +10,7 @@ class ReceiptService
     private const ADDRESS_COLS = [40, 300];
     private const SUMMARY_COLS = [360, 480];
     private const ITEMS_COLS = [40, 240, 320, 400, 480];
+    private const PAYMENT_COLS = [40, 320, 420];
 
     public function generate(array $order, array $payments = []): string
     {
@@ -187,7 +188,7 @@ class ReceiptService
      */
     private function addPaymentsTable(SimplePdf $pdf, array $payments): void
     {
-        $columns = [self::LABEL_COL, 320, 420];
+        $columns = self::PAYMENT_COLS;
         $pdf->addTableRow(['Method', 'Status', 'Amount'], $columns, 12);
         $pdf->addHorizontalRule(40, 520);
 
