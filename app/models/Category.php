@@ -113,6 +113,28 @@ class Category extends Model
     }
 
     /**
+     * Check if category name already exists
+     * 
+     * @param string $name
+     * @param int $excludeId Exclude this ID from check (for updates)
+     * @return bool
+     */
+    public function nameExists($name, $excludeId = null)
+    {
+        $sql = "SELECT id FROM {$this->table} WHERE name = :name";
+        $params = ['name' => $name];
+        
+        if ($excludeId) {
+            $sql .= " AND id != :exclude_id";
+            $params['exclude_id'] = $excludeId;
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() !== false;
+    }
+
+    /**
      * Find categories by names (for main navigation)
      * 
      * @param array $names Array of category names to find

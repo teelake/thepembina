@@ -6,6 +6,9 @@ $content = ob_start();
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Products</h1>
     <div class="flex gap-4">
+        <a href="<?= BASE_URL ?>/admin/products/download-sample-csv" class="btn btn-secondary inline-flex items-center">
+            <i class="fas fa-download mr-2"></i> Download Sample CSV
+        </a>
         <form method="POST" action="<?= BASE_URL ?>/admin/products/import" enctype="multipart/form-data" class="flex items-center gap-2" id="product-import-form">
             <?= $csrfField ?? '' ?>
             <label for="product-import-input" class="btn btn-secondary inline-flex items-center cursor-pointer">

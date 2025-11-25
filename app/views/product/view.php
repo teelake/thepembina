@@ -60,15 +60,24 @@ $content = ob_start();
                         <?php endif; ?>
                     </div>
                     
-                    <?php if ($product['stock_status'] === 'in_stock'): ?>
-                        <span class="inline-flex items-center text-green-600 font-semibold">
-                            <i class="fas fa-check-circle mr-2"></i> In Stock
-                        </span>
-                    <?php elseif ($product['stock_status'] === 'out_of_stock'): ?>
-                        <span class="inline-flex items-center text-red-600 font-semibold">
-                            <i class="fas fa-times-circle mr-2"></i> Out of Stock
-                        </span>
-                    <?php endif; ?>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <?php if ($product['stock_status'] === 'in_stock'): ?>
+                            <span class="inline-flex items-center text-green-600 font-semibold">
+                                <i class="fas fa-check-circle mr-2"></i> In Stock
+                            </span>
+                        <?php elseif ($product['stock_status'] === 'out_of_stock'): ?>
+                            <span class="inline-flex items-center text-red-600 font-semibold">
+                                <i class="fas fa-times-circle mr-2"></i> Out of Stock
+                            </span>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($product['manage_stock']) && isset($product['stock_quantity'])): ?>
+                            <span class="inline-flex items-center text-gray-700 font-medium bg-gray-100 px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-box mr-2"></i>
+                                <?= (int)$product['stock_quantity'] ?> <?= (int)$product['stock_quantity'] == 1 ? 'item' : 'items' ?> left
+                            </span>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <?php if ($product['short_description']): ?>

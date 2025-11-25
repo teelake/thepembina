@@ -64,6 +64,54 @@ class Product extends Model
     }
 
     /**
+     * Check if product name already exists
+     * 
+     * @param string $name
+     * @param int $excludeId Exclude this ID from check (for updates)
+     * @return bool
+     */
+    public function nameExists($name, $excludeId = null)
+    {
+        $sql = "SELECT id FROM {$this->table} WHERE name = :name";
+        $params = ['name' => $name];
+        
+        if ($excludeId) {
+            $sql .= " AND id != :exclude_id";
+            $params['exclude_id'] = $excludeId;
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() !== false;
+    }
+
+    /**
+     * Check if product SKU already exists
+     * 
+     * @param string $sku
+     * @param int $excludeId Exclude this ID from check (for updates)
+     * @return bool
+     */
+    public function skuExists($sku, $excludeId = null)
+    {
+        if (empty($sku)) {
+            return false; // Null/empty SKUs are allowed
+        }
+        
+        $sql = "SELECT id FROM {$this->table} WHERE sku = :sku";
+        $params = ['sku' => $sku];
+        
+        if ($excludeId) {
+            $sql .= " AND id != :exclude_id";
+            $params['exclude_id'] = $excludeId;
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() !== false;
+    }
+
+    /**
      * Create product
      * 
      * @param array $data

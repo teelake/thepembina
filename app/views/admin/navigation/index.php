@@ -69,15 +69,15 @@ $content = ob_start();
                         <div class="flex items-center gap-3">
                             <span class="text-sm text-gray-500">Order: <?= $item['order'] ?></span>
                             <a href="<?= BASE_URL ?>/admin/navigation/<?= $item['id'] ?>/edit" 
-                               class="text-blue-600 hover:text-blue-800">
+                               class="flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" 
                                   action="<?= BASE_URL ?>/admin/navigation/<?= $item['id'] ?>/delete" 
-                                  class="inline" 
+                                  class="inline-flex items-center" 
                                   data-confirm-delete>
                                 <?= $csrfField ?? '' ?>
-                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                <button type="submit" class="flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>

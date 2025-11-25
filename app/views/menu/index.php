@@ -48,7 +48,7 @@ $content = ob_start();
                         <?= htmlspecialchars(substr($product['short_description'] ?? $product['description'] ?? 'Delicious African cuisine', 0, 100)) ?>
                         <?= strlen($product['short_description'] ?? $product['description'] ?? '') > 100 ? '...' : '' ?>
                     </p>
-                    <div class="flex justify-between items-center gap-2">
+                    <div class="flex justify-between items-center gap-2 mb-2">
                         <span class="text-2xl font-bold text-brand"><?= Helper::formatCurrency($product['price']) ?></span>
                         <div class="flex gap-2">
                             <button type="button" 
@@ -65,6 +65,15 @@ $content = ob_start();
                             </a>
                         </div>
                     </div>
+                    
+                    <?php if (!empty($product['manage_stock']) && isset($product['stock_quantity'])): ?>
+                        <div class="mb-2">
+                            <span class="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                <i class="fas fa-box mr-1.5"></i>
+                                <?= (int)$product['stock_quantity'] ?> <?= (int)$product['stock_quantity'] == 1 ? 'item' : 'items' ?> left
+                            </span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>

@@ -66,6 +66,15 @@ $content = ob_start();
                             <?php endif; ?>
                         </div>
                         
+                        <?php if (!empty($product['manage_stock']) && isset($product['stock_quantity'])): ?>
+                            <div class="mb-3">
+                                <span class="inline-flex items-center text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                    <i class="fas fa-box mr-1.5"></i>
+                                    <?= (int)$product['stock_quantity'] ?> <?= (int)$product['stock_quantity'] == 1 ? 'item' : 'items' ?> available
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        
                         <div class="flex gap-2">
                             <button type="button" 
                                     class="add-to-cart-btn bg-brand text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-dark transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 text-sm flex-1 sm:flex-initial"

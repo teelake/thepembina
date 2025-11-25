@@ -81,12 +81,43 @@ class ProductController extends Controller
             return;
         }
 
+        $name = trim($this->post('name'));
+        $sku = trim($this->post('sku'));
+
+        // Validate product name uniqueness
+        if ($this->productModel->nameExists($name)) {
+            $categories = $this->categoryModel->findAll(['status' => 'active'], 'name');
+            $this->render('admin/product/form', [
+                'categories' => $categories,
+                'error_message' => 'A product with this name already exists. Please use a different name.',
+                'formData' => $_POST,
+                'page_title' => 'Create Product',
+                'current_page' => 'products',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
+        // Validate SKU uniqueness (if provided)
+        if (!empty($sku) && $this->productModel->skuExists($sku)) {
+            $categories = $this->categoryModel->findAll(['status' => 'active'], 'name');
+            $this->render('admin/product/form', [
+                'categories' => $categories,
+                'error_message' => 'A product with this SKU already exists. Please use a different SKU.',
+                'formData' => $_POST,
+                'page_title' => 'Create Product',
+                'current_page' => 'products',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $data = [
-            'name' => $this->post('name'),
-            'slug' => Helper::slugify($this->post('name')),
+            'name' => $name,
+            'slug' => Helper::slugify($name),
             'description' => $this->post('description'),
             'short_description' => $this->post('short_description'),
-            'sku' => $this->post('sku'),
+            'sku' => !empty($sku) ? $sku : null,
             'price' => (float)$this->post('price'),
             'compare_price' => $this->post('compare_price') ? (float)$this->post('compare_price') : null,
             'cost_price' => $this->post('cost_price') ? (float)$this->post('cost_price') : null,
@@ -169,12 +200,43 @@ class ProductController extends Controller
             return;
         }
 
+        $name = trim($this->post('name'));
+        $sku = trim($this->post('sku'));
+
+        // Validate product name uniqueness (excluding current product)
+        if ($this->productModel->nameExists($name, $id)) {
+            $categories = $this->categoryModel->findAll(['status' => 'active'], 'name');
+            $this->render('admin/product/form', [
+                'product' => $product,
+                'categories' => $categories,
+                'error_message' => 'A product with this name already exists. Please use a different name.',
+                'page_title' => 'Edit Product',
+                'current_page' => 'products',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
+        // Validate SKU uniqueness (if provided, excluding current product)
+        if (!empty($sku) && $this->productModel->skuExists($sku, $id)) {
+            $categories = $this->categoryModel->findAll(['status' => 'active'], 'name');
+            $this->render('admin/product/form', [
+                'product' => $product,
+                'categories' => $categories,
+                'error_message' => 'A product with this SKU already exists. Please use a different SKU.',
+                'page_title' => 'Edit Product',
+                'current_page' => 'products',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $data = [
-            'name' => $this->post('name'),
-            'slug' => Helper::slugify($this->post('name')),
+            'name' => $name,
+            'slug' => Helper::slugify($name),
             'description' => $this->post('description'),
             'short_description' => $this->post('short_description'),
-            'sku' => $this->post('sku'),
+            'sku' => !empty($sku) ? $sku : null,
             'price' => (float)$this->post('price'),
             'compare_price' => $this->post('compare_price') ? (float)$this->post('compare_price') : null,
             'cost_price' => $this->post('cost_price') ? (float)$this->post('cost_price') : null,
@@ -336,6 +398,113 @@ class ProductController extends Controller
 
         fclose($handle);
         $this->redirect('/admin/products?success=' . $imported . ' products imported');
+    }
+
+    /**
+     * Download sample CSV template
+     */
+    public function downloadSampleCsv()
+    {
+        // Set headers for CSV download
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="products_import_template.csv"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        // Create output stream
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8 to ensure Excel displays correctly
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // CSV Headers - matching database structure and import expectations
+        $headers = [
+            'name',                    // Required - Product name
+            'category',                // Required - Category name (will be matched or created)
+            'price',                   // Required - Product price
+            'compare_price',           // Optional - Compare/Original price
+            'cost_price',              // Optional - Cost price
+            'sku',                     // Optional - SKU code
+            'short_description',      // Optional - Short description
+            'description',             // Optional - Full description
+            'stock_quantity',          // Optional - Stock quantity
+            'stock_status',            // Optional - in_stock, out_of_stock, on_backorder
+            'manage_stock',            // Optional - 1 or 0
+            'is_featured',             // Optional - 1 or 0 (featured product)
+            'status',                  // Optional - active, inactive, draft
+            'sort_order',              // Optional - Display order
+            'meta_title',              // Optional - SEO meta title
+            'meta_description'        // Optional - SEO meta description
+        ];
+
+        // Write headers
+        fputcsv($output, $headers);
+
+        // Add sample data rows
+        $sampleRows = [
+            [
+                'Jollof Rice',
+                'Food',
+                '15.99',
+                '18.99',
+                '8.00',
+                'JOL-001',
+                'Delicious Nigerian jollof rice with chicken',
+                'Authentic Nigerian jollof rice cooked with tomatoes, peppers, and spices. Served with tender chicken pieces.',
+                '50',
+                'in_stock',
+                '1',
+                '1',
+                'active',
+                '1',
+                'Jollof Rice - The Pembina Pint',
+                'Order authentic Nigerian jollof rice online. Made fresh daily with premium ingredients.'
+            ],
+            [
+                'Pepper Soup',
+                'As E Dey Hot',
+                '12.99',
+                '',
+                '6.00',
+                'PEP-001',
+                'Spicy Nigerian pepper soup',
+                'Hot and spicy Nigerian pepper soup with your choice of meat or fish. Perfect for cold weather.',
+                '30',
+                'in_stock',
+                '1',
+                '0',
+                'active',
+                '2',
+                'Pepper Soup - The Pembina Pint',
+                'Traditional Nigerian pepper soup with authentic spices.'
+            ],
+            [
+                'Maltina',
+                'Drinks',
+                '3.99',
+                '',
+                '2.00',
+                'MAL-001',
+                'Nigerian malt drink',
+                'Refreshing Nigerian malt drink, non-alcoholic.',
+                '100',
+                'in_stock',
+                '1',
+                '0',
+                'active',
+                '1',
+                'Maltina - The Pembina Pint',
+                'Authentic Nigerian malt drink.'
+            ]
+        ];
+
+        // Write sample rows
+        foreach ($sampleRows as $row) {
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit;
     }
 }
 

@@ -156,6 +156,33 @@ class NavigationMenuItem extends Model
     }
 
     /**
+     * Check if menu item label already exists
+     * 
+     * @param string $label
+     * @param int $excludeId Exclude this ID from check (for updates)
+     * @return bool
+     */
+    public function labelExists($label, $excludeId = null)
+    {
+        try {
+            $sql = "SELECT id FROM {$this->table} WHERE label = :label";
+            $params = ['label' => $label];
+            
+            if ($excludeId) {
+                $sql .= " AND id != :exclude_id";
+                $params['exclude_id'] = $excludeId;
+            }
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetch() !== false;
+        } catch (\Exception $e) {
+            error_log("NavigationMenuItem::labelExists error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Determine if navigation table exists in DB
      */
     public function tableExists(): bool

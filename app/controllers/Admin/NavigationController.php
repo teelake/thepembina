@@ -136,9 +136,28 @@ class NavigationController extends Controller
             return;
         }
 
+        $label = trim($this->post('label'));
+
+        // Validate menu item label uniqueness
+        if ($this->menuItemModel->labelExists($label)) {
+            $menuItems = $this->menuItemModel->getAllItems();
+            $categories = $this->menuItemModel->getAvailableCategories();
+            $pages = $this->menuItemModel->getAvailablePages();
+            
+            $this->render('admin/navigation/index', [
+                'menuItems' => $menuItems,
+                'categories' => $this->categoryModel->getAllWithCount(),
+                'availableCategories' => $categories,
+                'availablePages' => $pages,
+                'error_message' => 'A menu item with this label already exists. Please use a different label.',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $type = $this->post('type');
         $data = [
-            'label' => $this->post('label'),
+            'label' => $label,
             'type' => $type,
             'order' => (int)$this->post('order', 0),
             'status' => $this->post('status', 'active'),
@@ -237,9 +256,27 @@ class NavigationController extends Controller
             return;
         }
 
+        $label = trim($this->post('label'));
+
+        // Validate menu item label uniqueness (excluding current item)
+        if ($this->menuItemModel->labelExists($label, $id)) {
+            $item = $this->menuItemModel->getWithDetails($id);
+            $categories = $this->menuItemModel->getAvailableCategories();
+            $pages = $this->menuItemModel->getAvailablePages();
+            
+            $this->render('admin/navigation/edit', [
+                'item' => $item,
+                'availableCategories' => $categories,
+                'availablePages' => $pages,
+                'error_message' => 'A menu item with this label already exists. Please use a different label.',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $type = $this->post('type');
         $data = [
-            'label' => $this->post('label'),
+            'label' => $label,
             'type' => $type,
             'order' => (int)$this->post('order', 0),
             'status' => $this->post('status', 'active'),

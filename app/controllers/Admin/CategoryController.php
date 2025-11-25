@@ -50,9 +50,23 @@ class CategoryController extends Controller
             return;
         }
 
+        $name = trim($this->post('name'));
+
+        // Validate category name uniqueness
+        if ($this->categoryModel->nameExists($name)) {
+            $this->render('admin/categories/form', [
+                'error_message' => 'A category with this name already exists. Please use a different name.',
+                'formData' => $_POST,
+                'page_title' => 'Create Category',
+                'current_page' => 'categories',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $data = [
-            'name' => $this->post('name'),
-            'slug' => Helper::slugify($this->post('name')),
+            'name' => $name,
+            'slug' => Helper::slugify($name),
             'description' => $this->post('description'),
             'status' => $this->post('status', 'active'),
             'sort_order' => (int)$this->post('sort_order', 0),
@@ -111,9 +125,23 @@ class CategoryController extends Controller
             return;
         }
 
+        $name = trim($this->post('name'));
+
+        // Validate category name uniqueness (excluding current category)
+        if ($this->categoryModel->nameExists($name, $id)) {
+            $this->render('admin/categories/form', [
+                'category' => $category,
+                'error_message' => 'A category with this name already exists. Please use a different name.',
+                'page_title' => 'Edit Category',
+                'current_page' => 'categories',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+            return;
+        }
+
         $data = [
-            'name' => $this->post('name'),
-            'slug' => Helper::slugify($this->post('name')),
+            'name' => $name,
+            'slug' => Helper::slugify($name),
             'description' => $this->post('description'),
             'status' => $this->post('status', 'active'),
             'sort_order' => (int)$this->post('sort_order', 0),

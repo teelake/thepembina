@@ -73,6 +73,7 @@ $router->add('GET', 'admin/products/{id}/edit', ['controller' => 'Admin\Product'
 $router->add('POST', 'admin/products/{id}', ['controller' => 'Admin\Product', 'action' => 'update']);
 $router->add('POST', 'admin/products/{id}/delete', ['controller' => 'Admin\Product', 'action' => 'delete']);
 $router->add('POST', 'admin/products/import', ['controller' => 'Admin\Product', 'action' => 'import']);
+$router->add('GET', 'admin/products/download-sample-csv', ['controller' => 'Admin\Product', 'action' => 'downloadSampleCsv']);
 
 // Admin - Categories
 $router->add('GET', 'admin/categories', ['controller' => 'Admin\Category', 'action' => 'index']);
