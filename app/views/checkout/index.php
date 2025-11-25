@@ -202,7 +202,7 @@ $content = ob_start();
                     </h2>
                     <div class="mb-4 p-4 bg-gray-50 rounded-lg">
                         <label class="flex items-center cursor-pointer">
-                            <input type="checkbox" id="same-as-billing" class="w-5 h-5 text-brand border-gray-300 rounded focus:ring-brand">
+                            <input type="checkbox" id="same-as-billing" name="same_as_billing" value="1" class="w-5 h-5 text-brand border-gray-300 rounded focus:ring-brand">
                             <span class="ml-3 text-gray-700 font-medium">Same as billing address</span>
                         </label>
                     </div>
@@ -414,9 +414,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Same as billing
+    // Same as billing - copy values and make fields required
     sameAsBilling?.addEventListener('change', function() {
+        const billingFields = ['first_name', 'last_name', 'address_line1', 'address_line2', 'city', 'province', 'postal_code'];
+        
         if (this.checked) {
+            billingFields.forEach(field => {
+                const billingField = document.querySelector(`input[name="billing_${field}"], select[name="billing_${field}"]`);
+                const shippingField = document.querySelector(`input[name="shipping_${field}"], select[name="shipping_${field}"]`);
+                if (billingField && shippingField) {
+                    shippingField.value = billingField.value;
+                    shippingField.required = true;
+                    shippingField.disabled = false;
+                }
+            });
+        } else {
+            // Uncheck - re-enable fields
+            billingFields.forEach(field => {
+                const shippingField = document.querySelector(`input[name="shipping_${field}"], select[name="shipping_${field}"]`);
+                if (shippingField) {
+                    shippingField.disabled = false;
+                }
+            });
+        }
+    });
+    
+    // Also copy on form submit to ensure values are set
+    checkoutForm?.addEventListener('submit', function(e) {
+        if (sameAsBilling?.checked) {
             const billingFields = ['first_name', 'last_name', 'address_line1', 'address_line2', 'city', 'province', 'postal_code'];
             billingFields.forEach(field => {
                 const billingField = document.querySelector(`input[name="billing_${field}"], select[name="billing_${field}"]`);

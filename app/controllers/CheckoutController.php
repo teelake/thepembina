@@ -152,16 +152,35 @@ class CheckoutController extends Controller
             $rules['shipping_postal_code'] = 'required';
         }
 
-        $formData = array_merge($billingAddress, [
-            'order_type' => $orderType,
-            'email' => $email,
-            'phone' => $phone
-        ]);
+        // If "same as billing" is checked for delivery, copy billing to shipping in $_POST
+        if ($orderType === 'delivery' && $this->post('same_as_billing')) {
+            $_POST['shipping_first_name'] = $billingAddress['first_name'];
+            $_POST['shipping_last_name'] = $billingAddress['last_name'];
+            $_POST['shipping_address_line1'] = $billingAddress['address_line1'];
+            $_POST['shipping_address_line2'] = $billingAddress['address_line2'];
+            $_POST['shipping_city'] = $billingAddress['city'];
+            $_POST['shipping_province'] = $billingAddress['province'];
+            $_POST['shipping_postal_code'] = $billingAddress['postal_code'];
+            
+            // Also update the shippingAddress array
+            $shippingAddress = $billingAddress;
+        }
+        
+        // Prepare formData for validation (use POST data directly - it has billing_ prefix)
+        $formData = $_POST;
+        
+        // Calculate subtotal for error display
+        $subtotal = 0;
+        foreach ($items as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
 
         if (!$this->validator->validate($formData, $rules)) {
             $this->render('checkout/index', [
                 'error' => $this->validator->getFirstError(),
                 'items' => $items,
+                'subtotal' => $subtotal,
+                'isGuest' => !$userId,
                 'formData' => $formData
             ]);
             return;
