@@ -16,14 +16,18 @@ $content = ob_start();
                 </div>
             <?php endif; ?>
             
-            <div class="rounded-md shadow-sm -space-y-px">
+            <div class="space-y-4">
                 <div>
-                    <label for="email" class="sr-only">Email address</label>
-                    <input id="email" name="email" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-brand focus:border-brand focus:z-10 sm:text-sm" placeholder="Email address">
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email address</label>
+                    <input id="email" name="email" type="email" required autocomplete="email" 
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your email">
                 </div>
                 <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-brand focus:border-brand focus:z-10 sm:text-sm" placeholder="Password">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                    <input id="password" name="password" type="password" required autocomplete="current-password" 
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your password">
                 </div>
             </div>
 
@@ -39,8 +43,11 @@ $content = ob_start();
             </div>
 
             <div>
-                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand">
-                    Sign in
+                <button type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <span class="button-text">Sign in</span>
+                    <span class="button-loader hidden ml-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
                 </button>
             </div>
             

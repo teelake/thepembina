@@ -18,33 +18,46 @@ $content = ob_start();
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="first_name" class="sr-only">First name</label>
-                    <input id="first_name" name="first_name" type="text" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm" placeholder="First name" value="<?= htmlspecialchars($data['first_name'] ?? '') ?>">
+                    <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-2">First name</label>
+                    <input id="first_name" name="first_name" type="text" required autocomplete="given-name"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your first name" value="<?= htmlspecialchars($data['first_name'] ?? '') ?>">
                 </div>
                 <div>
-                    <label for="last_name" class="sr-only">Last name</label>
-                    <input id="last_name" name="last_name" type="text" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm" placeholder="Last name" value="<?= htmlspecialchars($data['last_name'] ?? '') ?>">
+                    <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-2">Last name</label>
+                    <input id="last_name" name="last_name" type="text" required autocomplete="family-name"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your last name" value="<?= htmlspecialchars($data['last_name'] ?? '') ?>">
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label for="email" class="sr-only">Email address</label>
-                    <input id="email" name="email" type="email" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm" placeholder="Email address" value="<?= htmlspecialchars($data['email'] ?? '') ?>">
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email address</label>
+                    <input id="email" name="email" type="email" required autocomplete="email"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your email" value="<?= htmlspecialchars($data['email'] ?? '') ?>">
                 </div>
                 <div>
-                    <label for="phone" class="sr-only">Phone</label>
-                    <input id="phone" name="phone" type="text" class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm" placeholder="Phone number" value="<?= htmlspecialchars($data['phone'] ?? '') ?>">
+                    <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone number</label>
+                    <input id="phone" name="phone" type="tel" autocomplete="tel"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Enter your phone number" value="<?= htmlspecialchars($data['phone'] ?? '') ?>">
                 </div>
                 <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" required class="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm" placeholder="Password">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                    <input id="password" name="password" type="password" required autocomplete="new-password"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200" 
+                           placeholder="Create a password">
                 </div>
             </div>
 
             <div>
-                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand">
-                    Sign up
+                <button type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <span class="button-text">Sign up</span>
+                    <span class="button-loader hidden ml-2">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
                 </button>
             </div>
 
