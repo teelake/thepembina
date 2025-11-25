@@ -94,20 +94,38 @@ class OrderController extends Controller
             $this->redirect('/admin/orders?error=Order not found');
             return;
         }
+        
+        // Ensure items array exists
+        if (!isset($order['items']) || empty($order['items'])) {
+            $order['items'] = [];
+        }
+        
         $payments = $this->paymentModel->getByOrder($id);
+        if (!$payments) {
+            $payments = [];
+        }
 
         try {
             $service = new ReceiptService();
             $pdf = $service->generate($order, $payments);
 
+            // Clear any output buffers
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
             header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="receipt-' . $order['order_number'] . '.pdf"');
+            header('Content-Disposition: inline; filename="receipt-' . htmlspecialchars($order['order_number']) . '.pdf"');
             header('Content-Length: ' . strlen($pdf));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            
             echo $pdf;
             exit;
         } catch (\Exception $e) {
             error_log("Receipt generation error: " . $e->getMessage());
-            $this->redirect("/admin/orders/{$id}?error=Failed to generate receipt: " . $e->getMessage());
+            error_log("Receipt generation trace: " . $e->getTraceAsString());
+            $this->redirect("/admin/orders/{$id}?error=Failed to generate receipt: " . urlencode($e->getMessage()));
         }
     }
 
@@ -134,33 +152,50 @@ class OrderController extends Controller
             return;
         }
 
-        $payments = $this->paymentModel->getByOrder($id);
-        $service = new ReceiptService();
-        $pdf = $service->generate($order, $payments);
-        $filename = $service->getFilename($order);
-
-        $message = "<p>Hello,</p>";
-        $message .= "<p>Please find attached the receipt for order <strong>{$order['order_number']}</strong>.</p>";
-        $message .= "<p>Thank you for choosing " . BUSINESS_NAME . ".</p>";
-
-        $sent = \App\Core\Email::send(
-            $order['email'],
-            'Your Receipt - ' . $order['order_number'],
-            $message,
-            null,
-            null,
-            [[
-                'name' => $filename,
-                'content' => $pdf,
-                'type' => 'application/pdf'
-            ]]
-        );
-
-        if ($sent) {
-            $this->redirect("/admin/orders/{$id}?success=Receipt emailed to {$order['email']}");
+        // Ensure items array exists
+        if (!isset($order['items']) || empty($order['items'])) {
+            $order['items'] = [];
         }
 
-        $this->redirect("/admin/orders/{$id}?error=Unable to send receipt email");
+        try {
+            $payments = $this->paymentModel->getByOrder($id);
+            if (!$payments) {
+                $payments = [];
+            }
+            
+            $service = new ReceiptService();
+            $pdf = $service->generate($order, $payments);
+            $filename = $service->getFilename($order);
+
+            $message = "<p>Hello,</p>";
+            $message .= "<p>Please find attached the receipt for order <strong>{$order['order_number']}</strong>.</p>";
+            $message .= "<p>Thank you for choosing " . (defined('BUSINESS_NAME') ? BUSINESS_NAME : 'The Pembina Pint and Restaurant') . ".</p>";
+
+            $sent = \App\Core\Email::send(
+                $order['email'],
+                'Your Receipt - ' . $order['order_number'],
+                $message,
+                null,
+                null,
+                [[
+                    'name' => $filename,
+                    'content' => $pdf,
+                    'type' => 'application/pdf'
+                ]]
+            );
+
+            if ($sent) {
+                error_log("Receipt email sent successfully to {$order['email']} for order #{$order['order_number']}");
+                $this->redirect("/admin/orders/{$id}?success=Receipt emailed to {$order['email']}");
+            } else {
+                error_log("Failed to send receipt email to {$order['email']} for order #{$order['order_number']}");
+                $this->redirect("/admin/orders/{$id}?error=Unable to send receipt email. Please check email configuration.");
+            }
+        } catch (\Exception $e) {
+            error_log("Email receipt error: " . $e->getMessage());
+            error_log("Email receipt trace: " . $e->getTraceAsString());
+            $this->redirect("/admin/orders/{$id}?error=Failed to generate or send receipt: " . urlencode($e->getMessage()));
+        }
     }
 }
 
