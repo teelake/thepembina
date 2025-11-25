@@ -78,11 +78,18 @@ abstract class Model
      */
     public function create($data)
     {
+        // List of SQL reserved words that need escaping
+        $reservedWords = ['order', 'values', 'group', 'select', 'table', 'where', 'from', 'join', 'key', 'index'];
+        
         $fields = array_keys($data);
+        $escapedFields = array_map(function($field) use ($reservedWords) {
+            return in_array(strtolower($field), $reservedWords) ? "`{$field}`" : $field;
+        }, $fields);
+        
         $values = ':' . implode(', :', $fields);
-        $fields = implode(', ', $fields);
+        $fieldsStr = implode(', ', $escapedFields);
 
-        $sql = "INSERT INTO {$this->table} ({$fields}) VALUES ({$values})";
+        $sql = "INSERT INTO `{$this->table}` ({$fieldsStr}) VALUES ({$values})";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($data);
         return $this->db->lastInsertId();
@@ -97,14 +104,19 @@ abstract class Model
      */
     public function update($id, $data)
     {
+        // List of SQL reserved words that need escaping
+        $reservedWords = ['order', 'values', 'group', 'select', 'table', 'where', 'from', 'join', 'key', 'index'];
+        
         $set = [];
         foreach ($data as $key => $value) {
-            $set[] = "{$key} = :{$key}";
+            // Escape column names that are reserved words
+            $escapedKey = in_array(strtolower($key), $reservedWords) ? "`{$key}`" : $key;
+            $set[] = "{$escapedKey} = :{$key}";
         }
         $set = implode(', ', $set);
 
         $data['id'] = $id;
-        $sql = "UPDATE {$this->table} SET {$set} WHERE {$this->primaryKey} = :id";
+        $sql = "UPDATE `{$this->table}` SET {$set} WHERE `{$this->primaryKey}` = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($data);
     }
