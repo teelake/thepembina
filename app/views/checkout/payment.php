@@ -1,6 +1,5 @@
 <?php
-// Payment form with Square integration
-// This would include Square's payment form JavaScript
+use App\Core\Helper;
 $content = ob_start();
 ?>
 
@@ -58,41 +57,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize Square Payment Form
-    const payments = Square.payments(applicationId, locationId);
-    const card = await payments.card();
-    await card.attach('#square-payment-form');
-    
-    // Handle form submission
-    document.getElementById('payment-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const payButton = document.getElementById('pay-button');
-        payButton.disabled = true;
-        payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
-        
+    (async function() {
         try {
-            const result = await card.tokenize();
-            if (result.status === 'OK') {
-                document.getElementById('source-id').value = result.token;
-                this.submit();
-            } else {
-                document.getElementById('payment-status').innerHTML = 
-                    '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment failed: ' + result.errors[0].detail + '</div>';
-                payButton.disabled = false;
-                payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= Helper::formatCurrency($order['total']) ?>';
-            }
+            const payments = Square.payments(applicationId, locationId);
+            const card = await payments.card();
+            await card.attach('#square-payment-form');
+            
+            // Enable pay button when card is ready
+            card.addEventListener('ready', function() {
+                document.getElementById('pay-button').disabled = false;
+            });
+            
+            // Handle form submission
+            document.getElementById('payment-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const payButton = document.getElementById('pay-button');
+                payButton.disabled = true;
+                payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+                
+                try {
+                    const result = await card.tokenize();
+                    if (result.status === 'OK') {
+                        document.getElementById('source-id').value = result.token;
+                        this.submit();
+                    } else {
+                        document.getElementById('payment-status').innerHTML = 
+                            '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment failed: ' + (result.errors && result.errors[0] ? result.errors[0].detail : 'Unknown error') + '</div>';
+                        payButton.disabled = false;
+                        payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= isset($order['total']) ? Helper::formatCurrency($order['total']) : '$0.00' ?>';
+                    }
+                } catch (error) {
+                    document.getElementById('payment-status').innerHTML = 
+                        '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ' + error.message + '</div>';
+                    payButton.disabled = false;
+                    payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= isset($order['total']) ? Helper::formatCurrency($order['total']) : '$0.00' ?>';
+                }
+            });
         } catch (error) {
             document.getElementById('payment-status').innerHTML = 
-                '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ' + error.message + '</div>';
-            payButton.disabled = false;
-            payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= Helper::formatCurrency($order['total']) ?>';
+                '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Failed to initialize payment form: ' + error.message + '</div>';
         }
-    });
-    
-    // Enable pay button when card is ready
-    card.addEventListener('ready', function() {
-        document.getElementById('pay-button').disabled = false;
-    });
+    })();
 });
 </script>
 

@@ -140,7 +140,6 @@ class CheckoutController extends Controller
             'billing_first_name' => 'required',
             'billing_last_name' => 'required',
             'billing_address_line1' => 'required',
-            'billing_address_line2' => 'required',
             'billing_city' => 'required',
             'billing_province' => 'required',
             'billing_postal_code' => 'required'
@@ -150,7 +149,6 @@ class CheckoutController extends Controller
             $rules['shipping_first_name'] = 'required';
             $rules['shipping_last_name'] = 'required';
             $rules['shipping_address_line1'] = 'required';
-            $rules['shipping_address_line2'] = 'required';
             $rules['shipping_city'] = 'required';
             $rules['shipping_province'] = 'required';
             $rules['shipping_postal_code'] = 'required';

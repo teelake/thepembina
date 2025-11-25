@@ -146,9 +146,9 @@ $content = ob_start();
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold mb-2 text-gray-700">
-                                Address Line 2 <span class="text-red-500">*</span>
+                                Address Line 2 <span class="text-gray-500 text-xs font-normal">(Optional)</span>
                             </label>
-                            <input type="text" name="billing_address_line2" required
+                            <input type="text" name="billing_address_line2"
                                    value="<?= htmlspecialchars($formData['billing_address_line2'] ?? '') ?>"
                                    placeholder="Apartment, suite, etc."
                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
@@ -230,9 +230,9 @@ $content = ob_start();
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold mb-2 text-gray-700">
-                                Address Line 2 <span class="text-red-500">*</span>
+                                Address Line 2 <span class="text-gray-500 text-xs font-normal">(Optional)</span>
                             </label>
-                            <input type="text" name="shipping_address_line2" required
+                            <input type="text" name="shipping_address_line2"
                                    value="<?= htmlspecialchars($formData['shipping_address_line2'] ?? '') ?>"
                                    placeholder="Apartment, suite, etc."
                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
