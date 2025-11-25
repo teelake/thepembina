@@ -91,10 +91,10 @@ $content = ob_start();
                                 Email Address <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 <input type="email" name="email" required 
                                        value="<?= htmlspecialchars($formData['email'] ?? ($isGuest ? '' : $_SESSION['user_email'] ?? '')) ?>"
-                                       class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
+                                       class="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
                             </div>
                         </div>
                         <div>
@@ -102,11 +102,11 @@ $content = ob_start();
                                 Phone Number <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <i class="fas fa-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <i class="fas fa-phone absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 <input type="tel" name="phone" required 
                                        value="<?= htmlspecialchars($formData['phone'] ?? '') ?>"
                                        placeholder="(204) 555-1234"
-                                       class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
+                                       class="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
                             </div>
                         </div>
                     </div>
@@ -146,9 +146,9 @@ $content = ob_start();
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold mb-2 text-gray-700">
-                                Address Line 2 <span class="text-gray-500 text-xs font-normal">(Optional)</span>
+                                Address Line 2 <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="billing_address_line2" 
+                            <input type="text" name="billing_address_line2" required
                                    value="<?= htmlspecialchars($formData['billing_address_line2'] ?? '') ?>"
                                    placeholder="Apartment, suite, etc."
                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
@@ -230,9 +230,11 @@ $content = ob_start();
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold mb-2 text-gray-700">
-                                Address Line 2 <span class="text-gray-500 text-xs font-normal">(Optional)</span>
+                                Address Line 2 <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="shipping_address_line2" 
+                            <input type="text" name="shipping_address_line2" required
+                                   value="<?= htmlspecialchars($formData['shipping_address_line2'] ?? '') ?>"
+                                   placeholder="Apartment, suite, etc."
                                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
                         </div>
                         <div>

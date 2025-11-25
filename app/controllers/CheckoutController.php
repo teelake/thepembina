@@ -140,13 +140,17 @@ class CheckoutController extends Controller
             'billing_first_name' => 'required',
             'billing_last_name' => 'required',
             'billing_address_line1' => 'required',
+            'billing_address_line2' => 'required',
             'billing_city' => 'required',
             'billing_province' => 'required',
             'billing_postal_code' => 'required'
         ];
 
         if ($orderType === 'delivery') {
+            $rules['shipping_first_name'] = 'required';
+            $rules['shipping_last_name'] = 'required';
             $rules['shipping_address_line1'] = 'required';
+            $rules['shipping_address_line2'] = 'required';
             $rules['shipping_city'] = 'required';
             $rules['shipping_province'] = 'required';
             $rules['shipping_postal_code'] = 'required';
@@ -181,7 +185,8 @@ class CheckoutController extends Controller
                 'items' => $items,
                 'subtotal' => $subtotal,
                 'isGuest' => !$userId,
-                'formData' => $formData
+                'formData' => $formData,
+                'csrfField' => $this->csrf->getTokenField()
             ]);
             return;
         }
@@ -195,10 +200,23 @@ class CheckoutController extends Controller
             $subtotal += $itemSubtotal;
             
             $product = $this->productModel->find($item['product_id']);
+            if (!$product) {
+                error_log("Product not found: " . $item['product_id']);
+                $this->render('checkout/index', [
+                    'error' => 'One or more products in your cart are no longer available.',
+                    'items' => $items,
+                    'subtotal' => $subtotal,
+                    'isGuest' => !$userId,
+                    'formData' => $formData,
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+                return;
+            }
+            
             $orderItems[] = [
                 'product_id' => $item['product_id'],
                 'product_name' => $product['name'],
-                'product_sku' => $product['sku'],
+                'product_sku' => $product['sku'] ?? null,
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
                 'subtotal' => $itemSubtotal,
@@ -264,7 +282,10 @@ class CheckoutController extends Controller
             $this->render('checkout/index', [
                 'error' => 'Failed to create order. Please try again.',
                 'items' => $items,
-                'formData' => $formData
+                'subtotal' => $subtotal,
+                'isGuest' => !$userId,
+                'formData' => $formData,
+                'csrfField' => $this->csrf->getTokenField()
             ]);
         }
     }

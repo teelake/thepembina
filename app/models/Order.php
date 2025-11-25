@@ -77,17 +77,28 @@ class Order extends Model
      */
     public function createOrder($data)
     {
+        // Extract items before creating order (items is not a database column)
+        $items = $data['items'] ?? [];
+        unset($data['items']);
+        
         $data['order_number'] = Helper::generateOrderNumber();
-        $orderId = $this->create($data);
         
-        // Create order items
-        if (isset($data['items']) && is_array($data['items'])) {
-            foreach ($data['items'] as $item) {
-                $this->createOrderItem($orderId, $item);
+        try {
+            $orderId = $this->create($data);
+            
+            // Create order items
+            if (!empty($items) && is_array($items)) {
+                foreach ($items as $item) {
+                    $this->createOrderItem($orderId, $item);
+                }
             }
+            
+            return $orderId;
+        } catch (\Exception $e) {
+            error_log("Order creation error: " . $e->getMessage());
+            error_log("Order data: " . print_r($data, true));
+            return false;
         }
-        
-        return $orderId;
     }
 
     /**
