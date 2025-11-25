@@ -66,14 +66,16 @@ $router->add('GET', 'admin', ['controller' => 'Admin\Dashboard', 'action' => 'in
 $router->add('GET', 'admin/dashboard', ['controller' => 'Admin\Dashboard', 'action' => 'index']);
 
 // Admin - Products
+// IMPORTANT: Specific routes must come BEFORE parameterized routes to avoid conflicts
 $router->add('GET', 'admin/products', ['controller' => 'Admin\Product', 'action' => 'index']);
 $router->add('GET', 'admin/products/create', ['controller' => 'Admin\Product', 'action' => 'create']);
 $router->add('POST', 'admin/products', ['controller' => 'Admin\Product', 'action' => 'store']);
+$router->add('POST', 'admin/products/import', ['controller' => 'Admin\Product', 'action' => 'import']);
+$router->add('GET', 'admin/products/download-sample-csv', ['controller' => 'Admin\Product', 'action' => 'downloadSampleCsv']);
+// Parameterized routes come after specific routes
 $router->add('GET', 'admin/products/{id}/edit', ['controller' => 'Admin\Product', 'action' => 'edit']);
 $router->add('POST', 'admin/products/{id}', ['controller' => 'Admin\Product', 'action' => 'update']);
 $router->add('POST', 'admin/products/{id}/delete', ['controller' => 'Admin\Product', 'action' => 'delete']);
-$router->add('POST', 'admin/products/import', ['controller' => 'Admin\Product', 'action' => 'import']);
-$router->add('GET', 'admin/products/download-sample-csv', ['controller' => 'Admin\Product', 'action' => 'downloadSampleCsv']);
 
 // Admin - Categories
 $router->add('GET', 'admin/categories', ['controller' => 'Admin\Category', 'action' => 'index']);
