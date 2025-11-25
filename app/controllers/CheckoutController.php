@@ -274,9 +274,19 @@ class CheckoutController extends Controller
             // Send order invoice email (before payment)
             try {
                 $orderWithItems = $this->orderModel->getWithItems($orderId);
-                \App\Core\Email::sendOrderInvoice($orderWithItems);
+                if ($orderWithItems && !empty($orderWithItems['email'])) {
+                    $emailSent = \App\Core\Email::sendOrderInvoice($orderWithItems);
+                    if (!$emailSent) {
+                        error_log("Order invoice email failed to send for order #{$orderData['order_number']} to {$orderWithItems['email']}");
+                    } else {
+                        error_log("Order invoice email sent successfully for order #{$orderData['order_number']} to {$orderWithItems['email']}");
+                    }
+                } else {
+                    error_log("Cannot send invoice email: Order email is empty for order ID {$orderId}");
+                }
             } catch (\Exception $e) {
                 error_log("Failed to send order invoice email: " . $e->getMessage());
+                error_log("Exception trace: " . $e->getTraceAsString());
                 // Don't fail the order if email fails
             }
             

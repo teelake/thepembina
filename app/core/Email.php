@@ -20,19 +20,29 @@ class Email
      */
     public static function send($to, $subject, $message, $fromEmail = null, $fromName = null, array $attachments = [])
     {
-        $fromEmail = $fromEmail ?? SMTP_FROM_EMAIL;
-        $fromName = $fromName ?? SMTP_FROM_NAME;
+        $fromEmail = $fromEmail ?? (defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'no-reply@thepembina.ca');
+        $fromName = $fromName ?? (defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'The Pembina Pint and Restaurant');
+        
+        // Get SMTP settings from database or constants
+        $smtpHost = Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : '');
+        $smtpUser = Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : '');
         
         // Use PHP mail() function if SMTP not configured
-        if (empty(SMTP_HOST) || empty(SMTP_USER)) {
+        if (empty($smtpHost) || empty($smtpUser)) {
+            error_log("Email: Using PHP mail() - SMTP not configured. To: {$to}, Subject: {$subject}");
             $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments);
             $body = self::buildBody($message, $attachments, $headerData['boundary']);
             $headerString = $headerData['headers'];
-            return mail($to, $subject, $body, $headerString);
+            $result = mail($to, $subject, $body, $headerString);
+            error_log("Email sent via PHP mail(): " . ($result ? 'SUCCESS' : 'FAILED'));
+            return $result;
         }
         
         // Use SMTP if configured
-        return self::sendSMTP($to, $subject, $message, $fromEmail, $fromName, $attachments);
+        error_log("Email: Using SMTP. To: {$to}, Subject: {$subject}");
+        $result = self::sendSMTP($to, $subject, $message, $fromEmail, $fromName, $attachments);
+        error_log("Email sent via SMTP: " . ($result ? 'SUCCESS' : 'FAILED'));
+        return $result;
     }
     
     /**
