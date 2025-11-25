@@ -30,8 +30,37 @@ class NavigationController extends Controller
     public function index()
     {
         try {
-            // Check if table exists
-            $tableExists = $this->menuItemModel->db->query("SHOW TABLES LIKE 'navigation_menu_items'")->rowCount() > 0;
+            // Check if table exists - try a simple SELECT query first (most direct)
+            $tableExists = false;
+            try {
+                // Try to query the table - if it exists, this will succeed
+                $this->menuItemModel->db->query("SELECT 1 FROM navigation_menu_items LIMIT 1");
+                $tableExists = true;
+            } catch (\Exception $e) {
+                // Table doesn't exist or query failed
+                $tableExists = false;
+                // Try alternative method using information_schema
+                try {
+                    $dbName = $this->menuItemModel->db->query("SELECT DATABASE()")->fetchColumn();
+                    $stmt = $this->menuItemModel->db->prepare("
+                        SELECT COUNT(*) 
+                        FROM information_schema.tables 
+                        WHERE table_schema = ? 
+                        AND table_name = 'navigation_menu_items'
+                    ");
+                    $stmt->execute([$dbName]);
+                    $tableExists = $stmt->fetchColumn() > 0;
+                } catch (\Exception $e2) {
+                    // Fallback to SHOW TABLES
+                    try {
+                        $result = $this->menuItemModel->db->query("SHOW TABLES LIKE 'navigation_menu_items'");
+                        $tableExists = $result && $result->rowCount() > 0;
+                    } catch (\Exception $e3) {
+                        // All methods failed, assume table doesn't exist
+                        $tableExists = false;
+                    }
+                }
+            }
             
             if (!$tableExists) {
                 $this->render('admin/navigation/migration-needed', [
@@ -42,11 +71,48 @@ class NavigationController extends Controller
                 return;
             }
 
-            $menuItems = $this->menuItemModel->getActiveItems();
-            $allItems = $this->menuItemModel->findAll([], '`order` ASC, `label` ASC');
+            // Try to fetch data - wrap each call in try-catch
+            $menuItems = [];
+            $allItems = [];
+            $categories = [];
+            $pages = [];
             
-            $categories = $this->menuItemModel->getAvailableCategories();
-            $pages = $this->menuItemModel->getAvailablePages();
+            try {
+                $menuItems = $this->menuItemModel->getActiveItems();
+            } catch (\Exception $e) {
+                error_log("Error fetching active items: " . $e->getMessage());
+            }
+            
+            try {
+                $allItems = $this->menuItemModel->findAll([], '`order` ASC, `label` ASC');
+            } catch (\Exception $e) {
+                error_log("Error fetching all items: " . $e->getMessage());
+                // If table doesn't exist, show migration page
+                $errorMsg = strtolower($e->getMessage());
+                if (strpos($errorMsg, "doesn't exist") !== false || 
+                    strpos($errorMsg, "does not exist") !== false ||
+                    strpos($errorMsg, "unknown table") !== false ||
+                    strpos($errorMsg, "table") !== false && strpos($errorMsg, "exist") !== false) {
+                    $this->render('admin/navigation/migration-needed', [
+                        'page_title' => 'Navigation Management',
+                        'current_page' => 'navigation',
+                        'csrfField' => $this->csrf->getTokenField()
+                    ]);
+                    return;
+                }
+            }
+            
+            try {
+                $categories = $this->menuItemModel->getAvailableCategories();
+            } catch (\Exception $e) {
+                error_log("Error fetching categories: " . $e->getMessage());
+            }
+            
+            try {
+                $pages = $this->menuItemModel->getAvailablePages();
+            } catch (\Exception $e) {
+                error_log("Error fetching pages: " . $e->getMessage());
+            }
 
             $this->render('admin/navigation/index', [
                 'menuItems' => $allItems ?: [],
@@ -60,13 +126,27 @@ class NavigationController extends Controller
         } catch (\Exception $e) {
             // Log error
             error_log("Navigation page error: " . $e->getMessage());
+            error_log("Navigation page error trace: " . $e->getTraceAsString());
             
-            $this->render('admin/navigation/error', [
-                'error' => $e->getMessage(),
-                'page_title' => 'Navigation Management - Error',
-                'current_page' => 'navigation',
-                'csrfField' => $this->csrf->getTokenField()
-            ]);
+            // Check if it's a table missing error
+            $errorMsg = strtolower($e->getMessage());
+            if (strpos($errorMsg, "doesn't exist") !== false || 
+                strpos($errorMsg, "does not exist") !== false ||
+                strpos($errorMsg, "unknown table") !== false ||
+                strpos($errorMsg, "table") !== false && strpos($errorMsg, "exist") !== false) {
+                $this->render('admin/navigation/migration-needed', [
+                    'page_title' => 'Navigation Management',
+                    'current_page' => 'navigation',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+            } else {
+                $this->render('admin/navigation/error', [
+                    'error' => $e->getMessage(),
+                    'page_title' => 'Navigation Management - Error',
+                    'current_page' => 'navigation',
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+            }
         }
     }
 
@@ -75,16 +155,21 @@ class NavigationController extends Controller
      */
     public function create()
     {
-        $categories = $this->menuItemModel->getAvailableCategories();
-        $pages = $this->menuItemModel->getAvailablePages();
+        try {
+            $categories = $this->menuItemModel->getAvailableCategories();
+            $pages = $this->menuItemModel->getAvailablePages();
 
-        $this->render('admin/navigation/form', [
-            'categories' => $categories,
-            'pages' => $pages,
-            'page_title' => 'Add Menu Item',
-            'current_page' => 'navigation',
-            'csrfField' => $this->csrf->getTokenField()
-        ]);
+            $this->render('admin/navigation/form', [
+                'categories' => $categories ?: [],
+                'pages' => $pages ?: [],
+                'page_title' => 'Add Menu Item',
+                'current_page' => 'navigation',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+        } catch (\Exception $e) {
+            error_log("Navigation create form error: " . $e->getMessage());
+            $this->redirect('/admin/navigation?error=' . urlencode('Unable to load form. Please ensure the navigation table exists.'));
+        }
     }
 
     /**
@@ -140,25 +225,30 @@ class NavigationController extends Controller
      */
     public function edit()
     {
-        $id = (int)($this->params['id'] ?? 0);
-        $item = $this->menuItemModel->getWithDetails($id);
-        
-        if (!$item) {
-            $this->redirect('/admin/navigation?error=Menu item not found');
-            return;
+        try {
+            $id = (int)($this->params['id'] ?? 0);
+            $item = $this->menuItemModel->getWithDetails($id);
+            
+            if (!$item) {
+                $this->redirect('/admin/navigation?error=Menu item not found');
+                return;
+            }
+
+            $categories = $this->menuItemModel->getAvailableCategories();
+            $pages = $this->menuItemModel->getAvailablePages();
+
+            $this->render('admin/navigation/form', [
+                'item' => $item,
+                'categories' => $categories ?: [],
+                'pages' => $pages ?: [],
+                'page_title' => 'Edit Menu Item',
+                'current_page' => 'navigation',
+                'csrfField' => $this->csrf->getTokenField()
+            ]);
+        } catch (\Exception $e) {
+            error_log("Navigation edit form error: " . $e->getMessage());
+            $this->redirect('/admin/navigation?error=' . urlencode('Unable to load form. Please ensure the navigation table exists.'));
         }
-
-        $categories = $this->menuItemModel->getAvailableCategories();
-        $pages = $this->menuItemModel->getAvailablePages();
-
-        $this->render('admin/navigation/form', [
-            'item' => $item,
-            'categories' => $categories,
-            'pages' => $pages,
-            'page_title' => 'Edit Menu Item',
-            'current_page' => 'navigation',
-            'csrfField' => $this->csrf->getTokenField()
-        ]);
     }
 
     /**
