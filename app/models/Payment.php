@@ -111,18 +111,31 @@ class Payment extends Model
             $params['email'] = '%' . $filters['email'] . '%';
         }
         
+        // Validate and sanitize orderBy
+        $allowedOrderBy = [
+            'p.created_at DESC', 'p.created_at ASC',
+            'p.amount DESC', 'p.amount ASC',
+            'p.status DESC', 'p.status ASC',
+            'o.order_number DESC', 'o.order_number ASC'
+        ];
+        $orderBy = in_array($orderBy, $allowedOrderBy) ? $orderBy : 'p.created_at DESC';
         $sql .= " ORDER BY {$orderBy}";
         
-        if ($limit) {
-            $sql .= " LIMIT {$limit}";
-            if ($offset) {
-                $sql .= " OFFSET {$offset}";
+        if ($limit !== null) {
+            $sql .= " LIMIT " . (int)$limit;
+            if ($offset !== null) {
+                $sql .= " OFFSET " . (int)$offset;
             }
         }
         
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll() ?: [];
+        } catch (\PDOException $e) {
+            error_log("Payment::getAllWithOrders error: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -135,11 +148,11 @@ class Payment extends Model
     {
         $sql = "SELECT 
                     COUNT(*) as total_transactions,
-                    SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_revenue,
-                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_transactions,
-                    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_transactions,
-                    SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END) as total_refunded,
-                    AVG(CASE WHEN status = 'completed' THEN amount ELSE NULL END) as average_transaction
+                    SUM(CASE WHEN p.status = 'completed' THEN p.amount ELSE 0 END) as total_revenue,
+                    SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) as successful_transactions,
+                    SUM(CASE WHEN p.status = 'failed' THEN 1 ELSE 0 END) as failed_transactions,
+                    SUM(CASE WHEN p.status = 'refunded' THEN p.amount ELSE 0 END) as total_refunded,
+                    AVG(CASE WHEN p.status = 'completed' THEN p.amount ELSE NULL END) as average_transaction
                 FROM {$this->table} p
                 LEFT JOIN orders o ON p.order_id = o.id
                 WHERE 1=1";
@@ -167,18 +180,45 @@ class Payment extends Model
             $params['to'] = $filters['to'];
         }
         
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $result = $stmt->fetch();
+        if (!empty($filters['transaction_id'])) {
+            $sql .= " AND p.transaction_id LIKE :transaction_id";
+            $params['transaction_id'] = '%' . $filters['transaction_id'] . '%';
+        }
         
-        return [
-            'total_transactions' => (int)($result['total_transactions'] ?? 0),
-            'total_revenue' => (float)($result['total_revenue'] ?? 0),
-            'successful_transactions' => (int)($result['successful_transactions'] ?? 0),
-            'failed_transactions' => (int)($result['failed_transactions'] ?? 0),
-            'total_refunded' => (float)($result['total_refunded'] ?? 0),
-            'average_transaction' => (float)($result['average_transaction'] ?? 0)
-        ];
+        if (!empty($filters['order_number'])) {
+            $sql .= " AND o.order_number LIKE :order_number";
+            $params['order_number'] = '%' . $filters['order_number'] . '%';
+        }
+        
+        if (!empty($filters['email'])) {
+            $sql .= " AND o.email LIKE :email";
+            $params['email'] = '%' . $filters['email'] . '%';
+        }
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $result = $stmt->fetch();
+            
+            return [
+                'total_transactions' => (int)($result['total_transactions'] ?? 0),
+                'total_revenue' => (float)($result['total_revenue'] ?? 0),
+                'successful_transactions' => (int)($result['successful_transactions'] ?? 0),
+                'failed_transactions' => (int)($result['failed_transactions'] ?? 0),
+                'total_refunded' => (float)($result['total_refunded'] ?? 0),
+                'average_transaction' => (float)($result['average_transaction'] ?? 0)
+            ];
+        } catch (\PDOException $e) {
+            error_log("Payment::getStatistics error: " . $e->getMessage());
+            return [
+                'total_transactions' => 0,
+                'total_revenue' => 0,
+                'successful_transactions' => 0,
+                'failed_transactions' => 0,
+                'total_refunded' => 0,
+                'average_transaction' => 0
+            ];
+        }
     }
 }
 
