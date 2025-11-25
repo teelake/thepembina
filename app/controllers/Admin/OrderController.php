@@ -123,8 +123,12 @@ class OrderController extends Controller
             echo $pdf;
             exit;
         } catch (\Exception $e) {
-            error_log("Receipt generation error: " . $e->getMessage());
-            error_log("Receipt generation trace: " . $e->getTraceAsString());
+            $this->logError("Receipt download error: " . $e->getMessage(), [
+                'order_id' => $id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->redirect("/admin/orders/{$id}?error=Failed to generate receipt: " . urlencode($e->getMessage()));
         }
     }
@@ -185,15 +189,27 @@ class OrderController extends Controller
             );
 
             if ($sent) {
-                error_log("Receipt email sent successfully to {$order['email']} for order #{$order['order_number']}");
+                $this->logError("Receipt email sent successfully to {$order['email']} for order #{$order['order_number']}", [
+                    'order_id' => $id,
+                    'order_number' => $order['order_number'],
+                    'email' => $order['email']
+                ]);
                 $this->redirect("/admin/orders/{$id}?success=Receipt emailed to {$order['email']}");
             } else {
-                error_log("Failed to send receipt email to {$order['email']} for order #{$order['order_number']}");
+                $this->logError("Failed to send receipt email to {$order['email']} for order #{$order['order_number']}", [
+                    'order_id' => $id,
+                    'order_number' => $order['order_number'],
+                    'email' => $order['email']
+                ]);
                 $this->redirect("/admin/orders/{$id}?error=Unable to send receipt email. Please check email configuration.");
             }
         } catch (\Exception $e) {
-            error_log("Email receipt error: " . $e->getMessage());
-            error_log("Email receipt trace: " . $e->getTraceAsString());
+            $this->logError("Email receipt error: " . $e->getMessage(), [
+                'order_id' => $id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->redirect("/admin/orders/{$id}?error=Failed to generate or send receipt: " . urlencode($e->getMessage()));
         }
     }

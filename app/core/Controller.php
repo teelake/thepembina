@@ -166,5 +166,39 @@ abstract class Controller
     {
         return $_SESSION['user_role'] ?? null;
     }
+
+    /**
+     * Log error to php-error.log
+     * 
+     * @param string $message
+     * @param array $context Additional context data
+     */
+    protected function logError($message, array $context = [])
+    {
+        $errorLogFile = defined('ROOT_PATH') ? ROOT_PATH . '/php-error.log' : __DIR__ . '/../../php-error.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $url = $_SERVER['REQUEST_URI'] ?? 'CLI';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        $controller = get_class($this);
+        
+        $logMessage = sprintf(
+            "[%s] ERROR: %s | Controller: %s | URL: %s | Method: %s | IP: %s",
+            $timestamp,
+            $message,
+            $controller,
+            $url,
+            $method,
+            $ip
+        );
+        
+        if (!empty($context)) {
+            $logMessage .= " | Context: " . json_encode($context, JSON_PARTIAL_OUTPUT_ON_ERROR);
+        }
+        
+        $logMessage .= "\n";
+        
+        @file_put_contents($errorLogFile, $logMessage, FILE_APPEND | LOCK_EX);
+    }
 }
 

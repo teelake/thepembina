@@ -57,7 +57,11 @@ class NavigationController extends Controller
                 'csrfField' => $this->csrf->getTokenField()
             ]);
         } catch (\Exception $e) {
-            error_log("Navigation page error: " . $e->getMessage());
+            $this->logError("Navigation page error: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->render('admin/navigation/error', [
                 'error' => $e->getMessage(),
                 'page_title' => 'Navigation Management - Error',
@@ -84,7 +88,11 @@ class NavigationController extends Controller
                 'csrfField' => $this->csrf->getTokenField()
             ]);
         } catch (\Exception $e) {
-            error_log("Navigation create form error: " . $e->getMessage());
+            $this->logError("Navigation create form error: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->redirect('/admin/navigation?error=' . urlencode('Unable to load form. Please ensure the navigation table exists.'));
         }
     }
@@ -163,7 +171,11 @@ class NavigationController extends Controller
                 'csrfField' => $this->csrf->getTokenField()
             ]);
         } catch (\Exception $e) {
-            error_log("Navigation edit form error: " . $e->getMessage());
+            $this->logError("Navigation edit form error: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->redirect('/admin/navigation?error=' . urlencode('Unable to load form. Please ensure the navigation table exists.'));
         }
     }
@@ -287,7 +299,11 @@ class NavigationController extends Controller
             if (isset($db)) {
                 $db->rollBack();
             }
-            error_log("Navigation update error: " . $e->getMessage());
+            $this->logError("Navigation update error: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $this->redirect('/admin/navigation?error=Failed to update navigation settings');
         }
     }

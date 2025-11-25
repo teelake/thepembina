@@ -29,19 +29,27 @@ class Email
         
         // Use PHP mail() function if SMTP not configured
         if (empty($smtpHost) || empty($smtpUser)) {
-            error_log("Email: Using PHP mail() - SMTP not configured. To: {$to}, Subject: {$subject}");
+            self::logEmail("Email: Using PHP mail() - SMTP not configured. To: {$to}, Subject: {$subject}");
             $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments);
             $body = self::buildBody($message, $attachments, $headerData['boundary']);
             $headerString = $headerData['headers'];
-            $result = mail($to, $subject, $body, $headerString);
-            error_log("Email sent via PHP mail(): " . ($result ? 'SUCCESS' : 'FAILED'));
+            $result = @mail($to, $subject, $body, $headerString);
+            $status = $result ? 'SUCCESS' : 'FAILED';
+            self::logEmail("Email sent via PHP mail(): {$status} | To: {$to}, Subject: {$subject}");
+            if (!$result) {
+                $error = error_get_last();
+                if ($error) {
+                    self::logEmail("PHP mail() error: {$error['message']} in {$error['file']} on line {$error['line']}");
+                }
+            }
             return $result;
         }
         
         // Use SMTP if configured
-        error_log("Email: Using SMTP. To: {$to}, Subject: {$subject}");
+        self::logEmail("Email: Using SMTP. To: {$to}, Subject: {$subject}");
         $result = self::sendSMTP($to, $subject, $message, $fromEmail, $fromName, $attachments);
-        error_log("Email sent via SMTP: " . ($result ? 'SUCCESS' : 'FAILED'));
+        $status = $result ? 'SUCCESS' : 'FAILED';
+        self::logEmail("Email sent via SMTP: {$status} | To: {$to}, Subject: {$subject}");
         return $result;
     }
     
@@ -65,10 +73,10 @@ class Email
         $smtpUser = defined('SMTP_USER') ? SMTP_USER : Helper::getSetting('smtp_user', '');
         $smtpPass = defined('SMTP_PASS') ? SMTP_PASS : Helper::getSetting('smtp_pass', '');
         
-        $smtp = fsockopen($smtpHost, $smtpPort, $errno, $errstr, 30);
+        $smtp = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 30);
         
         if (!$smtp) {
-            error_log("SMTP Connection Error: {$errstr} ({$errno})");
+            self::logEmail("SMTP Connection Error: {$errstr} ({$errno}) | Host: {$smtpHost}, Port: {$smtpPort}");
             return false;
         }
         
@@ -98,8 +106,8 @@ class Email
         $response = fgets($smtp, 515);
         
         if (strpos($response, '235') === false) {
-            error_log("SMTP Authentication failed: {$response}");
-            fclose($smtp);
+            self::logEmail("SMTP Authentication failed: {$response} | User: {$smtpUser}, Host: {$smtpHost}");
+            @fclose($smtp);
             return false;
         }
         
@@ -340,6 +348,31 @@ class Email
 
         $body .= "--{$boundary}--";
         return $body;
+    }
+    
+    /**
+     * Log email-related errors to php-error.log
+     * 
+     * @param string $message
+     */
+    private static function logEmail($message)
+    {
+        $errorLogFile = defined('ROOT_PATH') ? ROOT_PATH . '/php-error.log' : __DIR__ . '/../../php-error.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $url = $_SERVER['REQUEST_URI'] ?? 'CLI';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        
+        $logMessage = sprintf(
+            "[%s] EMAIL: %s | URL: %s | Method: %s | IP: %s\n",
+            $timestamp,
+            $message,
+            $url,
+            $method,
+            $ip
+        );
+        
+        @file_put_contents($errorLogFile, $logMessage, FILE_APPEND | LOCK_EX);
     }
 }
 

@@ -19,16 +19,12 @@ class Logger
             return;
         }
 
-        $defaultPath = ROOT_PATH . '/logs/app.log';
-        $dir = dirname($defaultPath);
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
+        // Use php-error.log in project root as primary log file
+        $defaultPath = ROOT_PATH . '/php-error.log';
+        
         if (!file_exists($defaultPath)) {
-            touch($defaultPath);
-            chmod($defaultPath, 0664);
+            @touch($defaultPath);
+            @chmod($defaultPath, 0664);
         }
 
         self::$logFile = $defaultPath;
@@ -69,12 +65,26 @@ class Logger
         self::boot();
 
         $timestamp = date('Y-m-d H:i:s');
+        $url = $_SERVER['REQUEST_URI'] ?? 'CLI';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        
         $contextString = empty($context)
             ? ''
             : ' | context=' . json_encode($context, JSON_PARTIAL_OUTPUT_ON_ERROR);
-        $entry = sprintf('[%s] %s: %s%s%s', $timestamp, strtoupper($level), $message, $contextString, PHP_EOL);
+        $entry = sprintf(
+            '[%s] %s: %s | URL: %s | Method: %s | IP: %s%s%s',
+            $timestamp,
+            strtoupper($level),
+            $message,
+            $url,
+            $method,
+            $ip,
+            $contextString,
+            PHP_EOL
+        );
 
-        file_put_contents(self::$logFile, $entry, FILE_APPEND | LOCK_EX);
+        @file_put_contents(self::$logFile, $entry, FILE_APPEND | LOCK_EX);
     }
 
     public static function error(string $message, array $context = []): void

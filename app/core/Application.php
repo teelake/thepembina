@@ -80,6 +80,28 @@ class Application
             'trace' => $e->getTraceAsString(),
         ]);
         
+        // Also log to php-error.log directly
+        $errorLogFile = ROOT_PATH . '/php-error.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $url = $_SERVER['REQUEST_URI'] ?? 'CLI';
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'CLI';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        
+        $logMessage = sprintf(
+            "[%s] APPLICATION EXCEPTION: %s | Code: %d | Message: %s | File: %s | Line: %d | URL: %s | Method: %s | IP: %s\n",
+            $timestamp,
+            get_class($e),
+            $code,
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $url,
+            $method,
+            $ip
+        );
+        $logMessage .= sprintf("Stack Trace:\n%s\n", $e->getTraceAsString());
+        @file_put_contents($errorLogFile, $logMessage, FILE_APPEND | LOCK_EX);
+        
         if (APP_ENV === 'development') {
             echo "<h1>Error {$code}</h1>";
             echo "<p>{$e->getMessage()}</p>";

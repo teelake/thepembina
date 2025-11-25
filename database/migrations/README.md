@@ -49,3 +49,4 @@ mysql -u your_username -p your_database_name < database/migrations/add_navigatio
 - Categories are ordered by `nav_order` (ascending), then `sort_order`, then name
 - If no categories are marked for navigation, the system falls back to the top 3 by `sort_order`
 
+
