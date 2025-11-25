@@ -32,6 +32,44 @@ class SimplePdf
         $this->cursorY -= $amount;
     }
 
+    /**
+     * Draw a horizontal divider line.
+     */
+    public function addHorizontalRule(int $x = 40, int $width = 520, float $thickness = 0.5): void
+    {
+        $this->elements[] = [
+            'type' => 'rule',
+            'x' => $x,
+            'y' => $this->cursorY,
+            'width' => $width,
+            'thickness' => $thickness
+        ];
+        $this->cursorY -= 8;
+    }
+
+    /**
+     * Add table style row with multiple columns aligned on the same Y position.
+     *
+     * @param array $columns   Text for each column
+     * @param array $positions X coordinate for each column
+     * @param int   $fontSize  Font size to use
+     */
+    public function addTableRow(array $columns, array $positions, int $fontSize = 11): void
+    {
+        $y = $this->cursorY;
+        foreach ($columns as $index => $text) {
+            $x = $positions[$index] ?? ($positions[0] ?? 40);
+            $this->elements[] = [
+                'type' => 'text',
+                'text' => $text,
+                'font' => $fontSize,
+                'x' => $x,
+                'y' => $y
+            ];
+        }
+        $this->cursorY = $y - ($fontSize + 6);
+    }
+
     public function setCursor(int $y): void
     {
         $this->cursorY = $y;
@@ -127,6 +165,15 @@ class SimplePdf
                     $element['x'],
                     $element['y'],
                     $this->escape($element['text'])
+                );
+            } elseif ($element['type'] === 'rule') {
+                $stream .= sprintf(
+                    "%.2F w %d %d m %d %d l S\n",
+                    $element['thickness'],
+                    $element['x'],
+                    $element['y'],
+                    $element['x'] + $element['width'],
+                    $element['y']
                 );
             } elseif ($element['type'] === 'image') {
                 $drawY = $element['y'] - $element['height'];
