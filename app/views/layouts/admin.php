@@ -117,6 +117,13 @@
                             <span>Orders</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/transactions" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'transactions') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fas fa-receipt w-5 mr-3"></i>
+                            <span>Transactions</span>
+                        </a>
+                    </li>
                     
                     <?php if (in_array($_SESSION['user_role'] ?? '', ['super_admin', 'admin'])): ?>
                     <li class="pt-4">

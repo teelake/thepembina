@@ -49,8 +49,14 @@ class TransactionController extends Controller
         $totalPages = ceil($totalTransactions / $limit);
 
         // Get unique gateways for filter dropdown
-        $gateways = $this->paymentModel->findAll([], 'gateway');
-        $uniqueGateways = array_unique(array_column($gateways, 'gateway'));
+        try {
+            $db = \App\Core\Database::getInstance()->getConnection();
+            $stmt = $db->query("SELECT DISTINCT gateway FROM payments WHERE gateway IS NOT NULL AND gateway != '' ORDER BY gateway");
+            $gatewayRows = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            $uniqueGateways = $gatewayRows ?: [];
+        } catch (\Exception $e) {
+            $uniqueGateways = [];
+        }
 
         $this->render('admin/transactions/index', [
             'transactions' => $transactions,

@@ -100,6 +100,10 @@ $router->add('POST', 'admin/orders/{id}/status', ['controller' => 'Admin\Order',
 $router->add('GET', 'admin/orders/{id}/receipt', ['controller' => 'Admin\Order', 'action' => 'receipt']);
 $router->add('POST', 'admin/orders/{id}/email-receipt', ['controller' => 'Admin\Order', 'action' => 'emailReceipt']);
 
+// Admin - Transactions
+$router->add('GET', 'admin/transactions', ['controller' => 'Admin\Transaction', 'action' => 'index']);
+$router->add('GET', 'admin/transactions/export', ['controller' => 'Admin\Transaction', 'action' => 'export']);
+
 // Admin - Users
 $router->add('GET', 'admin/users', ['controller' => 'Admin\User', 'action' => 'index']);
 $router->add('GET', 'admin/users/create', ['controller' => 'Admin\User', 'action' => 'create']);
