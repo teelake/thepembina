@@ -211,18 +211,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Item added to cart!');
-                // Update cart count
-                if (document.querySelector('.cart-count')) {
-                    document.querySelector('.cart-count').textContent = data.cart_count;
-                }
+                showPopupAlert('success', data.message || 'Item added to cart!');
+                updateCartCount(data.cart_count || 0);
             } else {
-                alert(data.message || 'Failed to add item to cart');
+                showPopupAlert('error', data.message || 'Failed to add item to cart');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            showPopupAlert('error', 'An error occurred. Please try again.');
         });
     });
 });

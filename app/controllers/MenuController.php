@@ -35,6 +35,7 @@ class MenuController extends Controller
         $data = [
             'categories' => $categories,
             'featuredProducts' => $featuredProducts,
+            'csrfField' => $this->csrf->getTokenField(),
             'page_title' => 'Our Menu',
             'meta_description' => 'Browse our authentic African and Nigerian cuisine menu. From Jollof Rice to Suya, discover delicious flavors at The Pembina Pint.'
         ];
@@ -67,6 +68,7 @@ class MenuController extends Controller
             'products' => $products,
             'currentPage' => $page,
             'totalPages' => $totalPages,
+            'csrfField' => $this->csrf->getTokenField(),
             'page_title' => $category['name'],
             'meta_description' => $category['meta_description'] ?? $category['description'] ?? ''
         ];

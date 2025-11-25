@@ -64,10 +64,135 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
-// Add to cart (placeholder - will be implemented in cart controller)
-function addToCart(productId, quantity = 1, options = {}) {
-    // Implementation will be in cart controller
-    console.log('Add to cart:', productId, quantity, options);
+// Popup Alert System
+function showPopupAlert(type, message) {
+    // Remove existing alerts
+    const existingAlert = document.getElementById('popup-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    // Create alert element
+    const alert = document.createElement('div');
+    alert.id = 'popup-alert';
+    alert.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-2xl transform transition-all duration-300 ${
+        type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : type === 'error' 
+            ? 'bg-red-500 text-white' 
+            : 'bg-blue-500 text-white'
+    }`;
+    alert.style.minWidth = '300px';
+    alert.style.maxWidth = '400px';
+    
+    // Icon based on type
+    const icon = type === 'success' 
+        ? '<i class="fas fa-check-circle mr-2"></i>' 
+        : type === 'error' 
+        ? '<i class="fas fa-exclamation-circle mr-2"></i>' 
+        : '<i class="fas fa-info-circle mr-2"></i>';
+    
+    alert.innerHTML = `
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                ${icon}
+                <span class="font-semibold">${message}</span>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(alert);
+    
+    // Animate in
+    setTimeout(() => {
+        alert.style.opacity = '1';
+        alert.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (alert.parentElement) {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
+}
+
+// AJAX Add to Cart Function
+function addToCartAjax(productId, quantity = 1, options = {}, callback = null) {
+    const csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        if (callback) callback(false, 'Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrf_token', csrfToken);
+    formData.append('product_id', productId);
+    formData.append('quantity', quantity);
+    if (Object.keys(options).length > 0) {
+        formData.append('options', JSON.stringify(options));
+    }
+    
+    fetch(`${window.BASE_URL || ''}/cart/add`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (callback) {
+            callback(data.success, data.message || (data.success ? 'Item added to cart!' : 'Failed to add item'), data.cart_count || 0);
+        } else {
+            if (data.success) {
+                showPopupAlert('success', data.message || 'Item added to cart!');
+                updateCartCount(data.cart_count || 0);
+            } else {
+                showPopupAlert('error', data.message || 'Failed to add item to cart');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Add to cart error:', error);
+        const errorMsg = 'An error occurred. Please try again.';
+        if (callback) {
+            callback(false, errorMsg, 0);
+        } else {
+            showPopupAlert('error', errorMsg);
+        }
+    });
+}
+
+// Update cart count in header
+function updateCartCount(count) {
+    const badge = document.getElementById('cart-count-badge');
+    const badgeMobile = document.getElementById('cart-count-badge-mobile');
+    
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+    
+    if (badgeMobile) {
+        if (count > 0) {
+            badgeMobile.textContent = count;
+            badgeMobile.classList.remove('hidden');
+        } else {
+            badgeMobile.classList.add('hidden');
+        }
+    }
 }
 
 // Utility function to get CSRF token

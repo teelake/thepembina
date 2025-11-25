@@ -48,12 +48,20 @@ $content = ob_start();
                         <?= htmlspecialchars(substr($product['short_description'] ?? $product['description'] ?? 'Delicious African cuisine', 0, 100)) ?>
                         <?= strlen($product['short_description'] ?? $product['description'] ?? '') > 100 ? '...' : '' ?>
                     </p>
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center gap-2">
                         <span class="text-2xl font-bold text-brand"><?= Helper::formatCurrency($product['price']) ?></span>
-                        <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($product['slug']) ?>" 
-                           class="bg-brand text-white px-6 py-2 rounded-lg font-semibold hover:bg-brand-dark transition transform hover:scale-105">
-                            View Details
-                        </a>
+                        <div class="flex gap-2">
+                            <button type="button" 
+                                    class="add-to-cart-btn bg-brand text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-dark transition transform hover:scale-105"
+                                    data-product-id="<?= $product['id'] ?>"
+                                    data-product-name="<?= htmlspecialchars($product['name']) ?>">
+                                <i class="fas fa-shopping-cart mr-1"></i> Add to Cart
+                            </button>
+                            <a href="<?= BASE_URL ?>/product/<?= htmlspecialchars($product['slug']) ?>" 
+                               class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition transform hover:scale-105">
+                                View
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -113,6 +121,36 @@ $content = ob_start();
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize add to cart buttons
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const productName = this.dataset.productName;
+            
+            // Disable button during request
+            this.disabled = true;
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Adding...';
+            
+            addToCartAjax(productId, 1, {}, function(success, message, cartCount) {
+                // Re-enable button
+                this.disabled = false;
+                this.innerHTML = originalText;
+                
+                if (success) {
+                    showPopupAlert('success', message || 'Item added to cart!');
+                    updateCartCount(cartCount);
+                } else {
+                    showPopupAlert('error', message || 'Failed to add item to cart');
+                }
+            }.bind(this));
+        });
+    });
+});
+</script>
 
 <?php
 $content = ob_get_clean();

@@ -58,9 +58,7 @@
                     <a href="<?= BASE_URL ?>/menu" class="text-gray-700 hover:text-brand transition">Menu</a>
                     <a href="<?= BASE_URL ?>/cart" class="text-gray-700 hover:text-brand transition">
                         <i class="fas fa-shopping-cart"></i> Cart
-                        <?php if (isset($_SESSION['cart_count']) && $_SESSION['cart_count'] > 0): ?>
-                            <span class="ml-1 bg-brand text-white rounded-full px-2 py-1 text-xs"><?= $_SESSION['cart_count'] ?></span>
-                        <?php endif; ?>
+                        <span id="cart-count-badge" class="ml-1 bg-brand text-white rounded-full px-2 py-1 text-xs <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
                     </a>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <a href="<?= BASE_URL ?>/account" class="text-gray-700 hover:text-brand transition">Account</a>
@@ -88,7 +86,9 @@
             <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
                 <a href="<?= BASE_URL ?>" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Home</a>
                 <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Menu</a>
-                <a href="<?= BASE_URL ?>/cart" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Cart</a>
+                <a href="<?= BASE_URL ?>/cart" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">
+                    Cart <span id="cart-count-badge-mobile" class="ml-1 bg-brand text-white rounded-full px-2 py-1 text-xs <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>
+                </a>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <a href="<?= BASE_URL ?>/account" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Account</a>
                     <a href="<?= BASE_URL ?>/logout" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
@@ -99,6 +99,16 @@
             </div>
         </div>
     </nav>
+
+    <!-- CSRF Token (hidden, for AJAX requests) -->
+    <?php
+    if (!isset($csrfField)) {
+        require_once APP_PATH . '/core/Security/CSRF.php';
+        $csrf = new \App\Core\Security\CSRF();
+        $csrfField = $csrf->getTokenField();
+    }
+    ?>
+    <?= $csrfField ?? '' ?>
 
     <!-- Main Content -->
     <main>
