@@ -32,7 +32,9 @@ $content = ob_start();
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3"><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($user['email']) ?></td>
-                    <td class="px-4 py-3 text-sm uppercase"><?= htmlspecialchars($user['role_id']) ?></td>
+                    <td class="px-4 py-3 text-sm uppercase">
+                        <?= htmlspecialchars($user['role_name'] ?? 'N/A') ?>
+                    </td>
                     <td class="px-4 py-3">
                         <span class="badge <?= $user['status'] === 'active' ? 'badge-success' : 'badge-warning' ?>">
                             <?= ucfirst($user['status']) ?>

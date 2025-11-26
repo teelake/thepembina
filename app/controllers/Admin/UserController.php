@@ -20,7 +20,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = $this->userModel->findAll([], 'created_at DESC');
+        $users = $this->userModel->findAllWithRoles([], 'created_at DESC');
 
         $this->render('admin/users/index', [
             'users' => $users,

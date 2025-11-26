@@ -116,5 +116,47 @@ class User extends Model
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(\PDO::FETCH_COLUMN);
     }
+
+    /**
+     * Get all users with role names
+     * 
+     * @param array $conditions
+     * @param string $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return array
+     */
+    public function findAllWithRoles($conditions = [], $orderBy = 'created_at DESC', $limit = null, $offset = null)
+    {
+        $where = [];
+        $params = [];
+        
+        foreach ($conditions as $key => $value) {
+            $where[] = "u.{$key} = :{$key}";
+            $params[$key] = $value;
+        }
+        
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        
+        $sql = "SELECT u.*, r.name as role_name, r.slug as role_slug 
+                FROM {$this->table} u 
+                LEFT JOIN roles r ON u.role_id = r.id 
+                {$whereClause}";
+        
+        if ($orderBy) {
+            $sql .= " ORDER BY {$orderBy}";
+        }
+        
+        if ($limit !== null) {
+            $sql .= " LIMIT {$limit}";
+            if ($offset !== null) {
+                $sql .= " OFFSET {$offset}";
+            }
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }
 
