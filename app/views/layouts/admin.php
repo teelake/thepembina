@@ -230,6 +230,10 @@
     </div>
 
     <!-- JavaScript -->
+    <script>
+        // Make BASE_URL available to JavaScript
+        var BASE_URL = '<?= BASE_URL ?>';
+    </script>
     <script src="<?= BASE_URL ?>/public/js/admin.js"></script>
     
     <?php if (isset($additional_js)): ?>

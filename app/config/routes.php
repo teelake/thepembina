@@ -130,6 +130,7 @@ $router->add('POST', 'admin/permissions/{id}/delete', ['controller' => 'Admin\Pe
 $router->add('GET', 'admin/pages', ['controller' => 'Admin\Page', 'action' => 'index']);
 $router->add('GET', 'admin/pages/create', ['controller' => 'Admin\Page', 'action' => 'create']);
 $router->add('POST', 'admin/pages', ['controller' => 'Admin\Page', 'action' => 'store']);
+$router->add('POST', 'admin/pages/upload-image', ['controller' => 'Admin\Page', 'action' => 'uploadImage']);
 $router->add('GET', 'admin/pages/{id}/edit', ['controller' => 'Admin\Page', 'action' => 'edit']);
 $router->add('POST', 'admin/pages/{id}', ['controller' => 'Admin\Page', 'action' => 'update']);
 $router->add('POST', 'admin/pages/{id}/delete', ['controller' => 'Admin\Page', 'action' => 'delete']);
