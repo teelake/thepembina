@@ -55,19 +55,40 @@ class MenuController extends Controller
             throw new \Exception("Category not found", 404);
         }
 
+        // Get filter parameters
+        $filters = [
+            'search' => trim($this->get('search', '')),
+            'sort' => $this->get('sort', 'default'),
+            'min_price' => $this->get('min_price', ''),
+            'max_price' => $this->get('max_price', ''),
+            'availability' => $this->get('availability', ''),
+            'featured' => $this->get('featured', '')
+        ];
+        
+        // Clean up empty filters
+        $filters = array_filter($filters, function($value) {
+            return $value !== '' && $value !== 'default';
+        });
+
         $page = (int)($this->get('page', 1));
         $limit = 12;
         $offset = ($page - 1) * $limit;
 
-        $products = $this->productModel->getByCategory($category['id'], $limit, $offset);
-        $totalProducts = $this->productModel->count(['category_id' => $category['id'], 'status' => 'active']);
+        $products = $this->productModel->getByCategory($category['id'], $filters, $limit, $offset);
+        $totalProducts = $this->productModel->countByCategory($category['id'], $filters);
         $totalPages = ceil($totalProducts / $limit);
+        
+        // Get price range for filter
+        $priceRange = $this->productModel->getPriceRange($category['id']);
 
         $data = [
             'category' => $category,
             'products' => $products,
             'currentPage' => $page,
             'totalPages' => $totalPages,
+            'totalProducts' => $totalProducts,
+            'filters' => $filters,
+            'priceRange' => $priceRange,
             'csrfField' => $this->csrf->getTokenField(),
             'page_title' => $category['name'],
             'meta_description' => $category['meta_description'] ?? $category['description'] ?? ''

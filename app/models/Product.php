@@ -26,16 +26,78 @@ class Product extends Model
     }
 
     /**
-     * Get products by category
+     * Get products by category with filters
      * 
      * @param int $categoryId
+     * @param array $filters Filter options (sort, min_price, max_price, search, availability, featured)
      * @param int $limit
      * @param int $offset
      * @return array
      */
-    public function getByCategory($categoryId, $limit = null, $offset = null)
+    public function getByCategory($categoryId, $filters = [], $limit = null, $offset = null)
     {
-        $sql = "SELECT p.*, c.name as category_name FROM {$this->table} p LEFT JOIN categories c ON p.category_id = c.id WHERE p.category_id = :category_id AND p.status = 'active' ORDER BY p.sort_order, p.name";
+        $sql = "SELECT p.*, c.name as category_name FROM {$this->table} p LEFT JOIN categories c ON p.category_id = c.id WHERE p.category_id = :category_id AND p.status = 'active'";
+        $params = ['category_id' => $categoryId];
+        
+        // Apply filters
+        if (!empty($filters['search'])) {
+            $sql .= " AND (p.name LIKE :search OR p.short_description LIKE :search OR p.description LIKE :search)";
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {
+            $sql .= " AND p.price >= :min_price";
+            $params['min_price'] = $filters['min_price'];
+        }
+        
+        if (isset($filters['max_price']) && is_numeric($filters['max_price'])) {
+            $sql .= " AND p.price <= :max_price";
+            $params['max_price'] = $filters['max_price'];
+        }
+        
+        if (isset($filters['featured']) && $filters['featured'] == '1') {
+            $sql .= " AND p.is_featured = 1";
+        }
+        
+        if (isset($filters['availability'])) {
+            switch ($filters['availability']) {
+                case 'in_stock':
+                    $sql .= " AND (p.manage_stock = 0 OR (p.manage_stock = 1 AND p.stock_quantity > 0))";
+                    break;
+                case 'out_of_stock':
+                    $sql .= " AND (p.manage_stock = 1 AND (p.stock_quantity = 0 OR p.stock_status = 'out_of_stock'))";
+                    break;
+                case 'low_stock':
+                    $sql .= " AND (p.manage_stock = 1 AND p.stock_quantity > 0 AND p.stock_quantity <= 5)";
+                    break;
+            }
+        }
+        
+        // Apply sorting
+        $orderBy = 'p.sort_order, p.name';
+        if (!empty($filters['sort'])) {
+            switch ($filters['sort']) {
+                case 'price_asc':
+                    $orderBy = 'p.price ASC';
+                    break;
+                case 'price_desc':
+                    $orderBy = 'p.price DESC';
+                    break;
+                case 'name_asc':
+                    $orderBy = 'p.name ASC';
+                    break;
+                case 'name_desc':
+                    $orderBy = 'p.name DESC';
+                    break;
+                case 'newest':
+                    $orderBy = 'p.created_at DESC';
+                    break;
+                case 'featured':
+                    $orderBy = 'p.is_featured DESC, p.sort_order, p.name';
+                    break;
+            }
+        }
+        $sql .= " ORDER BY {$orderBy}";
         
         if ($limit) {
             $sql .= " LIMIT {$limit}";
@@ -45,8 +107,77 @@ class Product extends Model
         }
         
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['category_id' => $categoryId]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+    
+    /**
+     * Count products by category with filters
+     * 
+     * @param int $categoryId
+     * @param array $filters
+     * @return int
+     */
+    public function countByCategory($categoryId, $filters = [])
+    {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} p WHERE p.category_id = :category_id AND p.status = 'active'";
+        $params = ['category_id' => $categoryId];
+        
+        // Apply same filters as getByCategory
+        if (!empty($filters['search'])) {
+            $sql .= " AND (p.name LIKE :search OR p.short_description LIKE :search OR p.description LIKE :search)";
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {
+            $sql .= " AND p.price >= :min_price";
+            $params['min_price'] = $filters['min_price'];
+        }
+        
+        if (isset($filters['max_price']) && is_numeric($filters['max_price'])) {
+            $sql .= " AND p.price <= :max_price";
+            $params['max_price'] = $filters['max_price'];
+        }
+        
+        if (isset($filters['featured']) && $filters['featured'] == '1') {
+            $sql .= " AND p.is_featured = 1";
+        }
+        
+        if (isset($filters['availability'])) {
+            switch ($filters['availability']) {
+                case 'in_stock':
+                    $sql .= " AND (p.manage_stock = 0 OR (p.manage_stock = 1 AND p.stock_quantity > 0))";
+                    break;
+                case 'out_of_stock':
+                    $sql .= " AND (p.manage_stock = 1 AND (p.stock_quantity = 0 OR p.stock_status = 'out_of_stock'))";
+                    break;
+                case 'low_stock':
+                    $sql .= " AND (p.manage_stock = 1 AND p.stock_quantity > 0 AND p.stock_quantity <= 5)";
+                    break;
+            }
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch();
+        return (int)($result['count'] ?? 0);
+    }
+    
+    /**
+     * Get price range for category
+     * 
+     * @param int $categoryId
+     * @return array ['min' => float, 'max' => float]
+     */
+    public function getPriceRange($categoryId)
+    {
+        $stmt = $this->db->prepare("SELECT MIN(price) as min_price, MAX(price) as max_price FROM {$this->table} WHERE category_id = :category_id AND status = 'active'");
+        $stmt->execute(['category_id' => $categoryId]);
+        $result = $stmt->fetch();
+        return [
+            'min' => (float)($result['min_price'] ?? 0),
+            'max' => (float)($result['max_price'] ?? 0)
+        ];
     }
 
     /**
