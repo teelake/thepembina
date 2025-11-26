@@ -52,7 +52,7 @@ $content = ob_start();
 
 <?php
 $content = ob_get_clean();
-$additional_js[] = 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js';
+$additional_js[] = 'https://cdn.tiny.cloud/1/wt8q9ok0ofed66b18xrzzdcbj6y32oao1624na0ygunf4us1/tinymce/6/tinymce.min.js';
 $additional_js[] = BASE_URL . '/public/js/tinymce-init.js';
 require_once APP_PATH . '/views/layouts/admin.php';
 ?>

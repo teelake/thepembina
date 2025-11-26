@@ -64,14 +64,14 @@
     <!-- Mobile sidebar overlay -->
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     
-    <div class="flex">
+    <div class="flex relative">
         <!-- Mobile menu button -->
         <button class="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-md" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
             <i class="fas fa-bars text-xl text-gray-700"></i>
         </button>
         
         <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg min-h-screen" id="admin-sidebar">
+        <aside class="w-64 bg-white shadow-lg fixed left-0 top-0 h-screen overflow-y-auto z-40 md:block hidden" id="admin-sidebar">
             <nav class="p-4">
                 <ul class="space-y-2">
                     <li>
@@ -212,7 +212,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 md:p-8 mt-16 md:mt-0">
+        <main class="flex-1 p-4 md:p-8 mt-16 md:mt-0 md:ml-64">
             <?php if (isset($success_message)): ?>
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
                     <i class="fas fa-check-circle mr-2"></i><?= htmlspecialchars($success_message) ?>

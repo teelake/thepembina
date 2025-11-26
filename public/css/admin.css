@@ -10,14 +10,40 @@ main {
     overflow-x: hidden;
 }
 
-/* Modern Sidebar */
+/* Modern Sidebar - Fixed on Desktop */
 aside {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
     transition: transform 0.3s ease;
-    z-index: 40;
+}
+
+/* Desktop: Fixed sidebar */
+@media (min-width: 768px) {
+    aside {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 40;
+    }
+    
+    /* Custom scrollbar for sidebar */
+    aside::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    aside::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    aside::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    aside::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
 }
 
 /* Mobile sidebar toggle */

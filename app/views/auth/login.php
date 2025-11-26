@@ -16,6 +16,18 @@ $content = ob_start();
                 </div>
             <?php endif; ?>
             
+            <?php if (isset($_GET['reset']) && $_GET['reset'] === 'success'): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                    <i class="fas fa-check-circle mr-2"></i>Password reset successful! You can now login with your new password.
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['registered']) && $_GET['registered'] === '1'): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                    <i class="fas fa-check-circle mr-2"></i>Registration successful! Please login.
+                </div>
+            <?php endif; ?>
+            
             <div class="space-y-4">
                 <div>
                     <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email address</label>
