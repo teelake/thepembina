@@ -41,7 +41,8 @@ class Product extends Model
         
         // Apply filters
         if (!empty($filters['search'])) {
-            $sql .= " AND (p.name LIKE :search OR p.short_description LIKE :search OR p.description LIKE :search)";
+            // Search by product name and description (avoid columns that may not exist on older schemas)
+            $sql .= " AND (p.name LIKE :search OR p.description LIKE :search)";
             $params['search'] = '%' . $filters['search'] . '%';
         }
         
@@ -125,7 +126,8 @@ class Product extends Model
         
         // Apply same filters as getByCategory
         if (!empty($filters['search'])) {
-            $sql .= " AND (p.name LIKE :search OR p.short_description LIKE :search OR p.description LIKE :search)";
+            // Search by product name and description (avoid columns that may not exist on older schemas)
+            $sql .= " AND (p.name LIKE :search OR p.description LIKE :search)";
             $params['search'] = '%' . $filters['search'] . '%';
         }
         
