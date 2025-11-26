@@ -9,7 +9,7 @@ class ReceiptService
     private const HEADER_COLS = [40, 500];
     private const ADDRESS_COLS = [40, 300];
     private const SUMMARY_COLS = [360, 520];
-    private const ITEMS_COLS = [40, 240, 320, 400, 480];
+    private const ITEMS_COLS = [40, 320, 420, 520];
     private const PAYMENT_COLS = [40, 320, 420];
     private const THEME_COLOR = [0.957, 0.643, 0.376];
     private const TEXT_MAIN = [0.2, 0.2, 0.2];
@@ -23,22 +23,38 @@ class ReceiptService
             $pdf = new SimplePdf();
             $logoPath = defined('PUBLIC_PATH') ? PUBLIC_PATH . '/images/logo.png' : __DIR__ . '/../../public/images/logo.png';
             $currentTop = $pdf->getCursor();
-            if (file_exists($logoPath)) {
-                $pdf->addImage($logoPath, 450, $currentTop + 40, 100);
-            }
+            
+            // Header accent bars
             $pdf->addRectangle(40, $currentTop + 28, 70, 10, self::THEME_COLOR);
             $pdf->addRectangle(540, $currentTop + 10, 50, 10, self::THEME_COLOR);
-            $pdf->addLine('THE PEMBINA PINT & RESTAURANT', 13, 540, self::TEXT_MAIN, true);
-            $pdf->addSpacing(4);
+            
+            // Business name header
+            $pdf->addLine('THE PEMBINA PINT & RESTAURANT', 16, 40, self::TEXT_MAIN);
+            $pdf->addSpacing(10);
+            
+            // Logo on the right
+            if (file_exists($logoPath)) {
+                $pdf->addImage($logoPath, 460, $currentTop + 20, 100);
+            }
 
             $businessName = defined('BUSINESS_NAME') ? BUSINESS_NAME : 'The Pembina Pint and Restaurant';
             $businessPhone = defined('BUSINESS_PHONE') ? BUSINESS_PHONE : '';
             $businessEmail = defined('BUSINESS_EMAIL') ? BUSINESS_EMAIL : 'no-reply@thepembina.ca';
 
             $pdf->addTableRow(['Invoice', ''], self::HEADER_COLS, 24, self::TEXT_MAIN);
-            $pdf->addTableRow(['#' . ($order['order_number'] ?? $order['id']), ''], self::HEADER_COLS, 14, self::TEXT_MUTED);
+            $pdf->addTableRow(['Order #: ' . str_pad($order['order_number'] ?? $order['id'], 10, '0', STR_PAD_LEFT), ''], self::HEADER_COLS, 14, self::TEXT_MUTED);
+            
+            // Format date properly
+            $orderDate = $order['created_at'] ?? date('Y-m-d H:i:s');
+            if (is_string($orderDate)) {
+                $timestamp = strtotime($orderDate);
+                $formattedDate = $timestamp !== false ? date('M d, Y g:i A', $timestamp) : $orderDate;
+            } else {
+                $formattedDate = date('M d, Y g:i A');
+            }
+            
             $pdf->addTableRow([
-                'Date: ' . date('M d, Y g:i A', strtotime($order['created_at'])),
+                'Date: ' . $formattedDate,
                 'Support: ' . $businessEmail
             ], self::HEADER_COLS, 10, self::TEXT_MUTED, ['left', 'right']);
             $pdf->addTableRow([
@@ -70,32 +86,63 @@ class ReceiptService
             $pdf->addSpacing(4);
             $this->addItemsTable($pdf, $order['items'] ?? []);
 
-            $subtotal = isset($order['subtotal']) ? $order['subtotal'] : 0;
-            $taxAmount = isset($order['tax_amount']) ? $order['tax_amount'] : 0;
-            $shippingAmount = isset($order['shipping_amount']) ? $order['shipping_amount'] : 0;
-            $total = isset($order['total']) ? $order['total'] : ($subtotal + $taxAmount + $shippingAmount);
-            $discount = isset($order['discount_amount']) ? $order['discount_amount'] : 0;
+            $subtotal = isset($order['subtotal']) ? (float)$order['subtotal'] : 0;
+            $taxAmount = isset($order['tax_amount']) ? (float)$order['tax_amount'] : 0;
+            $shippingAmount = isset($order['shipping_amount']) ? (float)$order['shipping_amount'] : 0;
+            $total = isset($order['total']) ? (float)$order['total'] : ($subtotal + $taxAmount + $shippingAmount);
+            $discount = isset($order['discount_amount']) ? (float)$order['discount_amount'] : 0;
             $paidAmount = $this->calculatePaidAmount($payments);
             $grandTotal = $total - $discount;
             $totalDue = max(0, $grandTotal - $paidAmount);
 
-            $this->addTotalsTable($pdf, [
+            $totals = [
                 'Subtotal' => Helper::formatCurrency($subtotal),
-                'Tax' => Helper::formatCurrency($taxAmount),
-                'Delivery' => Helper::formatCurrency($shippingAmount),
-                'Discount' => $discount > 0 ? '-' . Helper::formatCurrency($discount) : Helper::formatCurrency(0),
-                'Grand Total' => Helper::formatCurrency($grandTotal),
-                'Total Amount Paid' => Helper::formatCurrency($paidAmount),
-                'Total Due' => Helper::formatCurrency($totalDue),
-            ]);
+            ];
+            
+            if ($taxAmount > 0) {
+                $taxRate = $subtotal > 0 ? round(($taxAmount / $subtotal) * 100, 1) : 0;
+                $totals['Tax (' . $taxRate . '%)'] = Helper::formatCurrency($taxAmount);
+            }
+            
+            if ($shippingAmount > 0) {
+                $totals['Delivery'] = Helper::formatCurrency($shippingAmount);
+            }
+            
+            if ($discount > 0) {
+                $totals['Discount'] = '-' . Helper::formatCurrency($discount);
+            }
+            
+            $totals['Total'] = Helper::formatCurrency($grandTotal);
+            
+            if ($paidAmount > 0) {
+                $totals['Total Amount Paid'] = Helper::formatCurrency($paidAmount);
+            }
+            
+            if ($totalDue > 0) {
+                $totals['Total Due'] = Helper::formatCurrency($totalDue);
+            }
 
-            $pdf->addLine('Payments', 14, 40, self::TEXT_MAIN);
-            $pdf->addSpacing(4);
-            $this->addPaymentsTable($pdf, $payments);
+            $this->addTotalsTable($pdf, $totals);
+
+            if (!empty($payments)) {
+                $pdf->addLine('Payments', 14, 40, self::TEXT_MAIN);
+                $pdf->addSpacing(4);
+                $this->addPaymentsTable($pdf, $payments);
+            }
 
             $pdf->addSpacing(12);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(6);
+            $pdf->addSpacing(8);
+            
+            // Payment method and status
+            $paymentMethod = !empty($payments) ? ucfirst($payments[0]['gateway'] ?? 'Cash') : 'Cash';
+            $orderStatus = isset($order['status']) ? ucfirst($order['status']) : 'Completed';
+            $pdf->addTableRow(['Payment Method:', $paymentMethod], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addTableRow(['Status:', $orderStatus], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
+            
+            $pdf->addSpacing(10);
+            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
+            $pdf->addSpacing(8);
             $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, 120, self::TEXT_MAIN);
             $pdf->addLine('We look forward to serving you again.', 11, 120, self::TEXT_MUTED);
             $pdf->addSpacing(6);
@@ -147,23 +194,23 @@ class ReceiptService
     private function addItemsTable(SimplePdf $pdf, array $items): void
     {
         $headerY = $pdf->getCursor() + 18;
-        $pdf->addRectangle(40, $headerY, 520, 18, self::THEME_COLOR);
+        $pdf->addRectangle(40, $headerY, 480, 18, self::THEME_COLOR);
         $pdf->addTableRow(
-            ['Product Description', 'Qty', 'Unit Price', 'Discount', 'Total'],
+            ['Item', 'Qty', 'Price', 'Total'],
             self::ITEMS_COLS,
             12,
             self::TEXT_LIGHT,
-            ['left', 'center', 'right', 'right', 'right']
+            ['left', 'center', 'right', 'right']
         );
         $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
 
         if (empty($items)) {
             $pdf->addTableRow(
-                ['No items found in order.', '', '', '', ''],
+                ['No items found in order.', '', '', ''],
                 self::ITEMS_COLS,
                 11,
                 self::TEXT_MUTED,
-                ['left', 'center', 'right', 'right', 'right']
+                ['left', 'center', 'right', 'right']
             );
             $pdf->addSpacing(4);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
@@ -174,21 +221,23 @@ class ReceiptService
         foreach ($items as $item) {
             $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
             $productName = isset($item['product_name']) ? $item['product_name'] : 'Unknown Product';
-            $price = isset($item['price']) ? $item['price'] : ($item['subtotal'] ?? 0);
-            $subtotal = isset($item['subtotal']) ? $item['subtotal'] : $price * $quantity;
+            $price = isset($item['price']) ? (float)$item['price'] : 0;
+            if ($price == 0 && isset($item['subtotal'])) {
+                $price = (float)$item['subtotal'] / $quantity;
+            }
+            $subtotal = isset($item['subtotal']) ? (float)$item['subtotal'] : $price * $quantity;
 
             $pdf->addTableRow(
                 [
                     $productName,
                     (string)$quantity,
                     Helper::formatCurrency($price),
-                    '—',
                     Helper::formatCurrency($subtotal)
                 ],
                 self::ITEMS_COLS,
                 11,
                 self::TEXT_MAIN,
-                ['left', 'center', 'right', 'right', 'right']
+                ['left', 'center', 'right', 'right']
             );
 
             if (!empty($item['options'])) {
@@ -206,11 +255,11 @@ class ReceiptService
                     }
                 }
                 $pdf->addTableRow(
-                    ['   ' . strip_tags($options), '', '', '', ''],
+                    ['   ' . strip_tags($options), '', '', ''],
                     self::ITEMS_COLS,
                     9,
                     self::TEXT_MUTED,
-                    ['left', 'center', 'right', 'right', 'right']
+                    ['left', 'center', 'right', 'right']
                 );
             }
         }
@@ -274,10 +323,10 @@ class ReceiptService
     private function addTotalsTable(SimplePdf $pdf, array $rows): void
     {
         foreach ($rows as $label => $value) {
-            if ($label === 'Total Due') {
+            if ($label === 'Total' || $label === 'Total Due') {
                 $highlightY = $pdf->getCursor() + 18;
-                $pdf->addRectangle(self::SUMMARY_COLS[0] - 20, $highlightY, 220, 18, self::THEME_COLOR);
-                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 12, self::TEXT_LIGHT, ['left', 'right']);
+                $pdf->addRectangle(self::SUMMARY_COLS[0] - 20, $highlightY, 200, 18, self::THEME_COLOR);
+                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 13, self::TEXT_LIGHT, ['left', 'right']);
             } else {
                 $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
             }
