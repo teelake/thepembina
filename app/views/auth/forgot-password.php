@@ -5,8 +5,8 @@ $content = ob_start();
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand/10 via-white to-brand-dark/10 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
-            <div class="flex justify-center">
-                <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-16 w-16">
+            <div class="flex justify-center mb-2">
+                <img src="<?= BASE_URL ?>/public/images/logo.png" alt="The Pembina Pint and Restaurant" class="h-20 w-20 md:h-24 md:w-24">
             </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
                 Forgot your password?

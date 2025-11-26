@@ -103,17 +103,30 @@ $hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $
                         </td>
                         <td class="px-4 py-4 font-semibold text-brand"><?= Helper::formatCurrency($order['total']) ?></td>
                         <td class="px-4 py-4 text-sm text-gray-500"><?= date('M d, Y g:i A', strtotime($order['created_at'])) ?></td>
-                        <td class="px-4 py-4 text-right space-x-3">
-                            <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" class="text-brand hover:text-brand-dark font-semibold">View</a>
-                            <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" class="text-red-600 hover:text-red-800" target="_blank" title="Download receipt">
-                                <i class="fas fa-file-pdf"></i>
-                            </a>
-                            <form method="POST" action="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/email-receipt" class="inline" data-confirm="Send receipt to <?= htmlspecialchars($order['email']) ?>?">
-                                <?= $csrfField ?? '' ?>
-                                <button type="submit" class="text-brand hover:text-brand-dark" title="Email receipt">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </form>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" 
+                                   class="text-brand hover:text-brand-dark font-semibold">
+                                    View
+                                </a>
+                                <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" 
+                                   class="text-red-600 hover:text-red-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition" 
+                                   target="_blank" 
+                                   title="Download receipt">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                <form method="POST" 
+                                      action="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/email-receipt" 
+                                      class="inline-flex items-center" 
+                                      data-confirm="Send receipt to <?= htmlspecialchars($order['email']) ?>?">
+                                    <?= $csrfField ?? '' ?>
+                                    <button type="submit" 
+                                            class="text-brand hover:text-brand-dark w-8 h-8 flex items-center justify-center rounded-full hover:bg-brand/10 transition" 
+                                            title="Email receipt">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
