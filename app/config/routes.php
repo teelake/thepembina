@@ -18,6 +18,10 @@ $router->add('GET', 'menu', ['controller' => 'Menu', 'action' => 'index']);
 $router->add('GET', 'menu/{slug}', ['controller' => 'Menu', 'action' => 'view']);
 $router->add('GET', 'product/{slug}', ['controller' => 'Product', 'action' => 'view']);
 $router->add('GET', 'page/{slug}', ['controller' => 'Page', 'action' => 'view']);
+
+// Public events calendar
+$router->add('GET', 'events', ['controller' => 'Event', 'action' => 'index']);
+
 $router->add('POST', 'newsletter/subscribe', ['controller' => 'Newsletter', 'action' => 'subscribe']);
 
 // Authentication routes

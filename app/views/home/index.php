@@ -222,7 +222,7 @@ $slides = !empty($heroSlides) ? $heroSlides : $defaultSlides;
                 <p class="text-brand font-semibold uppercase tracking-wide">Cultural Nights</p>
                <h2 class="text-3xl font-bold">Upcoming Events</h2>
             </div>
-            <a href="<?= BASE_URL ?>/page/events-calendar" class="text-brand hover:text-brand-dark font-semibold">View full calendar →</a>
+            <a href="<?= BASE_URL ?>/events" class="text-brand hover:text-brand-dark font-semibold">View full calendar →</a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <?php foreach ($events as $event): ?>

@@ -6,8 +6,9 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Models\User;
 use App\Core\Helper;
+use App\Core\Database;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -285,8 +286,9 @@ class AuthController extends Controller
                 return;
             }
 
-            // Find user by token
-            $stmt = $this->userModel->db->prepare("SELECT * FROM users WHERE password_reset_token = :token AND password_reset_expires > NOW()");
+            // Find user by token (using direct DB connection to avoid exposing protected properties)
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("SELECT * FROM users WHERE password_reset_token = :token AND password_reset_expires > NOW()");
             $stmt->execute(['token' => $token]);
             $user = $stmt->fetch();
 
@@ -320,7 +322,8 @@ class AuthController extends Controller
             }
 
             // Verify token is valid
-            $stmt = $this->userModel->db->prepare("SELECT * FROM users WHERE password_reset_token = :token AND password_reset_expires > NOW()");
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("SELECT * FROM users WHERE password_reset_token = :token AND password_reset_expires > NOW()");
             $stmt->execute(['token' => $token]);
             $user = $stmt->fetch();
 
