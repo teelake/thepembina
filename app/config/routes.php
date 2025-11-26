@@ -148,6 +148,8 @@ $router->add('GET', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'act
 $router->add('POST', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'updateTax']);
 $router->add('GET', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'email']);
 $router->add('POST', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'updateEmail']);
+$router->add('GET', 'admin/settings/whatsapp', ['controller' => 'Admin\Setting', 'action' => 'whatsapp']);
+$router->add('POST', 'admin/settings/whatsapp', ['controller' => 'Admin\Setting', 'action' => 'updateWhatsApp']);
 
 // Admin - Hero Slides
 $router->add('GET', 'admin/hero-slides', ['controller' => 'Admin\HeroSlide', 'action' => 'index']);

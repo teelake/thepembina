@@ -290,6 +290,23 @@ class CheckoutController extends Controller
                 // Don't fail the order if email fails
             }
             
+            // Send order notification email to admin (orders@thepembina.ca)
+            try {
+                $orderWithItems = $this->orderModel->getWithItems($orderId);
+                if ($orderWithItems) {
+                    $notificationSent = \App\Core\Email::sendOrderNotification($orderWithItems);
+                    if (!$notificationSent) {
+                        error_log("Order notification email failed to send for order #{$orderData['order_number']} to orders@thepembina.ca");
+                    } else {
+                        error_log("Order notification email sent successfully for order #{$orderData['order_number']} to orders@thepembina.ca");
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("Failed to send order notification email: " . $e->getMessage());
+                error_log("Exception trace: " . $e->getTraceAsString());
+                // Don't fail the order if email fails
+            }
+            
             // Store order ID in session for payment
             $_SESSION['pending_order_id'] = $orderId;
             

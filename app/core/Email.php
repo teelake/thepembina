@@ -316,6 +316,155 @@ class Email
         return self::send($order['email'], $subject, $message);
     }
 
+    /**
+     * Send order notification email to admin (orders@thepembina.ca)
+     * 
+     * @param array $order
+     * @return bool
+     */
+    public static function sendOrderNotification($order)
+    {
+        $notificationEmail = 'orders@thepembina.ca';
+        $subject = "New Order Received - #{$order['order_number']}";
+        
+        // Build order items list
+        $itemsHtml = '';
+        if (isset($order['items']) && !empty($order['items'])) {
+            $itemsHtml = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">';
+            $itemsHtml .= '<tr style="background-color: #f5f5f5;"><th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Item</th><th style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">Qty</th><th style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">Price</th></tr>';
+            foreach ($order['items'] as $item) {
+                $itemsHtml .= '<tr>';
+                $itemsHtml .= '<td style="padding: 8px; border-bottom: 1px solid #eee;">' . htmlspecialchars($item['product_name']) . '</td>';
+                $itemsHtml .= '<td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">' . $item['quantity'] . '</td>';
+                $itemsHtml .= '<td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">' . Helper::formatCurrency($item['subtotal']) . '</td>';
+                $itemsHtml .= '</tr>';
+            }
+            $itemsHtml .= '</table>';
+        }
+        
+        // Format billing address
+        $billingAddress = json_decode($order['billing_address'] ?? '[]', true);
+        $billingHtml = '';
+        if (!empty($billingAddress)) {
+            $billingHtml = '<p><strong>Name:</strong> ' . htmlspecialchars(($billingAddress['first_name'] ?? '') . ' ' . ($billingAddress['last_name'] ?? '')) . '</p>';
+            $billingHtml .= '<p><strong>Email:</strong> ' . htmlspecialchars($order['email'] ?? '') . '</p>';
+            $billingHtml .= '<p><strong>Phone:</strong> ' . htmlspecialchars($order['phone'] ?? '') . '</p>';
+            if (!empty($billingAddress['address_line1'])) {
+                $billingHtml .= '<p><strong>Address:</strong> ' . htmlspecialchars($billingAddress['address_line1']);
+                if (!empty($billingAddress['address_line2'])) {
+                    $billingHtml .= ', ' . htmlspecialchars($billingAddress['address_line2']);
+                }
+                $billingHtml .= '</p>';
+            }
+            if (!empty($billingAddress['city'])) {
+                $billingHtml .= '<p><strong>City:</strong> ' . htmlspecialchars($billingAddress['city']);
+                if (!empty($billingAddress['province'])) {
+                    $billingHtml .= ', ' . htmlspecialchars($billingAddress['province']);
+                }
+                if (!empty($billingAddress['postal_code'])) {
+                    $billingHtml .= ' ' . htmlspecialchars($billingAddress['postal_code']);
+                }
+                $billingHtml .= '</p>';
+            }
+        }
+        
+        // Format shipping address if delivery
+        $shippingHtml = '';
+        if ($order['order_type'] === 'delivery' && !empty($order['shipping_address'])) {
+            $shippingAddress = json_decode($order['shipping_address'], true);
+            if (!empty($shippingAddress)) {
+                $shippingHtml = '<h3 style="margin-top: 20px; color: #8B4513;">Delivery Address</h3>';
+                $shippingHtml .= '<p><strong>Name:</strong> ' . htmlspecialchars(($shippingAddress['first_name'] ?? '') . ' ' . ($shippingAddress['last_name'] ?? '')) . '</p>';
+                if (!empty($shippingAddress['address_line1'])) {
+                    $shippingHtml .= '<p><strong>Address:</strong> ' . htmlspecialchars($shippingAddress['address_line1']);
+                    if (!empty($shippingAddress['address_line2'])) {
+                        $shippingHtml .= ', ' . htmlspecialchars($shippingAddress['address_line2']);
+                    }
+                    $shippingHtml .= '</p>';
+                }
+                if (!empty($shippingAddress['city'])) {
+                    $shippingHtml .= '<p><strong>City:</strong> ' . htmlspecialchars($shippingAddress['city']);
+                    if (!empty($shippingAddress['province'])) {
+                        $shippingHtml .= ', ' . htmlspecialchars($shippingAddress['province']);
+                    }
+                    if (!empty($shippingAddress['postal_code'])) {
+                        $shippingHtml .= ' ' . htmlspecialchars($shippingAddress['postal_code']);
+                    }
+                    $shippingHtml .= '</p>';
+                }
+                if (!empty($order['delivery_instructions'])) {
+                    $shippingHtml .= '<p><strong>Delivery Instructions:</strong> ' . htmlspecialchars($order['delivery_instructions']) . '</p>';
+                }
+            }
+        } elseif ($order['order_type'] === 'pickup' && !empty($order['pickup_time'])) {
+            $shippingHtml = '<p><strong>Pickup Time:</strong> ' . htmlspecialchars($order['pickup_time']) . '</p>';
+        }
+        
+        $adminUrl = (defined('BASE_URL') ? BASE_URL : '') . '/admin/orders/' . $order['id'];
+        
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #F4A460; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background-color: #f9f9f9; }
+                .order-details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .button { display: inline-block; padding: 12px 24px; background-color: #F4A460; color: white; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+                .alert { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>New Order Received</h1>
+                </div>
+                <div class='content'>
+                    <div class='alert'>
+                        <strong>⚠️ Action Required:</strong> A new order has been placed and requires your attention.
+                    </div>
+                    
+                    <div class='order-details'>
+                        <h2 style='color: #8B4513; margin-top: 0;'>Order #{$order['order_number']}</h2>
+                        <p><strong>Order Type:</strong> " . ucfirst($order['order_type']) . "</p>
+                        <p><strong>Order Date:</strong> " . date('M d, Y g:i A', strtotime($order['created_at'])) . "</p>
+                        <p><strong>Status:</strong> <span style='color: #d97706; font-weight: bold;'>" . ucfirst($order['status']) . "</span></p>
+                        <p><strong>Payment Status:</strong> <span style='color: #d97706; font-weight: bold;'>" . ucfirst($order['payment_status']) . "</span></p>
+                    </div>
+                    
+                    <div class='order-details'>
+                        <h3 style='color: #8B4513;'>Order Items</h3>
+                        {$itemsHtml}
+                        <p style='margin-top: 15px;'><strong>Subtotal:</strong> " . Helper::formatCurrency($order['subtotal']) . "</p>
+                        <p><strong>Tax:</strong> " . Helper::formatCurrency($order['tax_amount'] ?? 0) . "</p>
+                        " . (!empty($order['shipping_amount']) ? "<p><strong>Delivery Fee:</strong> " . Helper::formatCurrency($order['shipping_amount']) . "</p>" : "") . "
+                        <p style='font-size: 18px; font-weight: bold; margin-top: 10px; color: #8B4513;'><strong>Total Amount:</strong> " . Helper::formatCurrency($order['total']) . "</p>
+                    </div>
+                    
+                    <div class='order-details'>
+                        <h3 style='color: #8B4513;'>Customer Information</h3>
+                        {$billingHtml}
+                        {$shippingHtml}
+                    </div>
+                    
+                    <div style='text-align: center; margin: 20px 0;'>
+                        <a href='{$adminUrl}' class='button'>View Order in Admin Panel</a>
+                    </div>
+                </div>
+                <div class='footer'>
+                    <p>The Pembina Pint and Restaurant<br>
+                    Order Management System</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+        
+        return self::send($notificationEmail, $subject, $message);
+    }
+
     private static function buildMailHeaders(string $fromName, string $fromEmail, array $attachments, string $to = '', string $subject = ''): array
     {
         $boundary = '=_Boundary_' . md5((string)microtime(true));

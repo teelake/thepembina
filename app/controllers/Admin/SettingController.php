@@ -167,6 +167,53 @@ class SettingController extends Controller
         $this->taxCalculator->updateTaxRate($code, $rates);
         $this->redirect('/admin/settings/tax?success=Tax rates updated');
     }
+
+    public function whatsapp()
+    {
+        $settings = $this->settingModel->getAll();
+        $this->render('admin/settings/whatsapp', [
+            'settings' => $settings,
+            'page_title' => 'WhatsApp Settings',
+            'current_page' => 'settings',
+            'csrfField' => $this->csrf->getTokenField()
+        ]);
+    }
+
+    public function updateWhatsApp()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/settings/whatsapp');
+            return;
+        }
+        if (!$this->verifyCSRF()) {
+            $this->redirect('/admin/settings/whatsapp?error=Invalid security token');
+            return;
+        }
+
+        $fields = [
+            'whatsapp_number',
+            'whatsapp_message',
+            'whatsapp_enabled'
+        ];
+        
+        foreach ($fields as $field) {
+            if (isset($_POST[$field])) {
+                $value = $_POST[$field];
+                // For enabled checkbox, convert to 1 or 0
+                if ($field === 'whatsapp_enabled') {
+                    $value = $value === '1' ? '1' : '0';
+                }
+                $this->settingModel->updateSetting($field, $value);
+            } else {
+                // If checkbox is not set, it means disabled
+                if ($field === 'whatsapp_enabled') {
+                    $this->settingModel->updateSetting($field, '0');
+                }
+            }
+        }
+        
+        $this->redirect('/admin/settings/whatsapp?success=WhatsApp settings updated');
+    }
 }
 
 

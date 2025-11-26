@@ -374,6 +374,79 @@ if (!$customNavEnabled) {
             <script src="<?= $js ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
+    
+    <!-- WhatsApp Chatbot Widget -->
+    <?php
+    // Get WhatsApp number from settings or use default
+    $whatsappNumber = \App\Core\Helper::getSetting('whatsapp_number', '1234567890'); // Default placeholder - update in admin settings
+    // Remove any non-numeric characters for WhatsApp link
+    $whatsappNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+    // Add country code if not present (assuming Canada +1)
+    if (substr($whatsappNumber, 0, 1) !== '1' && strlen($whatsappNumber) == 10) {
+        $whatsappNumber = '1' . $whatsappNumber;
+    }
+    $whatsappMessage = urlencode('Hello! I need help with my order.');
+    $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
+    ?>
+    <style>
+        .whatsapp-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+        .whatsapp-button {
+            width: 60px;
+            height: 60px;
+            background-color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .whatsapp-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+        }
+        .whatsapp-button i {
+            color: white;
+            font-size: 32px;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
+        }
+        @media (max-width: 768px) {
+            .whatsapp-widget {
+                bottom: 15px;
+                right: 15px;
+            }
+            .whatsapp-button {
+                width: 56px;
+                height: 56px;
+            }
+            .whatsapp-button i {
+                font-size: 28px;
+            }
+        }
+    </style>
+    <div class="whatsapp-widget">
+        <a href="<?= $whatsappUrl ?>" target="_blank" rel="noopener noreferrer" class="whatsapp-button" aria-label="Chat with us on WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    </div>
 </body>
 </html>
 
