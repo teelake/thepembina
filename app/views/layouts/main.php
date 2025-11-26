@@ -377,16 +377,24 @@ if (!$customNavEnabled) {
     
     <!-- WhatsApp Chatbot Widget -->
     <?php
-    // Get WhatsApp number from settings or use default
-    $whatsappNumber = \App\Core\Helper::getSetting('whatsapp_number', '1234567890'); // Default placeholder - update in admin settings
-    // Remove any non-numeric characters for WhatsApp link
-    $whatsappNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
-    // Add country code if not present (assuming Canada +1)
-    if (substr($whatsappNumber, 0, 1) !== '1' && strlen($whatsappNumber) == 10) {
-        $whatsappNumber = '1' . $whatsappNumber;
-    }
-    $whatsappMessage = urlencode('Hello! I need help with my order.');
-    $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
+    // Check if WhatsApp is enabled
+    $whatsappEnabled = \App\Core\Helper::getSetting('whatsapp_enabled', '1') === '1';
+    
+    if ($whatsappEnabled):
+        // Get WhatsApp number from settings
+        $whatsappNumber = \App\Core\Helper::getSetting('whatsapp_number', '');
+        $whatsappMessage = \App\Core\Helper::getSetting('whatsapp_message', 'Hello! I need help with my order.');
+        
+        // Only show widget if number is configured
+        if (!empty($whatsappNumber)):
+            // Remove any non-numeric characters for WhatsApp link
+            $whatsappNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+            // Add country code if not present (assuming Canada +1)
+            if (substr($whatsappNumber, 0, 1) !== '1' && strlen($whatsappNumber) == 10) {
+                $whatsappNumber = '1' . $whatsappNumber;
+            }
+            $whatsappMessage = urlencode($whatsappMessage);
+            $whatsappUrl = "https://wa.me/{$whatsappNumber}?text={$whatsappMessage}";
     ?>
     <style>
         .whatsapp-widget {
@@ -447,6 +455,10 @@ if (!$customNavEnabled) {
             <i class="fab fa-whatsapp"></i>
         </a>
     </div>
+    <?php
+        endif; // End if whatsappNumber is not empty
+    endif; // End if whatsappEnabled
+    ?>
 </body>
 </html>
 

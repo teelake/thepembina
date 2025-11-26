@@ -206,6 +206,13 @@
                             <span>Email Settings</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="<?= BASE_URL ?>/admin/settings/whatsapp" 
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'whatsapp') ? 'bg-brand text-white' : 'text-gray-700' ?>">
+                            <i class="fab fa-whatsapp w-5 mr-3"></i>
+                            <span>WhatsApp Settings</span>
+                        </a>
+                    </li>
                     <?php endif; ?>
                 </ul>
             </nav>
