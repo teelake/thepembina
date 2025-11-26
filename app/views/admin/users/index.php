@@ -44,10 +44,17 @@ $content = ob_start();
                         <a href="<?= BASE_URL ?>/admin/users/<?= $user['id'] ?>/edit" class="text-blue-600 hover:text-blue-800 mr-3">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <?php if ($user['id'] != ($_SESSION['user_id'] ?? null)): ?>
+                        <?php 
+                        // Prevent deletion of superadmin and current user
+                        $isSuperAdmin = (isset($user['role_id']) && (int)$user['role_id'] === 1) || 
+                                       (isset($user['role_slug']) && $user['role_slug'] === 'super_admin') ||
+                                       (isset($user['role_name']) && strtolower($user['role_name']) === 'super admin');
+                        $isCurrentUser = $user['id'] == ($_SESSION['user_id'] ?? null);
+                        if (!$isSuperAdmin && !$isCurrentUser): 
+                        ?>
                         <form method="POST" action="<?= BASE_URL ?>/admin/users/<?= $user['id'] ?>/delete" class="inline" data-confirm-delete>
                             <?= $csrfField ?? '' ?>
-                            <button type e="submit" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                            <button type="submit" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
                         </form>
                         <?php endif; ?>
                     </td>

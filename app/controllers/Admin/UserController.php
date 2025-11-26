@@ -150,6 +150,22 @@ class UserController extends Controller
             return;
         }
 
+        // Prevent deletion of superadmin (role_id = 1)
+        if (isset($user['role_id']) && (int)$user['role_id'] === 1) {
+            $this->redirect('/admin/users?error=Cannot delete superadmin account');
+            return;
+        }
+
+        // Also check by role slug if available
+        $userWithRole = $this->userModel->findAllWithRoles(['id' => $id], null, 1);
+        if (!empty($userWithRole)) {
+            $userRole = $userWithRole[0];
+            if (isset($userRole['role_slug']) && $userRole['role_slug'] === 'super_admin') {
+                $this->redirect('/admin/users?error=Cannot delete superadmin account');
+                return;
+            }
+        }
+
         if ($this->userModel->delete($id)) {
             Helper::logActivity('user_delete', 'user', $id, 'Deleted user');
             $this->redirect('/admin/users?success=User deleted successfully');

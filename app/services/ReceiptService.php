@@ -42,7 +42,12 @@ class ReceiptService
             $businessEmail = defined('BUSINESS_EMAIL') ? BUSINESS_EMAIL : 'no-reply@thepembina.ca';
 
             $pdf->addTableRow(['Invoice', ''], self::HEADER_COLS, 24, self::TEXT_MAIN);
-            $pdf->addTableRow(['Order #: ' . str_pad($order['order_number'] ?? $order['id'], 10, '0', STR_PAD_LEFT), ''], self::HEADER_COLS, 14, self::TEXT_MUTED);
+            // Format order number - if it's numeric, pad it; otherwise use as-is
+            $orderNumber = $order['order_number'] ?? $order['id'];
+            if (is_numeric($orderNumber)) {
+                $orderNumber = str_pad($orderNumber, 10, '0', STR_PAD_LEFT);
+            }
+            $pdf->addTableRow(['Order #: ' . $orderNumber, ''], self::HEADER_COLS, 14, self::TEXT_MUTED);
             
             // Format date properly
             $orderDate = $order['created_at'] ?? date('Y-m-d H:i:s');
@@ -222,10 +227,20 @@ class ReceiptService
             $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
             $productName = isset($item['product_name']) ? $item['product_name'] : 'Unknown Product';
             $price = isset($item['price']) ? (float)$item['price'] : 0;
-            if ($price == 0 && isset($item['subtotal'])) {
-                $price = (float)$item['subtotal'] / $quantity;
+            
+            // Calculate subtotal - ensure we have a valid value
+            $subtotal = isset($item['subtotal']) ? (float)$item['subtotal'] : 0;
+            if ($subtotal == 0 && $price > 0) {
+                $subtotal = $price * $quantity;
             }
-            $subtotal = isset($item['subtotal']) ? (float)$item['subtotal'] : $price * $quantity;
+            // If price is 0 but subtotal exists, calculate price from subtotal
+            if ($price == 0 && $subtotal > 0 && $quantity > 0) {
+                $price = $subtotal / $quantity;
+            }
+            
+            // Ensure we have valid numeric values
+            $price = max(0, $price);
+            $subtotal = max(0, $subtotal);
 
             $pdf->addTableRow(
                 [
