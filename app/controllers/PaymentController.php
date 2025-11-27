@@ -72,44 +72,85 @@ class PaymentController extends Controller
     public function process()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/checkout');
+            error_log("PaymentController::process() - Invalid request method: " . $_SERVER['REQUEST_METHOD']);
+            $this->redirect('/checkout?error=Invalid request');
             return;
         }
 
-        $orderId = (int)($this->get('order_id', 0));
+        $orderId = (int)($this->post('order_id', 0));
+        error_log("PaymentController::process() - Processing payment for order ID: {$orderId}");
+        
+        if (!$orderId) {
+            error_log("PaymentController::process() - No order ID provided");
+            $this->redirect('/checkout?error=Order ID is required');
+            return;
+        }
+
         $order = $this->orderModel->getWithItems($orderId);
         
         if (!$order) {
+            error_log("PaymentController::process() - Order not found: {$orderId}");
             $this->redirect('/checkout?error=Order not found');
             return;
         }
 
         // Check if order is already paid
         if ($order['payment_status'] === 'paid') {
+            error_log("PaymentController::process() - Order already paid: {$orderId}");
             $this->redirect('/payment/success?order_id=' . $orderId);
+            return;
+        }
+
+        // Validate source_id (payment token)
+        $sourceId = $this->post('source_id', '');
+        if (empty($sourceId)) {
+            error_log("PaymentController::process() - Missing source_id (payment token) for order: {$orderId}");
+            $this->redirect('/payment?order_id=' . $orderId . '&error=' . urlencode('Payment token is missing. Please try again.'));
             return;
         }
 
         // Get payment gateway (default to Square)
         $gatewayName = $this->post('gateway', 'square');
+        error_log("PaymentController::process() - Using gateway: {$gatewayName}");
+        
         $gateway = GatewayFactory::create($gatewayName);
         
-        if (!$gateway || !$gateway->isEnabled()) {
-            $this->redirect('/checkout?error=Payment gateway not available');
+        if (!$gateway) {
+            error_log("PaymentController::process() - Gateway not found: {$gatewayName}");
+            $this->redirect('/payment?order_id=' . $orderId . '&error=' . urlencode('Payment gateway not found'));
+            return;
+        }
+        
+        if (!$gateway->isEnabled()) {
+            error_log("PaymentController::process() - Gateway not enabled: {$gatewayName}");
+            $this->redirect('/payment?order_id=' . $orderId . '&error=' . urlencode('Payment gateway is not enabled'));
             return;
         }
 
         // Prepare payment data
         $paymentData = [
             'amount' => $order['total'],
-            'currency' => $order['currency'],
+            'currency' => $order['currency'] ?? 'CAD',
             'order_number' => $order['order_number'],
-            'source_id' => $this->post('source_id'), // Payment token from Square
+            'source_id' => $sourceId,
             'note' => "Order #{$order['order_number']}"
         ];
 
+        error_log("PaymentController::process() - Payment data: " . json_encode([
+            'amount' => $paymentData['amount'],
+            'currency' => $paymentData['currency'],
+            'order_number' => $paymentData['order_number'],
+            'source_id_length' => strlen($sourceId)
+        ]));
+
         // Process payment
         $result = $gateway->processPayment($paymentData);
+        
+        error_log("PaymentController::process() - Payment result: " . json_encode([
+            'success' => $result['success'] ?? false,
+            'message' => $result['message'] ?? 'No message',
+            'transaction_id' => $result['transaction_id'] ?? 'No transaction ID'
+        ]));
 
         if ($result['success']) {
             // Update order
@@ -157,14 +198,44 @@ class PaymentController extends Controller
                     ]
                 ]);
             } catch (\Exception $e) {
-                error_log("Failed to send order confirmation email: " . $e->getMessage());
+                error_log("PaymentController::process() - Failed to send order confirmation email: " . $e->getMessage());
                 // Don't fail the payment if email fails
             }
 
+            // Send order notification email to admin (orders@thepembina.ca)
+            try {
+                $orderWithItems = $this->orderModel->getWithItems($orderId);
+                if ($orderWithItems) {
+                    $notificationSent = \App\Core\Email::sendOrderNotification($orderWithItems);
+                    if (!$notificationSent) {
+                        error_log("PaymentController::process() - Order notification email failed to send for order #{$order['order_number']} to orders@thepembina.ca");
+                    } else {
+                        error_log("PaymentController::process() - Order notification email sent successfully for order #{$order['order_number']} to orders@thepembina.ca");
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("PaymentController::process() - Failed to send order notification email: " . $e->getMessage());
+                error_log("PaymentController::process() - Exception trace: " . $e->getTraceAsString());
+                // Don't fail the payment if email fails
+            }
+
+            // Clear cart session
+            if (isset($_SESSION['cart'])) {
+                unset($_SESSION['cart']);
+            }
+            if (isset($_SESSION['pending_order_id'])) {
+                unset($_SESSION['pending_order_id']);
+            }
+
             // Redirect to success page
+            error_log("PaymentController::process() - Payment successful, redirecting to success page for order: {$orderId}");
             $this->redirect('/payment/success?order_id=' . $orderId);
         } else {
             // Payment failed
+            $errorMessage = $result['message'] ?? 'Payment processing failed';
+            error_log("PaymentController::process() - Payment failed for order {$orderId}: {$errorMessage}");
+            error_log("PaymentController::process() - Full result: " . json_encode($result));
+            
             $this->orderModel->update($orderId, [
                 'payment_status' => 'failed'
             ]);
@@ -175,17 +246,18 @@ class PaymentController extends Controller
                 'gateway' => $gatewayName,
                 'transaction_id' => $result['transaction_id'] ?? 'failed',
                 'amount' => $order['total'],
-                'currency' => $order['currency'],
+                'currency' => $order['currency'] ?? 'CAD',
                 'status' => 'failed',
                 'gateway_response' => $result['data'] ?? []
             ]);
 
-            AuditTrail::log('payment_failed', 'payment', $orderId, "Payment failed: {$result['message']}", [
+            AuditTrail::log('payment_failed', 'payment', $orderId, "Payment failed: {$errorMessage}", [
                 'gateway' => $gatewayName,
-                'error' => $result['message']
+                'error' => $errorMessage
             ]);
 
-            $this->redirect('/checkout?error=' . urlencode($result['message']));
+            // Redirect back to payment page with error
+            $this->redirect('/payment?order_id=' . $orderId . '&error=' . urlencode($errorMessage));
         }
     }
 

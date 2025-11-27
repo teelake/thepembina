@@ -62,13 +62,32 @@ abstract class BaseGateway implements GatewayInterface
         curl_close($ch);
 
         if ($error) {
-            return ['success' => false, 'error' => $error];
+            error_log("BaseGateway::makeRequest() - cURL error: {$error} for URL: {$url}");
+            return [
+                'success' => false,
+                'error' => $error,
+                'http_code' => 0,
+                'data' => ['errors' => [['detail' => $error]]]
+            ];
+        }
+
+        $responseData = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log("BaseGateway::makeRequest() - JSON decode error: " . json_last_error_msg() . " for URL: {$url}");
+            error_log("BaseGateway::makeRequest() - Response: " . substr($response, 0, 500));
+        }
+
+        $isSuccess = $httpCode >= 200 && $httpCode < 300;
+        
+        if (!$isSuccess) {
+            error_log("BaseGateway::makeRequest() - HTTP error {$httpCode} for URL: {$url}");
+            error_log("BaseGateway::makeRequest() - Response: " . substr($response, 0, 500));
         }
 
         return [
-            'success' => $httpCode >= 200 && $httpCode < 300,
+            'success' => $isSuccess,
             'http_code' => $httpCode,
-            'data' => json_decode($response, true) ?: $response
+            'data' => $responseData ?: ['raw_response' => $response]
         ];
     }
 }

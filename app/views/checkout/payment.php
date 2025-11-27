@@ -9,6 +9,14 @@ $content = ob_start();
         <p class="text-gray-600">Review your order and complete payment securely</p>
     </div>
     
+    <?php if (!empty($_GET['error'])): ?>
+        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6">
+            <p class="font-semibold">Payment Error</p>
+            <p><?= htmlspecialchars($_GET['error']) ?></p>
+            <p class="text-sm mt-2">Please check your card details and try again, or contact support if the problem persists.</p>
+        </div>
+    <?php endif; ?>
+    
     <?php if (!isset($order) || empty($order)): ?>
         <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6">
             <p class="font-semibold">Error</p>
