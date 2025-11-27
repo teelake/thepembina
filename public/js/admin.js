@@ -133,14 +133,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add any other admin-specific JavaScript here
 });
 
-// Toggle Settings Submenu
-function toggleSettingsMenu() {
-    const submenu = document.getElementById('settings-submenu');
-    const chevron = document.getElementById('settings-chevron');
+// Toggle Menu Sections (Generic function for all collapsible menus)
+function toggleMenu(menuName) {
+    const submenu = document.getElementById(menuName + '-submenu');
+    const chevron = document.getElementById(menuName + '-chevron');
     if (submenu && chevron) {
         submenu.classList.toggle('hidden');
         chevron.classList.toggle('rotate-180');
     }
+}
+
+// Toggle Settings Submenu (for backward compatibility)
+function toggleSettingsMenu() {
+    toggleMenu('settings');
 }
 
 // AJAX helper for admin

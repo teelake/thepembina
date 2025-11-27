@@ -94,116 +94,160 @@
                         </a>
                     </li>
                     
-                    <!-- Products Section -->
+                    <!-- Products Section (Collapsible) -->
+                    <?php 
+                    $isProductsPage = in_array($current_page ?? '', ['products', 'categories', 'navigation']);
+                    ?>
                     <li class="pt-6">
-                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/products" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'products') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-box w-5 mr-3 text-center"></i>
-                            <span>Products</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/categories" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'categories') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-folder w-5 mr-3 text-center"></i>
-                            <span>Categories</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/navigation" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'navigation') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-bars w-5 mr-3 text-center"></i>
-                            <span>Navigation</span>
-                        </a>
+                        <button onclick="toggleMenu('products')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-box w-5 mr-3 text-center"></i>
+                                <span class="font-medium">Products</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 <?= $isProductsPage ? 'rotate-180' : '' ?>" id="products-chevron"></i>
+                        </button>
+                        <ul id="products-submenu" class="mt-1 space-y-1 <?= $isProductsPage ? '' : 'hidden' ?>">
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/products" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'products') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-box w-4 mr-2 text-center"></i>
+                                    <span>Products</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/categories" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'categories') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-folder w-4 mr-2 text-center"></i>
+                                    <span>Categories</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/navigation" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'navigation') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-bars w-4 mr-2 text-center"></i>
+                                    <span>Navigation</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     
-                    <!-- Orders Section -->
+                    <!-- Orders Section (Collapsible) -->
+                    <?php 
+                    $isOrdersPage = in_array($current_page ?? '', ['orders', 'transactions']);
+                    ?>
                     <li class="pt-6">
-                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Orders</p>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/orders" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'orders') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-shopping-cart w-5 mr-3 text-center"></i>
-                            <span>Orders</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/transactions" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'transactions') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-receipt w-5 mr-3 text-center"></i>
-                            <span>Transactions</span>
-                        </a>
+                        <button onclick="toggleMenu('orders')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-shopping-cart w-5 mr-3 text-center"></i>
+                                <span class="font-medium">Orders</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 <?= $isOrdersPage ? 'rotate-180' : '' ?>" id="orders-chevron"></i>
+                        </button>
+                        <ul id="orders-submenu" class="mt-1 space-y-1 <?= $isOrdersPage ? '' : 'hidden' ?>">
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/orders" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'orders') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-shopping-cart w-4 mr-2 text-center"></i>
+                                    <span>Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/transactions" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'transactions') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-receipt w-4 mr-2 text-center"></i>
+                                    <span>Transactions</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     
                     <?php if (in_array($_SESSION['user_role'] ?? '', ['super_admin', 'admin'])): ?>
-                    <!-- Content Management Section -->
+                    <!-- Content Management Section (Collapsible) -->
+                    <?php 
+                    $isContentPage = in_array($current_page ?? '', ['pages', 'hero_slides', 'testimonials', 'events', 'newsletter']);
+                    ?>
                     <li class="pt-6">
-                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Content</p>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/pages" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'pages') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-file-alt w-5 mr-3 text-center"></i>
-                            <span>Pages</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/hero-slides" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-images w-5 mr-3 text-center"></i>
-                            <span>Hero Slider</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/testimonials" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'testimonials') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-comment-dots w-5 mr-3 text-center"></i>
-                            <span>Testimonials</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/events" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'events') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-calendar-alt w-5 mr-3 text-center"></i>
-                            <span>Events</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/newsletter" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'newsletter') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-envelope-open-text w-5 mr-3 text-center"></i>
-                            <span>Newsletter</span>
-                        </a>
+                        <button onclick="toggleMenu('content')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-alt w-5 mr-3 text-center"></i>
+                                <span class="font-medium">Content</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 <?= $isContentPage ? 'rotate-180' : '' ?>" id="content-chevron"></i>
+                        </button>
+                        <ul id="content-submenu" class="mt-1 space-y-1 <?= $isContentPage ? '' : 'hidden' ?>">
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/pages" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'pages') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-file-alt w-4 mr-2 text-center"></i>
+                                    <span>Pages</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/hero-slides" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-images w-4 mr-2 text-center"></i>
+                                    <span>Hero Slider</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/testimonials" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'testimonials') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-comment-dots w-4 mr-2 text-center"></i>
+                                    <span>Testimonials</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/events" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'events') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-calendar-alt w-4 mr-2 text-center"></i>
+                                    <span>Events</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/newsletter" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'newsletter') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-envelope-open-text w-4 mr-2 text-center"></i>
+                                    <span>Newsletter</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     
-                    <!-- System Management Section -->
+                    <!-- System Management Section (Collapsible) -->
+                    <?php 
+                    $isSystemPage = in_array($current_page ?? '', ['users', 'roles', 'permissions']);
+                    ?>
                     <li class="pt-6">
-                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">System</p>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/users" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'users') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-users w-5 mr-3 text-center"></i>
-                            <span>Users</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/roles" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'roles') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-user-shield w-5 mr-3 text-center"></i>
-                            <span>Roles</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/permissions" 
-                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'permissions') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
-                            <i class="fas fa-key w-5 mr-3 text-center"></i>
-                            <span>Permissions</span>
-                        </a>
+                        <button onclick="toggleMenu('system')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-cogs w-5 mr-3 text-center"></i>
+                                <span class="font-medium">System</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 <?= $isSystemPage ? 'rotate-180' : '' ?>" id="system-chevron"></i>
+                        </button>
+                        <ul id="system-submenu" class="mt-1 space-y-1 <?= $isSystemPage ? '' : 'hidden' ?>">
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/users" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'users') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-users w-4 mr-2 text-center"></i>
+                                    <span>Users</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/roles" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'roles') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-user-shield w-4 mr-2 text-center"></i>
+                                    <span>Roles</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/permissions" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'permissions') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-key w-4 mr-2 text-center"></i>
+                                    <span>Permissions</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     
                     <!-- Settings Section (Collapsible) -->
@@ -211,7 +255,7 @@
                     $isSettingsPage = in_array($current_page ?? '', ['settings', 'payment', 'email', 'whatsapp', 'tax']);
                     ?>
                     <li class="pt-6">
-                        <button onclick="toggleSettingsMenu()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                        <button onclick="toggleMenu('settings')" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
                             <div class="flex items-center">
                                 <i class="fas fa-cog w-5 mr-3 text-center"></i>
                                 <span class="font-medium">Settings</span>
