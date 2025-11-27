@@ -6,6 +6,11 @@ $content = ob_start();
 <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
     <a href="<?= BASE_URL ?>/admin/orders" class="text-brand hover:text-brand-dark"><i class="fas fa-arrow-left mr-2"></i>Back to Orders</a>
     <div class="flex gap-3">
+        <a href="<?= BASE_URL ?>/track-order?order_number=<?= urlencode($order['order_number']) ?>&email=<?= urlencode($order['email']) ?>" 
+           target="_blank" 
+           class="btn btn-secondary inline-flex items-center">
+            <i class="fas fa-search-location mr-2"></i> View Tracking Page
+        </a>
         <form method="POST" action="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/email-receipt" data-confirm="Send receipt to <?= htmlspecialchars($order['email']) ?>?">
             <?= $csrfField ?? '' ?>
             <button type="submit" class="btn btn-primary inline-flex items-center">

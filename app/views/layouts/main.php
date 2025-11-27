@@ -317,6 +317,7 @@ if (!$customNavEnabled) {
                     <h3 class="text-xl font-bold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
                         <li><a href="<?= BASE_URL ?>/menu" class="text-gray-400 hover:text-white transition">Menu</a></li>
+                        <li><a href="<?= BASE_URL ?>/track-order" class="text-gray-400 hover:text-white transition">Track Your Order</a></li>
                         <li><a href="<?= BASE_URL ?>/page/about" class="text-gray-400 hover:text-white transition">About Us</a></li>
                         <li><a href="<?= BASE_URL ?>/page/terms-of-service" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
                         <li><a href="<?= BASE_URL ?>/page/privacy-policy" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>

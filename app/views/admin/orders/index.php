@@ -109,6 +109,12 @@ $hasFilters = $statusFilter || $typeFilter || $paymentFilter || $fromFilter || $
                                    class="text-brand hover:text-brand-dark font-semibold">
                                     View
                                 </a>
+                                <a href="<?= BASE_URL ?>/track-order?order_number=<?= urlencode($order['order_number']) ?>&email=<?= urlencode($order['email']) ?>" 
+                                   class="text-blue-600 hover:text-blue-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-50 transition" 
+                                   target="_blank" 
+                                   title="View tracking page">
+                                    <i class="fas fa-search-location"></i>
+                                </a>
                                 <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>/receipt" 
                                    class="text-red-600 hover:text-red-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 transition" 
                                    target="_blank" 

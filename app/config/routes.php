@@ -56,6 +56,7 @@ $router->add('GET', 'payment/cancel', ['controller' => 'Payment', 'action' => 'c
 
 // Order tracking
 $router->add('GET', 'track-order', ['controller' => 'Order', 'action' => 'track']);
+$router->add('POST', 'track-order', ['controller' => 'Order', 'action' => 'track']);
 
 // Customer account routes
 $router->add('GET', 'account', ['controller' => 'Account', 'action' => 'index']);
@@ -151,6 +152,7 @@ $router->add('GET', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'act
 $router->add('POST', 'admin/settings/tax', ['controller' => 'Admin\Setting', 'action' => 'updateTax']);
 $router->add('GET', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'email']);
 $router->add('POST', 'admin/settings/email', ['controller' => 'Admin\Setting', 'action' => 'updateEmail']);
+$router->add('POST', 'admin/settings/email/test', ['controller' => 'Admin\Setting', 'action' => 'testEmail']);
 $router->add('GET', 'admin/settings/whatsapp', ['controller' => 'Admin\Setting', 'action' => 'whatsapp']);
 $router->add('POST', 'admin/settings/whatsapp', ['controller' => 'Admin\Setting', 'action' => 'updateWhatsApp']);
 

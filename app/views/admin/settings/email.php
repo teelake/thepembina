@@ -35,7 +35,7 @@ function settingVal($settings, $key, $default = '')
         </div>
     </div>
 
-    <form method="POST" action="<?= BASE_URL ?>/admin/settings/email" class="space-y-6">
+    <form method="POST" action="<?= BASE_URL ?>/admin/settings/email" id="email-settings-form" class="space-y-6">
         <?= $csrfField ?? '' ?>
 
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -125,8 +125,26 @@ function settingVal($settings, $key, $default = '')
             </div>
         </div>
 
-        <div class="flex justify-end">
-            <button type="submit" class="btn btn-primary">
+        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2">Test Email Configuration</h3>
+                <p class="text-sm text-gray-600 mb-4">Send a test email to verify your SMTP settings are working correctly.</p>
+                <form method="POST" action="<?= BASE_URL ?>/admin/settings/email/test" class="flex gap-3">
+                    <?= $csrfField ?? '' ?>
+                    <input type="email" 
+                           name="test_email" 
+                           class="form-input flex-1" 
+                           placeholder="Enter email address to test"
+                           required>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-paper-plane mr-2"></i> Send Test Email
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button type="submit" form="email-settings-form" class="btn btn-primary">
                 <i class="fas fa-save mr-2"></i> Save Email Settings
             </button>
         </div>

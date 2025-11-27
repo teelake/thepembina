@@ -152,6 +152,61 @@ class SettingController extends Controller
         $this->redirect('/admin/settings/email?success=Email settings updated');
     }
 
+    public function testEmail()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/admin/settings/email');
+            return;
+        }
+        if (!$this->verifyCSRF()) {
+            $this->redirect('/admin/settings/email?error=Invalid security token');
+            return;
+        }
+
+        $testEmail = $this->post('test_email', '');
+        if (empty($testEmail) || !filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->redirect('/admin/settings/email?error=Please provide a valid email address');
+            return;
+        }
+
+        // Send test email
+        $subject = "Test Email from The Pembina Pint";
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #F4A460; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background-color: #f9f9f9; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Test Email</h1>
+                </div>
+                <div class='content'>
+                    <h2>Email Configuration Test</h2>
+                    <p>If you received this email, your SMTP configuration is working correctly!</p>
+                    <p><strong>Test Time:</strong> " . date('Y-m-d H:i:s') . "</p>
+                    <p><strong>From:</strong> no-reply@thepembina.ca</p>
+                    <p><strong>To:</strong> {$testEmail}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+
+        $result = \App\Core\Email::send($testEmail, $subject, $message);
+        
+        if ($result) {
+            $this->redirect('/admin/settings/email?success=Test email sent successfully to ' . htmlspecialchars($testEmail));
+        } else {
+            $this->redirect('/admin/settings/email?error=Test email failed. Please check your SMTP settings and error logs.');
+        }
+    }
+
     public function updateTax()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
