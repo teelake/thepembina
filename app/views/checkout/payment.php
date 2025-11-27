@@ -92,7 +92,14 @@ $content = ob_start();
                     <!-- Square Payment Form Container -->
                     <div class="mb-6">
                         <label class="block text-sm font-semibold mb-3 text-gray-700">Card Details</label>
-                        <div id="square-payment-form" class="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[200px]"></div>
+                        <div id="square-payment-form" class="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[200px] relative">
+                            <div id="payment-form-loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-90">
+                                <div class="text-center">
+                                    <i class="fas fa-spinner fa-spin text-2xl text-brand mb-2"></i>
+                                    <p class="text-sm text-gray-600">Loading payment form...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div id="payment-status" class="mb-4"></div>
@@ -116,15 +123,24 @@ $content = ob_start();
 </div>
 
 <!-- Square Payment Form SDK -->
-<script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+<?php
+$squareSandbox = Helper::getSetting("payment_square_sandbox", "1") === "1";
+$squareSdkUrl = $squareSandbox 
+    ? "https://sandbox.web.squarecdn.com/v1/square.js"
+    : "https://web.squarecdn.com/v1/square.js";
+?>
+<script src="<?= $squareSdkUrl ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const applicationId = '<?= Helper::getSetting("payment_square_app_id", "") ?>';
     const locationId = '<?= Helper::getSetting("payment_square_location_id", "") ?>';
-    const sandbox = <?= Helper::getSetting("payment_square_sandbox", "1") === "1" ? "true" : "false" ?>;
+    const sandbox = <?= $squareSandbox ? "true" : "false" ?>;
+    const payButton = document.getElementById('pay-button');
+    const paymentStatus = document.getElementById('payment-status');
+    let cardInstance = null;
     
     if (!applicationId || !locationId) {
-        document.getElementById('payment-status').innerHTML = 
+        paymentStatus.innerHTML = 
             '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment gateway not configured. Please contact administrator.</div>';
         return;
     }
@@ -132,48 +148,96 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Square Payment Form
     (async function() {
         try {
-            const payments = Square.payments(applicationId, locationId);
-            const card = await payments.card();
-            await card.attach('#square-payment-form');
+            // Wait for Square SDK to load
+            if (typeof Square === 'undefined') {
+                paymentStatus.innerHTML = 
+                    '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Failed to load Square payment SDK. Please refresh the page.</div>';
+                return;
+            }
             
-            // Enable pay button when card is ready
-            card.addEventListener('ready', function() {
-                const payButton = document.getElementById('pay-button');
-                payButton.disabled = false;
-                payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            const payments = Square.payments(applicationId, locationId);
+            cardInstance = await payments.card();
+            await cardInstance.attach('#square-payment-form');
+            
+            // Hide loading indicator
+            const loadingIndicator = document.getElementById('payment-form-loading');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            
+            // Enable pay button when card form is ready
+            cardInstance.addEventListener('ready', function() {
+                console.log('Square card form ready');
+                enablePayButton();
             });
+            
+            // Handle card validation events
+            cardInstance.addEventListener('error', function(event) {
+                console.log('Square card error:', event);
+                // Don't disable button on validation errors, let user try to submit
+            });
+            
+            // Handle card validation state changes
+            cardInstance.addEventListener('postalCode', function(event) {
+                console.log('Square postal code event:', event);
+            });
+            
+            // Fallback: Enable button after 2 seconds if ready event doesn't fire
+            setTimeout(function() {
+                if (payButton.disabled && cardInstance) {
+                    console.log('Fallback: Enabling pay button');
+                    enablePayButton();
+                }
+            }, 2000);
             
             // Handle form submission
             document.getElementById('payment-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                const payButton = document.getElementById('pay-button');
+                if (!cardInstance) {
+                    paymentStatus.innerHTML = 
+                        '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment form not initialized. Please refresh the page.</div>';
+                    return;
+                }
+                
                 payButton.disabled = true;
                 payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+                paymentStatus.innerHTML = '';
                 
                 try {
-                    const result = await card.tokenize();
+                    const result = await cardInstance.tokenize();
                     if (result.status === 'OK') {
                         document.getElementById('source-id').value = result.token;
                         this.submit();
                     } else {
-                        document.getElementById('payment-status').innerHTML = 
-                            '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment failed: ' + (result.errors && result.errors[0] ? result.errors[0].detail : 'Unknown error') + '</div>';
-                        payButton.disabled = false;
-                        payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= isset($order['total']) ? Helper::formatCurrency($order['total']) : '$0.00' ?>';
+                        const errorMessage = result.errors && result.errors[0] ? result.errors[0].detail : 'Unknown error';
+                        paymentStatus.innerHTML = 
+                            '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment failed: ' + errorMessage + '</div>';
+                        enablePayButton();
                     }
                 } catch (error) {
-                    document.getElementById('payment-status').innerHTML = 
-                        '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ' + error.message + '</div>';
-                    payButton.disabled = false;
-                    payButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Pay <?= isset($order['total']) ? Helper::formatCurrency($order['total']) : '$0.00' ?>';
+                    console.error('Payment error:', error);
+                    paymentStatus.innerHTML = 
+                        '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ' + (error.message || 'Payment processing failed') + '</div>';
+                    enablePayButton();
                 }
             });
         } catch (error) {
-            document.getElementById('payment-status').innerHTML = 
-                '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Failed to initialize payment form: ' + error.message + '</div>';
+            console.error('Square initialization error:', error);
+            const loadingIndicator = document.getElementById('payment-form-loading');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            paymentStatus.innerHTML = 
+                '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Failed to initialize payment form: ' + (error.message || 'Unknown error') + '. Please refresh the page or contact support.</div>';
         }
     })();
+    
+    function enablePayButton() {
+        payButton.disabled = false;
+        payButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        payButton.classList.add('hover:bg-brand-dark');
+    }
 });
 </script>
 
