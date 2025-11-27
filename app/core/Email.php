@@ -238,7 +238,8 @@ class Email
         </html>
         ";
         
-        return self::send($order['email'], $subject, $message, null, null, $attachments);
+        // Send FROM no-reply@thepembina.ca TO customer
+        return self::send($order['email'], $subject, $message, $fromEmail, $fromName, $attachments);
     }
 
     /**
@@ -249,6 +250,10 @@ class Email
      */
     public static function sendOrderInvoice($order)
     {
+        // Customer emails should come FROM no-reply@thepembina.ca
+        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'no-reply@thepembina.ca';
+        $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'The Pembina Pint and Restaurant';
+        
         $subject = "Order Invoice - {$order['order_number']} - Payment Required";
         
         // Build order items list
@@ -317,8 +322,8 @@ class Email
         </html>
         ";
         
-        // Send FROM no-reply@thepembina.ca TO customer
-        return self::send($order['email'], $subject, $message, $fromEmail, $fromName, $attachments);
+        // Send FROM no-reply@thepembina.ca TO customer (no attachments for invoice)
+        return self::send($order['email'], $subject, $message, $fromEmail, $fromName, []);
     }
 
     /**
