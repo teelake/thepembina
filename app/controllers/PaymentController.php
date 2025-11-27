@@ -232,7 +232,10 @@ class PaymentController extends Controller
             $this->redirect('/payment/success?order_id=' . $orderId);
         } else {
             // Payment failed
-            $errorMessage = $result['message'] ?? 'Payment processing failed';
+            $errorMessage = $result['message'] ?? ($result['error'] ?? 'Payment processing failed. Please try again.');
+            if (empty($errorMessage) || $errorMessage === 'undefined') {
+                $errorMessage = 'Payment processing failed. Please check your card details and try again.';
+            }
             error_log("PaymentController::process() - Payment failed for order {$orderId}: {$errorMessage}");
             error_log("PaymentController::process() - Full result: " . json_encode($result));
             

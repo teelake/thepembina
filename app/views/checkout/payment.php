@@ -218,7 +218,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('source-id').value = result.token;
                         this.submit();
                     } else {
-                        const errorMessage = result.errors && result.errors[0] ? result.errors[0].detail : 'Unknown error';
+                        let errorMessage = 'Payment processing failed. Please try again.';
+                        if (result.errors && result.errors.length > 0) {
+                            const firstError = result.errors[0];
+                            errorMessage = firstError.detail || firstError.message || firstError.code || errorMessage;
+                        } else if (result.message) {
+                            errorMessage = result.message;
+                        }
                         paymentStatus.innerHTML = 
                             '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Payment failed: ' + errorMessage + '</div>';
                         enablePayButton();
