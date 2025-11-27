@@ -276,10 +276,11 @@ class CheckoutController extends Controller
                 $orderWithItems = $this->orderModel->getWithItems($orderId);
                 if ($orderWithItems && !empty($orderWithItems['email'])) {
                     $emailSent = \App\Core\Email::sendOrderInvoice($orderWithItems);
+                    $orderNumber = $orderWithItems['order_number'] ?? ($orderData['order_number'] ?? 'N/A');
                     if (!$emailSent) {
-                        error_log("Order invoice email failed to send for order #{$orderData['order_number']} to {$orderWithItems['email']}");
+                        error_log("Order invoice email failed to send for order #{$orderNumber} to {$orderWithItems['email']}");
                     } else {
-                        error_log("Order invoice email sent successfully for order #{$orderData['order_number']} to {$orderWithItems['email']}");
+                        error_log("Order invoice email sent successfully for order #{$orderNumber} to {$orderWithItems['email']}");
                     }
                 } else {
                     error_log("Cannot send invoice email: Order email is empty for order ID {$orderId}");
@@ -295,10 +296,11 @@ class CheckoutController extends Controller
                 $orderWithItems = $this->orderModel->getWithItems($orderId);
                 if ($orderWithItems) {
                     $notificationSent = \App\Core\Email::sendOrderNotification($orderWithItems);
+                    $orderNumber = $orderWithItems['order_number'] ?? ($orderData['order_number'] ?? 'N/A');
                     if (!$notificationSent) {
-                        error_log("Order notification email failed to send for order #{$orderData['order_number']} to orders@thepembina.ca");
+                        error_log("Order notification email failed to send for order #{$orderNumber} to orders@thepembina.ca");
                     } else {
-                        error_log("Order notification email sent successfully for order #{$orderData['order_number']} to orders@thepembina.ca");
+                        error_log("Order notification email sent successfully for order #{$orderNumber} to orders@thepembina.ca");
                     }
                 }
             } catch (\Exception $e) {

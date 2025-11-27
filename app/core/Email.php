@@ -23,7 +23,8 @@ class Email
         $fromEmail = $fromEmail ?? (defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'no-reply@thepembina.ca');
         $fromName = $fromName ?? (defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'The Pembina Pint and Restaurant');
         
-        // Get SMTP settings from database or constants
+        // Get SMTP settings from database (prioritize) or constants
+        // Database settings take precedence so admin can update via backend
         $smtpHost = Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : '');
         $smtpUser = Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : '');
         
@@ -68,10 +69,11 @@ class Email
         // Simple SMTP implementation using socket
         // For production, consider using PHPMailer or SwiftMailer
         
-        $smtpHost = defined('SMTP_HOST') ? SMTP_HOST : Helper::getSetting('smtp_host', '');
-        $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : (int)Helper::getSetting('smtp_port', 587);
-        $smtpUser = defined('SMTP_USER') ? SMTP_USER : Helper::getSetting('smtp_user', '');
-        $smtpPass = defined('SMTP_PASS') ? SMTP_PASS : Helper::getSetting('smtp_pass', '');
+        // Prioritize database settings over constants (admin can update via backend)
+        $smtpHost = Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : '');
+        $smtpPort = (int)Helper::getSetting('smtp_port', defined('SMTP_PORT') ? SMTP_PORT : 587);
+        $smtpUser = Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : '');
+        $smtpPass = Helper::getSetting('smtp_pass', defined('SMTP_PASS') ? SMTP_PASS : '');
         
         $smtp = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 30);
         
