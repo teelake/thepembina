@@ -52,52 +52,27 @@ class ReceiptService
             $pdf->setCursor($circleY + 64); // Move cursor past the circle
             $pdf->addSpacing(25);
             
-            // Simple title - "Invoice" (like "Payment Successful!")
-            $pdf->addLine('Invoice', 24, $centerX, self::TEXT_MAIN, 'center');
+            // Title - "Payment Successful!" (exactly like payment success page)
+            $pdf->addLine('Payment Successful!', 24, $centerX, self::TEXT_MAIN, 'center');
             $pdf->addSpacing(8);
             $pdf->addLine('Thank you for your order', 12, $centerX, self::TEXT_MUTED, 'center');
             $pdf->addSpacing(25);
             
             // Order details in simple gray box (exactly like payment success page)
             $detailsY = $pdf->getCursor();
-            $boxPadding = 20;
+            $boxPadding = 24;
             $boxWidth = 480;
             $boxX = $centerX - ($boxWidth / 2);
             
-            // Calculate height needed
-            $detailsHeight = 100; // Base height for 4-5 items
+            // Calculate height needed for 4 items
+            $detailsHeight = 110;
             
             $pdf->addRectangle($boxX, $detailsY, $boxWidth, $detailsHeight, [0.96, 0.96, 0.96]); // Light gray background
             
             // Format order number
             $orderNumber = $order['order_number'] ?? $order['id'];
-            if (is_numeric($orderNumber)) {
-                $orderNumber = str_pad($orderNumber, 10, '0', STR_PAD_LEFT);
-            }
             
-            // Format date
-            $orderDate = $order['created_at'] ?? date('Y-m-d H:i:s');
-            if (is_string($orderDate)) {
-                $timestamp = strtotime($orderDate);
-                $formattedDate = $timestamp !== false ? date('M d, Y g:i A', $timestamp) : $orderDate;
-            } else {
-                $formattedDate = date('M d, Y g:i A');
-            }
-            
-            $detailsStartY = $detailsY + $boxPadding;
-            $pdf->setCursor($detailsStartY);
-            
-            // Simple key-value pairs (centered layout, like payment success page)
-            $leftX = $boxX + $boxPadding;
-            $rightX = $boxX + $boxWidth - $boxPadding;
-            $lineSpacing = 18;
-            
-            $pdf->addTableRow(['Order Number:', $orderNumber], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
-            $pdf->addSpacing($lineSpacing - 12);
-            $pdf->addTableRow(['Order Type:', ucfirst($order['order_type'] ?? 'pickup')], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
-            $pdf->addSpacing($lineSpacing - 12);
-            
-            // Total Amount - highlighted like payment success page
+            // Calculate totals
             $subtotal = isset($order['subtotal']) ? (float)$order['subtotal'] : 0;
             $taxAmount = isset($order['tax_amount']) ? (float)$order['tax_amount'] : 0;
             $shippingAmount = isset($order['shipping_amount']) ? (float)$order['shipping_amount'] : 0;
@@ -105,27 +80,36 @@ class ReceiptService
             $discount = isset($order['discount_amount']) ? (float)$order['discount_amount'] : 0;
             $grandTotal = $total - $discount;
             
-            $pdf->addTableRow(['Total Amount:', Helper::formatCurrency($grandTotal)], [$leftX, $rightX], 14, self::TEXT_MAIN, ['left', 'right']);
+            $detailsStartY = $detailsY + $boxPadding;
+            $pdf->setCursor($detailsStartY);
+            
+            // Simple key-value pairs (exactly like payment success page)
+            $leftX = $boxX + $boxPadding;
+            $rightX = $boxX + $boxWidth - $boxPadding;
+            $lineSpacing = 20;
+            
+            // Order Number
+            $pdf->addTableRow(['Order Number:', $orderNumber], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
             $pdf->addSpacing($lineSpacing - 12);
             
+            // Order Type
+            $pdf->addTableRow(['Order Type:', ucfirst($order['order_type'] ?? 'pickup')], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing($lineSpacing - 12);
+            
+            // Total Amount - highlighted in brand color (orange) like payment success page
+            $pdf->addTableRow(['Total Amount:', Helper::formatCurrency($grandTotal)], [$leftX, $rightX], 16, [0.957, 0.643, 0.376], ['left', 'right']); // Brand orange color
+            $pdf->addSpacing($lineSpacing - 12);
+            
+            // Payment Status - green if paid
             $paymentStatus = isset($order['payment_status']) ? ucfirst($order['payment_status']) : 'Pending';
             $statusColor = strtolower($paymentStatus) === 'paid' ? [0.2, 0.7, 0.3] : [0.85, 0.6, 0.2];
             $pdf->addTableRow(['Payment Status:', $paymentStatus], [$leftX, $rightX], 12, $statusColor, ['left', 'right']);
             
             $pdf->setCursor($detailsY + $detailsHeight);
-            $pdf->addSpacing(25);
-
-            // Items section - very simple, minimal design
-            $pdf->addLine('Order Items', 14, $centerX, self::TEXT_MAIN, 'center');
-            $pdf->addSpacing(12);
-            $this->addItemsTable($pdf, $order['items'] ?? []);
-            
-            $pdf->addSpacing(15);
+            $pdf->addSpacing(20);
             
             // Simple footer - centered like payment success page
             $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, $centerX, self::TEXT_MAIN, 'center');
-            $pdf->addSpacing(6);
-            $pdf->addLine('We look forward to serving you again.', 10, $centerX, self::TEXT_MUTED, 'center');
 
             return $pdf->output();
         } catch (\Exception $e) {

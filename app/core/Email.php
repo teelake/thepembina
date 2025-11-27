@@ -25,12 +25,14 @@ class Email
         
         // Get SMTP settings from database (prioritize) or constants
         // Database settings take precedence so admin can update via backend
-        $smtpHost = Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : '');
-        $smtpUser = Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : '');
+        $smtpHost = trim(Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : ''));
+        $smtpUser = trim(Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : ''));
+        $smtpPass = Helper::getSetting('smtp_pass', defined('SMTP_PASS') ? SMTP_PASS : '');
+        $smtpPass = trim($smtpPass);
         
         // Use PHP mail() function if SMTP not configured
-        if (empty($smtpHost) || empty($smtpUser)) {
-            self::logEmail("Email: Using PHP mail() - SMTP not configured. To: {$to}, Subject: {$subject}");
+        if (empty($smtpHost) || empty($smtpUser) || empty($smtpPass)) {
+            self::logEmail("Email: Using PHP mail() - SMTP not fully configured. To: {$to}, Subject: {$subject} | Host: " . ($smtpHost ?: 'empty') . ", User: " . ($smtpUser ?: 'empty') . ", Pass: " . ($smtpPass ? 'set' : 'empty'));
             $headerData = self::buildMailHeaders($fromName, $fromEmail, $attachments);
             $body = self::buildBody($message, $attachments, $headerData['boundary']);
             $headerString = $headerData['headers'];
@@ -47,10 +49,13 @@ class Email
         }
         
         // Use SMTP if configured
-        self::logEmail("Email: Using SMTP. To: {$to}, Subject: {$subject}");
+        self::logEmail("Email: Using SMTP. To: {$to}, Subject: {$subject} | From: {$fromEmail}");
         $result = self::sendSMTP($to, $subject, $message, $fromEmail, $fromName, $attachments);
         $status = $result ? 'SUCCESS' : 'FAILED';
         self::logEmail("Email sent via SMTP: {$status} | To: {$to}, Subject: {$subject}");
+        if (!$result) {
+            self::logEmail("SMTP Email FAILED - Check SMTP credentials in Email Settings. To: {$to}, Subject: {$subject}");
+        }
         return $result;
     }
     
