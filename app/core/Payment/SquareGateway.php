@@ -79,11 +79,47 @@ class SquareGateway extends BaseGateway
             ];
         }
 
-        $error = $response['data']['errors'][0]['detail'] ?? 'Payment processing failed';
+        // Extract detailed error information from Square response
+        $errorMessage = 'Payment processing failed';
+        $errorCode = '';
+        
+        if (isset($response['data']['errors']) && is_array($response['data']['errors']) && !empty($response['data']['errors'])) {
+            $error = $response['data']['errors'][0];
+            $errorCode = $error['code'] ?? '';
+            $errorDetail = $error['detail'] ?? '';
+            $errorCategory = $error['category'] ?? '';
+            
+            // Format user-friendly error messages
+            if ($errorCode === 'GENERIC_DECLINE') {
+                $errorMessage = "Authorization error: 'GENERIC_DECLINE'. This usually means the card was declined. Please check your card details or try a different card.";
+            } elseif ($errorCode === 'CVV_FAILURE') {
+                $errorMessage = "CVV verification failed. Please check your card's security code and try again.";
+            } elseif ($errorCode === 'ADDRESS_VERIFICATION_FAILURE') {
+                $errorMessage = "Address verification failed. Please check your billing address and try again.";
+            } elseif ($errorCode === 'INSUFFICIENT_FUNDS') {
+                $errorMessage = "Insufficient funds. Please use a different payment method.";
+            } elseif ($errorCode === 'CARD_NOT_SUPPORTED') {
+                $errorMessage = "This card type is not supported. Please use a different card.";
+            } elseif ($errorCode === 'EXPIRED_CARD') {
+                $errorMessage = "This card has expired. Please use a different card.";
+            } elseif ($errorCode === 'INVALID_EXPIRATION') {
+                $errorMessage = "Invalid card expiration date. Please check and try again.";
+            } elseif ($errorCode === 'INVALID_CARD') {
+                $errorMessage = "Invalid card number. Please check your card details and try again.";
+            } else {
+                $errorMessage = "Payment error: " . ($errorDetail ?: $errorCode ?: 'Unknown error');
+            }
+            
+            error_log("SquareGateway::processPayment() - Error code: {$errorCode}, Category: {$errorCategory}, Detail: {$errorDetail}");
+        } else {
+            error_log("SquareGateway::processPayment() - Unexpected response format: " . json_encode($response['data'] ?? []));
+        }
+        
         return [
             'success' => false,
-            'message' => $error,
-            'data' => $response['data']
+            'message' => $errorMessage,
+            'error_code' => $errorCode,
+            'data' => $response['data'] ?? []
         ];
     }
 

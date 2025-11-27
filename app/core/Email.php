@@ -170,6 +170,10 @@ class Email
      */
     public static function sendOrderConfirmation($order, array $attachments = [])
     {
+        // Customer emails should come FROM no-reply@thepembina.ca
+        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'no-reply@thepembina.ca';
+        $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'The Pembina Pint and Restaurant';
+        
         $subject = "Order Confirmation - {$order['order_number']}";
         
         // Build order items list
@@ -313,7 +317,8 @@ class Email
         </html>
         ";
         
-        return self::send($order['email'], $subject, $message);
+        // Send FROM no-reply@thepembina.ca TO customer
+        return self::send($order['email'], $subject, $message, $fromEmail, $fromName, $attachments);
     }
 
     /**
@@ -324,7 +329,10 @@ class Email
      */
     public static function sendOrderNotification($order)
     {
+        // Order notifications should go TO orders@thepembina.ca FROM no-reply@thepembina.ca
         $notificationEmail = 'orders@thepembina.ca';
+        $fromEmail = defined('SMTP_FROM_EMAIL') ? SMTP_FROM_EMAIL : 'no-reply@thepembina.ca';
+        $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'The Pembina Pint and Restaurant';
         $subject = "New Order Received - #{$order['order_number']}";
         
         // Build order items list
@@ -462,7 +470,8 @@ class Email
         </html>
         ";
         
-        return self::send($notificationEmail, $subject, $message);
+        // Send TO orders@thepembina.ca FROM no-reply@thepembina.ca
+        return self::send($notificationEmail, $subject, $message, $fromEmail, $fromName);
     }
 
     private static function buildMailHeaders(string $fromName, string $fromEmail, array $attachments, string $to = '', string $subject = ''): array
