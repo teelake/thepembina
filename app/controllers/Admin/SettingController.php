@@ -132,7 +132,6 @@ class SettingController extends Controller
             'smtp_host',
             'smtp_port',
             'smtp_user',
-            'smtp_pass',
             'smtp_from_email',
             'smtp_from_name'
         ];
@@ -141,6 +140,11 @@ class SettingController extends Controller
             if (isset($_POST[$field])) {
                 $this->settingModel->updateSetting($field, $_POST[$field]);
             }
+        }
+        
+        // Handle password separately - only update if provided (don't overwrite with empty)
+        if (isset($_POST['smtp_pass']) && !empty(trim($_POST['smtp_pass']))) {
+            $this->settingModel->updateSetting('smtp_pass', $_POST['smtp_pass']);
         }
         
         $this->redirect('/admin/settings/email?success=Email settings updated');

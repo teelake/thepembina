@@ -113,7 +113,10 @@ class Email
         $response = self::readResponse($smtp);
         
         if (strpos($response, '235') === false) {
-            self::logEmail("SMTP Authentication failed: {$response} | User: {$smtpUser}, Host: {$smtpHost}");
+            // Log error but don't expose password
+            $passLength = strlen($smtpPass);
+            $passSet = !empty($smtpPass) ? 'Yes' : 'No';
+            self::logEmail("SMTP Authentication failed: {$response} | User: {$smtpUser}, Host: {$smtpHost}, Password Set: {$passSet}, Password Length: {$passLength}");
             @fclose($smtp);
             return false;
         }
@@ -229,6 +232,14 @@ class Email
                     
                     " . (!empty($attachments) ? "<p style='margin-top: 15px;'><strong>📎 Your receipt is attached to this email.</strong></p>" : "") . "
                     
+                    <div style='margin: 20px 0; text-align: center;'>
+                        <a href='" . (defined('BASE_URL') ? BASE_URL : '') . "/track-order?order_number=" . urlencode($order['order_number']) . "&email=" . urlencode($order['email']) . "' 
+                           style='display: inline-block; padding: 12px 24px; background-color: #F4A460; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                            Track Your Order
+                        </a>
+                    </div>
+                    
+                    <p style='margin-top: 15px;'><strong>Current Status:</strong> " . ucfirst($order['status']) . "</p>
                     <p>We'll notify you when your order is ready!</p>
                 </div>
                 <div class='footer'>
@@ -314,6 +325,13 @@ class Email
                     </div>
                     
                     <p style='margin-top: 20px;'>Click the button above to complete your payment. Your order will be processed once payment is confirmed.</p>
+                    
+                    <div style='margin: 20px 0; text-align: center;'>
+                        <a href='" . (defined('BASE_URL') ? BASE_URL : '') . "/track-order?order_number=" . urlencode($order['order_number']) . "&email=" . urlencode($order['email']) . "' 
+                           style='display: inline-block; padding: 12px 24px; background-color: #8B4513; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;'>
+                            Track Your Order
+                        </a>
+                    </div>
                 </div>
                 <div class='footer'>
                     <p>The Pembina Pint and Restaurant<br>

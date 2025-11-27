@@ -54,6 +54,9 @@ $router->add('POST', 'payment/square/webhook', ['controller' => 'Payment', 'acti
 $router->add('GET', 'payment/success', ['controller' => 'Payment', 'action' => 'success']);
 $router->add('GET', 'payment/cancel', ['controller' => 'Payment', 'action' => 'cancel']);
 
+// Order tracking
+$router->add('GET', 'track-order', ['controller' => 'Order', 'action' => 'track']);
+
 // Customer account routes
 $router->add('GET', 'account', ['controller' => 'Account', 'action' => 'index']);
 $router->add('GET', 'account/orders', ['controller' => 'Account', 'action' => 'orders']);
