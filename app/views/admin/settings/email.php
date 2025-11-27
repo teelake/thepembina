@@ -71,9 +71,21 @@ function settingVal($settings, $key, $default = '')
                 <div class="form-group">
                     <label class="form-label">SMTP Password</label>
                     <input type="password" name="smtp_pass" class="form-input" 
-                           value="<?= htmlspecialchars(settingVal($settings, 'smtp_pass', '')) ?>"
-                           placeholder="Enter password">
-                    <p class="text-xs text-gray-500 mt-1">Your email account password</p>
+                           value="" 
+                           placeholder="Enter password to update (leave blank to keep current)">
+                    <p class="text-xs text-gray-500 mt-1">
+                        <?php if (!empty(settingVal($settings, 'smtp_pass', ''))): ?>
+                            <span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>Password is set</span> - Enter new password to update
+                        <?php else: ?>
+                            <span class="text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>Password not set</span> - Enter your email account password
+                        <?php endif; ?>
+                    </p>
+                    <?php if (!empty(settingVal($settings, 'smtp_pass', ''))): ?>
+                        <p class="text-xs text-yellow-600 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            If you're experiencing authentication errors, try re-entering the password to ensure it's correct.
+                        </p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -98,12 +110,17 @@ function settingVal($settings, $key, $default = '')
             </div>
         </div>
 
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <div class="flex items-start">
                 <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
                 <div class="text-sm text-yellow-800">
-                    <p class="font-semibold mb-1">Testing Your Email Settings</p>
-                    <p>After saving, place a test order to verify emails are being sent correctly. Check both inbox and spam folder.</p>
+                    <p class="font-semibold mb-1">Important Notes</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>If you see "SMTP Authentication failed: 535 Incorrect authentication data", verify your password is correct and re-enter it.</li>
+                        <li>Make sure there are no extra spaces before or after the password.</li>
+                        <li>Some email providers require app-specific passwords instead of your regular password.</li>
+                        <li>After saving, place a test order to verify emails are being sent correctly.</li>
+                    </ul>
                 </div>
             </div>
         </div>

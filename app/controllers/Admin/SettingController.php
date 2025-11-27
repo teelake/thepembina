@@ -144,7 +144,9 @@ class SettingController extends Controller
         
         // Handle password separately - only update if provided (don't overwrite with empty)
         if (isset($_POST['smtp_pass']) && !empty(trim($_POST['smtp_pass']))) {
-            $this->settingModel->updateSetting('smtp_pass', $_POST['smtp_pass']);
+            // Trim the password but preserve special characters
+            $password = trim($_POST['smtp_pass']);
+            $this->settingModel->updateSetting('smtp_pass', $password);
         }
         
         $this->redirect('/admin/settings/email?success=Email settings updated');

@@ -70,10 +70,19 @@ class Email
         // For production, consider using PHPMailer or SwiftMailer
         
         // Prioritize database settings over constants (admin can update via backend)
-        $smtpHost = Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : '');
+        $smtpHost = trim(Helper::getSetting('smtp_host', defined('SMTP_HOST') ? SMTP_HOST : ''));
         $smtpPort = (int)Helper::getSetting('smtp_port', defined('SMTP_PORT') ? SMTP_PORT : 587);
-        $smtpUser = Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : '');
+        $smtpUser = trim(Helper::getSetting('smtp_user', defined('SMTP_USER') ? SMTP_USER : ''));
         $smtpPass = Helper::getSetting('smtp_pass', defined('SMTP_PASS') ? SMTP_PASS : '');
+        
+        // Trim password but preserve special characters
+        $smtpPass = trim($smtpPass);
+        
+        // Validate required settings
+        if (empty($smtpHost) || empty($smtpUser) || empty($smtpPass)) {
+            self::logEmail("SMTP Configuration Error: Missing required settings | Host: " . ($smtpHost ?: 'empty') . ", User: " . ($smtpUser ?: 'empty') . ", Pass: " . ($smtpPass ? 'set' : 'empty'));
+            return false;
+        }
         
         $smtp = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 30);
         
@@ -106,9 +115,17 @@ class Email
             return false;
         }
 
+        // Send username
         fputs($smtp, base64_encode($smtpUser) . "\r\n");
         $response = self::readResponse($smtp);
+        
+        if (strpos($response, '334') === false) {
+            self::logEmail("SMTP Username not accepted: {$response} | User: {$smtpUser}");
+            @fclose($smtp);
+            return false;
+        }
 
+        // Send password (base64 encoded)
         fputs($smtp, base64_encode($smtpPass) . "\r\n");
         $response = self::readResponse($smtp);
         
@@ -116,7 +133,19 @@ class Email
             // Log error but don't expose password
             $passLength = strlen($smtpPass);
             $passSet = !empty($smtpPass) ? 'Yes' : 'No';
-            self::logEmail("SMTP Authentication failed: {$response} | User: {$smtpUser}, Host: {$smtpHost}, Password Set: {$passSet}, Password Length: {$passLength}");
+            $passPreview = $passLength > 0 ? (substr($smtpPass, 0, 1) . str_repeat('*', min($passLength - 1, 10)) . ($passLength > 11 ? '...' : '')) : 'empty';
+            
+            // Check for common error codes
+            $errorDetails = '';
+            if (strpos($response, '535') !== false) {
+                $errorDetails = ' - This usually means incorrect username or password. Please verify your SMTP credentials in Email Settings.';
+            } elseif (strpos($response, '534') !== false) {
+                $errorDetails = ' - Authentication mechanism not supported.';
+            } elseif (strpos($response, '504') !== false) {
+                $errorDetails = ' - Authentication mechanism not supported by server.';
+            }
+            
+            self::logEmail("SMTP Authentication failed: {$response}{$errorDetails} | User: {$smtpUser}, Host: {$smtpHost}, Port: {$smtpPort}, Password Set: {$passSet}, Password Length: {$passLength}, Password Preview: {$passPreview}");
             @fclose($smtp);
             return false;
         }
