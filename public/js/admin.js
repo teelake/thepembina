@@ -133,6 +133,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add any other admin-specific JavaScript here
 });
 
+// Toggle Settings Submenu
+function toggleSettingsMenu() {
+    const submenu = document.getElementById('settings-submenu');
+    const chevron = document.getElementById('settings-chevron');
+    if (submenu && chevron) {
+        submenu.classList.toggle('hidden');
+        chevron.classList.toggle('rotate-180');
+    }
+}
+
 // AJAX helper for admin
 function adminAjax(url, method = 'GET', data = null) {
     return fetch(url, {

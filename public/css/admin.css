@@ -13,6 +13,36 @@ main {
 /* Modern Sidebar - Fixed on Desktop */
 aside {
     transition: transform 0.3s ease;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* Sidebar Menu Items */
+aside nav ul li a {
+    position: relative;
+}
+
+aside nav ul li a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: #F4A460;
+    border-radius: 0 3px 3px 0;
+    transition: height 0.2s ease;
+}
+
+aside nav ul li a.bg-brand::before,
+aside nav ul li a:hover::before {
+    height: 60%;
+}
+
+/* Section Headers */
+aside nav ul li p {
+    font-weight: 700;
+    letter-spacing: 0.1em;
 }
 
 /* Desktop: Fixed sidebar */
@@ -27,22 +57,32 @@ aside {
         z-index: 40;
     }
     
-    /* Custom scrollbar for sidebar */
-    aside::-webkit-scrollbar {
-        width: 6px;
+    /* Custom scrollbar for sidebar - Modern Design */
+    .admin-sidebar::-webkit-scrollbar {
+        width: 8px;
     }
     
-    aside::-webkit-scrollbar-track {
-        background: #f1f1f1;
+    .admin-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
     }
     
-    aside::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
+    .admin-sidebar::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
     }
     
-    aside::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+    .admin-sidebar::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+        background-clip: padding-box;
+    }
+    
+    /* Firefox scrollbar */
+    .admin-sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
 }
 

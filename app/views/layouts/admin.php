@@ -71,152 +71,190 @@
         </button>
         
         <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg fixed left-0 top-0 h-screen overflow-y-auto z-40 md:block hidden" id="admin-sidebar">
+        <aside class="w-64 bg-gradient-to-b from-gray-50 to-white shadow-xl fixed left-0 top-0 h-screen overflow-y-auto z-40 md:block hidden admin-sidebar" id="admin-sidebar">
+            <!-- Sidebar Header -->
+            <div class="p-6 border-b border-gray-200 bg-white">
+                <div class="flex items-center">
+                    <img src="<?= BASE_URL ?>/public/images/logo.png" alt="Logo" class="h-10 w-10 rounded-lg mr-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Admin Panel</h2>
+                        <p class="text-xs text-gray-500">The Pembina Pint</p>
+                    </div>
+                </div>
+            </div>
+            
             <nav class="p-4">
-                <ul class="space-y-2">
+                <ul class="space-y-1">
+                    <!-- Dashboard -->
                     <li>
                         <a href="<?= BASE_URL ?>/admin" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'dashboard') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-tachometer-alt w-5 mr-3"></i>
-                            <span>Dashboard</span>
+                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'dashboard') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-tachometer-alt w-5 mr-3 text-center"></i>
+                            <span class="font-medium">Dashboard</span>
                         </a>
                     </li>
                     
-                    <li class="pt-4">
-                        <p class="px-4 text-xs font-semibold text-gray-500 uppercase">Products</p>
+                    <!-- Products Section -->
+                    <li class="pt-6">
+                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Products</p>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/products" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'products') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-box w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'products') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-box w-5 mr-3 text-center"></i>
                             <span>Products</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/categories" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'categories') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-folder w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'categories') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-folder w-5 mr-3 text-center"></i>
                             <span>Categories</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/navigation" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'navigation') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-bars w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'navigation') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-bars w-5 mr-3 text-center"></i>
                             <span>Navigation</span>
                         </a>
                     </li>
                     
-                    <li class="pt-4">
-                        <p class="px-4 text-xs font-semibold text-gray-500 uppercase">Orders</p>
+                    <!-- Orders Section -->
+                    <li class="pt-6">
+                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Orders</p>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/orders" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'orders') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-shopping-cart w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'orders') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-shopping-cart w-5 mr-3 text-center"></i>
                             <span>Orders</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/transactions" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'transactions') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-receipt w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'transactions') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-receipt w-5 mr-3 text-center"></i>
                             <span>Transactions</span>
                         </a>
                     </li>
                     
                     <?php if (in_array($_SESSION['user_role'] ?? '', ['super_admin', 'admin'])): ?>
-                    <li class="pt-4">
-                        <p class="px-4 text-xs font-semibold text-gray-500 uppercase">Management</p>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/roles" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'roles') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-user-shield w-5 mr-3"></i>
-                            <span>Roles</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/permissions" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'permissions') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-key w-5 mr-3"></i>
-                            <span>Permissions</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/users" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'users') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-users w-5 mr-3"></i>
-                            <span>Users</span>
-                        </a>
+                    <!-- Content Management Section -->
+                    <li class="pt-6">
+                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Content</p>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/pages" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'pages') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-file-alt w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'pages') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-file-alt w-5 mr-3 text-center"></i>
                             <span>Pages</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/hero-slides" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-images w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'hero_slides') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-images w-5 mr-3 text-center"></i>
                             <span>Hero Slider</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/testimonials" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'testimonials') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-comment-dots w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'testimonials') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-comment-dots w-5 mr-3 text-center"></i>
                             <span>Testimonials</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/events" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'events') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-calendar-alt w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'events') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-calendar-alt w-5 mr-3 text-center"></i>
                             <span>Events</span>
                         </a>
                     </li>
                     <li>
                         <a href="<?= BASE_URL ?>/admin/newsletter" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'newsletter') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-envelope-open-text w-5 mr-3"></i>
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'newsletter') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-envelope-open-text w-5 mr-3 text-center"></i>
                             <span>Newsletter</span>
                         </a>
                     </li>
+                    
+                    <!-- System Management Section -->
+                    <li class="pt-6">
+                        <p class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">System</p>
+                    </li>
                     <li>
-                        <a href="<?= BASE_URL ?>/admin/settings" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'settings') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-cog w-5 mr-3"></i>
-                            <span>Settings</span>
+                        <a href="<?= BASE_URL ?>/admin/users" 
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'users') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-users w-5 mr-3 text-center"></i>
+                            <span>Users</span>
                         </a>
                     </li>
                     <li>
-                        <a href="<?= BASE_URL ?>/admin/settings/payment" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'payment') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-credit-card w-5 mr-3"></i>
-                            <span>Payment Settings</span>
+                        <a href="<?= BASE_URL ?>/admin/roles" 
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'roles') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-user-shield w-5 mr-3 text-center"></i>
+                            <span>Roles</span>
                         </a>
                     </li>
                     <li>
-                        <a href="<?= BASE_URL ?>/admin/settings/email" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'email') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-envelope w-5 mr-3"></i>
-                            <span>Email Settings</span>
+                        <a href="<?= BASE_URL ?>/admin/permissions" 
+                           class="flex items-center px-4 py-2.5 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 <?= (isset($current_page) && $current_page === 'permissions') ? 'bg-brand text-white shadow-md' : 'text-gray-700 hover:shadow-sm' ?>">
+                            <i class="fas fa-key w-5 mr-3 text-center"></i>
+                            <span>Permissions</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>/admin/settings/whatsapp" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'whatsapp') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fab fa-whatsapp w-5 mr-3"></i>
-                            <span>WhatsApp Settings</span>
-                        </a>
-                        <a href="<?= BASE_URL ?>/admin/settings/tax" 
-                           class="flex items-center px-4 py-3 rounded-lg hover:bg-brand hover:text-white transition <?= (isset($current_page) && $current_page === 'tax') ? 'bg-brand text-white' : 'text-gray-700' ?>">
-                            <i class="fas fa-percent w-5 mr-3"></i>
-                            <span>Tax Settings</span>
-                        </a>
+                    
+                    <!-- Settings Section (Collapsible) -->
+                    <?php 
+                    $isSettingsPage = in_array($current_page ?? '', ['settings', 'payment', 'email', 'whatsapp', 'tax']);
+                    ?>
+                    <li class="pt-6">
+                        <button onclick="toggleSettingsMenu()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-cog w-5 mr-3 text-center"></i>
+                                <span class="font-medium">Settings</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 <?= $isSettingsPage ? 'rotate-180' : '' ?>" id="settings-chevron"></i>
+                        </button>
+                        <ul id="settings-submenu" class="mt-1 space-y-1 <?= $isSettingsPage ? '' : 'hidden' ?>">
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/settings" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'settings') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-cog w-4 mr-2 text-center"></i>
+                                    <span>General</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/settings/payment" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'payment') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-credit-card w-4 mr-2 text-center"></i>
+                                    <span>Payment</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/settings/email" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'email') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-envelope w-4 mr-2 text-center"></i>
+                                    <span>Email</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/settings/tax" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'tax') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fas fa-percent w-4 mr-2 text-center"></i>
+                                    <span>Tax</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= BASE_URL ?>/admin/settings/whatsapp" 
+                                   class="flex items-center px-4 py-2 pl-12 rounded-lg hover:bg-brand hover:text-white transition-all duration-200 text-sm <?= (isset($current_page) && $current_page === 'whatsapp') ? 'bg-brand text-white shadow-md' : 'text-gray-600 hover:shadow-sm' ?>">
+                                    <i class="fab fa-whatsapp w-4 mr-2 text-center"></i>
+                                    <span>WhatsApp</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <?php endif; ?>
                 </ul>
