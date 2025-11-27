@@ -101,7 +101,7 @@ class SettingController extends Controller
         $this->render('admin/settings/tax', [
             'taxRates' => $this->taxCalculator->getAllTaxRates(),
             'page_title' => 'Tax Settings',
-            'current_page' => 'settings',
+            'current_page' => 'tax',
             'csrfField' => $this->csrf->getTokenField()
         ]);
     }
