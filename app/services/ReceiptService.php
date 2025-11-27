@@ -24,30 +24,44 @@ class ReceiptService
             $logoPath = defined('PUBLIC_PATH') ? PUBLIC_PATH . '/images/logo.png' : __DIR__ . '/../../public/images/logo.png';
             $currentTop = $pdf->getCursor();
             
-            // Header accent bars
-            $pdf->addRectangle(40, $currentTop + 28, 70, 10, self::THEME_COLOR);
-            $pdf->addRectangle(540, $currentTop + 10, 50, 10, self::THEME_COLOR);
-            
-            // Business name header
-            $pdf->addLine('THE PEMBINA PINT & RESTAURANT', 16, 40, self::TEXT_MAIN);
-            $pdf->addSpacing(10);
-            
-            // Logo on the right
-            if (file_exists($logoPath)) {
-                $pdf->addImage($logoPath, 460, $currentTop + 20, 100);
-            }
-
             $businessName = defined('BUSINESS_NAME') ? BUSINESS_NAME : 'The Pembina Pint and Restaurant';
             $businessPhone = defined('BUSINESS_PHONE') ? BUSINESS_PHONE : '';
             $businessEmail = defined('BUSINESS_EMAIL') ? BUSINESS_EMAIL : 'no-reply@thepembina.ca';
-
-            $pdf->addTableRow(['Invoice', ''], self::HEADER_COLS, 24, self::TEXT_MAIN);
-            // Format order number - if it's numeric, pad it; otherwise use as-is
+            
+            // Modern header with logo - centered design like payment success page
+            $headerY = $currentTop + 20;
+            
+            // Add logo prominently at the top center
+            if (file_exists($logoPath)) {
+                $logoX = 250; // Center of page (approximately)
+                $pdf->addImage($logoPath, $logoX, $headerY, 100);
+                $headerY += 110; // Space after logo
+            }
+            
+            // Business name header - centered, larger
+            $pdf->addLine($businessName, 20, 306, self::TEXT_MAIN, 'center'); // 306 is center of page (612/2)
+            $pdf->addSpacing(8);
+            
+            // Success indicator (like payment success page) - green checkmark circle
+            $successY = $pdf->getCursor();
+            $circleX = 276; // Center of page minus half circle width (306 - 30)
+            $pdf->addRectangle($circleX, $successY, 60, 60, [0.2, 0.7, 0.3]); // Green circle background
+            $pdf->addLine('✓', 36, 306, [1, 1, 1], 'center'); // White checkmark centered
+            $pdf->addSpacing(70);
+            
+            // Invoice title - centered
+            $pdf->addLine('Invoice', 18, 306, self::TEXT_MAIN, 'center');
+            $pdf->addSpacing(12);
+            
+            // Order details section - styled like payment success page
+            $detailsY = $pdf->getCursor();
+            $pdf->addRectangle(40, $detailsY, 520, 100, [0.95, 0.95, 0.95]); // Light gray background
+            
+            // Format order number
             $orderNumber = $order['order_number'] ?? $order['id'];
             if (is_numeric($orderNumber)) {
                 $orderNumber = str_pad($orderNumber, 10, '0', STR_PAD_LEFT);
             }
-            $pdf->addTableRow(['Order #: ' . $orderNumber, ''], self::HEADER_COLS, 14, self::TEXT_MUTED);
             
             // Format date properly
             $orderDate = $order['created_at'] ?? date('Y-m-d H:i:s');
@@ -58,22 +72,35 @@ class ReceiptService
                 $formattedDate = date('M d, Y g:i A');
             }
             
-            $pdf->addTableRow([
-                'Date: ' . $formattedDate,
-                'Support: ' . $businessEmail
-            ], self::HEADER_COLS, 10, self::TEXT_MUTED, ['left', 'right']);
-            $pdf->addTableRow([
-                'Order Type: ' . ucfirst($order['order_type'] ?? 'pickup'),
-                !empty($businessPhone) ? 'Phone: ' . $businessPhone : ''
-            ], self::HEADER_COLS, 10, self::TEXT_MUTED, ['left', 'right']);
-            $pdf->addSpacing(8);
-            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(8);
+            $detailsStartY = $detailsY + 15;
+            $pdf->setCursor($detailsStartY);
+            
+            // Order details in centered format
+            $pdf->addTableRow(['Order Number:', $orderNumber], [200, 360], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addTableRow(['Order Type:', ucfirst($order['order_type'] ?? 'pickup')], [200, 360], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addTableRow(['Date:', $formattedDate], [200, 360], 12, self::TEXT_MAIN, ['left', 'right']);
+            
+            $paymentStatus = isset($order['payment_status']) ? ucfirst($order['payment_status']) : 'Pending';
+            $statusColor = strtolower($paymentStatus) === 'paid' ? [0.2, 0.7, 0.3] : [0.85, 0.6, 0.2];
+            $pdf->addTableRow(['Payment Status:', $paymentStatus], [200, 360], 12, $statusColor, ['left', 'right']);
+            
+            $pdf->setCursor($detailsY + 100);
+            $pdf->addSpacing(15);
 
+            // Address section - styled like payment success page
+            $addressY = $pdf->getCursor();
+            $pdf->addLine('Customer Information', 14, 40, self::TEXT_MAIN);
+            $pdf->addSpacing(8);
+            
             $billingAddress = $this->formatAddress(json_decode($order['billing_address'] ?? '[]', true), 'Billing');
             $shippingData = $order['shipping_address'] ? json_decode($order['shipping_address'], true) : null;
             $shippingAddress = $this->formatAddress($shippingData, $order['order_type'] === 'delivery' ? 'Delivery' : 'Pickup');
 
+            // Address in a cleaner format
+            $addressBgY = $pdf->getCursor();
+            $addressHeight = (max(count($billingAddress), count($shippingAddress)) * 12) + 30;
+            $pdf->addRectangle(40, $addressBgY, 520, $addressHeight, [0.98, 0.98, 0.98]); // Very light gray
+            
             $pdf->addTableRow(['Billing Address', 'Shipping Address'], self::ADDRESS_COLS, 12, self::TEXT_MAIN);
             $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
             $maxLines = max(count($billingAddress), count($shippingAddress));
@@ -83,12 +110,12 @@ class ReceiptService
                     $shippingAddress[$i] ?? ''
                 ], self::ADDRESS_COLS, 10, self::TEXT_MUTED);
             }
-            $pdf->addSpacing(10);
-            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(8);
+            $pdf->setCursor($addressBgY + $addressHeight);
+            $pdf->addSpacing(15);
 
-            $pdf->addLine('Items', 14, 40, self::TEXT_MAIN);
-            $pdf->addSpacing(4);
+            // Items section header
+            $pdf->addLine('Order Items', 14, 40, self::TEXT_MAIN);
+            $pdf->addSpacing(8);
             $this->addItemsTable($pdf, $order['items'] ?? []);
 
             $subtotal = isset($order['subtotal']) ? (float)$order['subtotal'] : 0;
@@ -135,23 +162,34 @@ class ReceiptService
                 $this->addPaymentsTable($pdf, $payments);
             }
 
-            $pdf->addSpacing(12);
-            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(8);
+            $pdf->addSpacing(15);
             
-            // Payment method and status
+            // Payment method and status - styled section
+            $paymentInfoY = $pdf->getCursor();
+            $pdf->addRectangle(40, $paymentInfoY, 520, 50, [0.95, 0.95, 0.95]); // Light gray background
+            $pdf->setCursor($paymentInfoY + 15);
+            
             $paymentMethod = !empty($payments) ? ucfirst($payments[0]['gateway'] ?? 'Cash') : 'Cash';
             $orderStatus = isset($order['status']) ? ucfirst($order['status']) : 'Completed';
             $pdf->addTableRow(['Payment Method:', $paymentMethod], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
-            $pdf->addTableRow(['Status:', $orderStatus], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addTableRow(['Order Status:', $orderStatus], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
             
-            $pdf->addSpacing(10);
-            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(8);
-            $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, 120, self::TEXT_MAIN);
-            $pdf->addLine('We look forward to serving you again.', 11, 120, self::TEXT_MUTED);
+            $pdf->setCursor($paymentInfoY + 50);
+            $pdf->addSpacing(20);
+            
+            // Footer - centered like payment success page
+            $pdf->addLine('Thank you for choosing ' . $businessName . '!', 14, 306, self::TEXT_MAIN, 'center');
             $pdf->addSpacing(6);
-            $pdf->addLine('Please note that depending on availability, your order will be ready within the advised window.', 9, 40, self::TEXT_MUTED);
+            $pdf->addLine('We look forward to serving you again.', 11, 306, self::TEXT_MUTED, 'center');
+            $pdf->addSpacing(8);
+            
+            // Business contact info - centered
+            if (!empty($businessPhone)) {
+                $pdf->addLine('Phone: ' . $businessPhone, 10, 306, self::TEXT_MUTED, 'center');
+            }
+            $pdf->addLine('Email: ' . $businessEmail, 10, 306, self::TEXT_MUTED, 'center');
+            $pdf->addSpacing(6);
+            $pdf->addLine('Please note that depending on availability, your order will be ready within the advised window.', 9, 306, self::TEXT_MUTED, 'center');
 
             return $pdf->output();
         } catch (\Exception $e) {
