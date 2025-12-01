@@ -15,10 +15,21 @@ class SimplePdf
         $this->cursorY = $this->pageHeight - 40;
     }
 
-    public function addLine(string $text, int $fontSize = 12, int $x = 40, array $color = [0, 0, 0], bool $rightAlign = false): void
+    public function addLine(string $text, int $fontSize = 12, int $x = 40, array $color = [0, 0, 0], $align = false): void
     {
-        if ($rightAlign) {
-            $x = $this->calculateRightAlignedX($text, $fontSize, $x);
+        // Support both old boolean rightAlign and new string alignment ('left', 'right', 'center')
+        if (is_bool($align)) {
+            // Legacy boolean support
+            if ($align) {
+                $x = $this->calculateRightAlignedX($text, $fontSize, $x);
+            }
+        } elseif (is_string($align)) {
+            // New string-based alignment
+            if ($align === 'right') {
+                $x = $this->calculateRightAlignedX($text, $fontSize, $x);
+            } elseif ($align === 'center') {
+                $x = $this->calculateCenteredX($text, $fontSize, $x);
+            }
         }
 
         $this->elements[] = [
