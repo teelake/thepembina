@@ -153,7 +153,7 @@ class CheckoutController extends Controller
             $rules['shipping_province'] = 'required';
             $rules['shipping_postal_code'] = 'required';
         }
-        
+
         if ($orderType === 'pickup') {
             $rules['pickup_time'] = 'required';
         }
