@@ -79,8 +79,8 @@ class ReceiptService
             
             // ===== NOTICE BOX (Green background) =====
             $noticeBoxY = $pdf->getCursor();
-            $noticePadding = 15; // Increased padding for green container
-            $noticeBoxHeight = 60; // Increased height to accommodate increased padding
+            $noticeBoxHeight = 55; // Optimized height to fit text without overlap
+            $noticePadding = 10;
             $positions['notice'] = ['top' => $noticeBoxY, 'bottom' => $noticeBoxY - $noticeBoxHeight];
             
             // Draw notice background and border FIRST
@@ -154,7 +154,7 @@ class ReceiptService
                 // Position cursor for first item row
                 $pdf->setCursor($tableHeaderY - $tableHeaderHeight - 6);
                 
-                // Items rows (properly aligned with increased padding)
+                // Items rows (properly aligned)
                 foreach ($order['items'] as $item) {
                     $productName = htmlspecialchars($item['product_name'] ?? 'Unknown Product');
                     $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
@@ -165,7 +165,7 @@ class ReceiptService
                     
                     $pdf->addTableRow([$itemText, $priceText], [$infoLeftX, $infoRightX], 11, self::TEXT_MAIN, ['left', 'right']);
                     $pdf->addHorizontalRule($margin, $contentWidth, 0.5, self::BORDER_LIGHT);
-                    $pdf->addSpacing(10); // Increased spacing between item rows
+                    $pdf->addSpacing(6);
                 }
             }
             
