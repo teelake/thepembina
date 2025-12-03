@@ -76,52 +76,31 @@ $content = ob_start();
     </div>
 </div>
 
-<!-- Charts Section - Enhanced Design -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Revenue & Orders Trend Chart -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-brand to-brand-dark px-6 py-4">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-white">Revenue & Orders Trend</h2>
-                    <p class="text-sm text-white/80 mt-1">Showing <?= htmlspecialchars($chartData['rangeLabel']) ?></p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <?php foreach ($rangeOptions as $key => $option): ?>
-                        <a href="<?= BASE_URL ?>/admin?range=<?= $key ?>"
-                           class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 <?= $range === $key ? 'bg-white text-brand shadow-md' : 'bg-white/20 text-white hover:bg-white/30' ?>">
-                            <?= htmlspecialchars($option['label']) ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
+<!-- Revenue & Orders Trend - Full Width Chart -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-brand to-brand-dark px-6 py-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-white">Revenue & Orders Trend</h2>
+                <p class="text-sm text-white/80 mt-1">Showing <?= htmlspecialchars($chartData['rangeLabel']) ?> - Hover over data points to see details</p>
             </div>
-        </div>
-        <div class="p-6 bg-gray-50">
-            <canvas id="ordersRevenueChart" class="w-full" style="height: 320px;"></canvas>
+            <div class="flex flex-wrap gap-2">
+                <?php foreach ($rangeOptions as $key => $option): ?>
+                    <a href="<?= BASE_URL ?>/admin?range=<?= $key ?>"
+                       class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 <?= $range === $key ? 'bg-white text-brand shadow-md' : 'bg-white/20 text-white hover:bg-white/30' ?>">
+                        <?= htmlspecialchars($option['label']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
-
-    <!-- Order Type Breakdown Chart -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-bold text-white">Order Type Breakdown</h2>
-                    <p class="text-sm text-white/80 mt-1"><?= htmlspecialchars($chartData['rangeLabel']) ?></p>
-                </div>
-                <div class="bg-white/20 rounded-lg p-2">
-                    <i class="fas fa-chart-bar text-2xl text-white"></i>
-                </div>
-            </div>
-        </div>
-        <div class="p-6 bg-gray-50">
-            <canvas id="orderTypeChart" class="w-full" style="height: 320px;"></canvas>
-        </div>
+    <div class="p-6 bg-gray-50">
+        <canvas id="ordersRevenueChart" class="w-full" style="height: 400px;"></canvas>
     </div>
 </div>
 
-<!-- Today's Activity & Top Products Section -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<!-- Today's Activity & Order Type Breakdown - Side by Side -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Today's Activity Card -->
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 px-6 py-4">
@@ -158,44 +137,62 @@ $content = ob_start();
         </div>
     </div>
     
-    <!-- Top Selling Products Card -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
-            <h2 class="text-xl font-bold text-white flex items-center">
-                <i class="fas fa-fire mr-2"></i>
-                Top Selling Products
-            </h2>
+    <!-- Order Type Breakdown Chart - Smaller -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Order Type Breakdown</h2>
+                    <p class="text-sm text-white/80 mt-1"><?= htmlspecialchars($chartData['rangeLabel']) ?> - Hover over bars for details</p>
+                </div>
+                <div class="bg-white/20 rounded-lg p-2">
+                    <i class="fas fa-chart-bar text-2xl text-white"></i>
+                </div>
+            </div>
         </div>
-        <div class="p-6">
-            <?php if (!empty($topProducts)): ?>
-                <div class="space-y-3">
-                    <?php foreach ($topProducts as $index => $product): ?>
-                        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200">
-                            <div class="flex items-center flex-1 min-w-0">
-                                <div class="flex-shrink-0 w-10 h-10 bg-brand rounded-lg flex items-center justify-center mr-3 font-bold text-white">
-                                    <?= $index + 1 ?>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-gray-900 truncate"><?= htmlspecialchars($product['name']) ?></p>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        <i class="fas fa-check-circle text-emerald-500 mr-1"></i>
-                                        <?= number_format($product['total_sold']) ?> sold
-                                    </p>
-                                </div>
+        <div class="p-6 bg-gray-50">
+            <canvas id="orderTypeChart" class="w-full" style="height: 280px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Selling Products -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+        <h2 class="text-xl font-bold text-white flex items-center">
+            <i class="fas fa-fire mr-2"></i>
+            Top Selling Products
+        </h2>
+    </div>
+    <div class="p-6">
+        <?php if (!empty($topProducts)): ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <?php foreach ($topProducts as $index => $product): ?>
+                    <div class="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200">
+                        <div class="flex items-center flex-1 min-w-0">
+                            <div class="flex-shrink-0 w-10 h-10 bg-brand rounded-lg flex items-center justify-center mr-3 font-bold text-white">
+                                <?= $index + 1 ?>
                             </div>
-                            <div class="ml-4 flex-shrink-0">
-                                <span class="font-bold text-lg text-brand"><?= Helper::formatCurrency($product['revenue']) ?></span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-gray-900 truncate"><?= htmlspecialchars($product['name']) ?></p>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <i class="fas fa-check-circle text-emerald-500 mr-1"></i>
+                                    <?= number_format($product['total_sold']) ?> sold
+                                </p>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <div class="text-center py-8">
-                    <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-500">No sales data yet</p>
-                </div>
-            <?php endif; ?>
-        </div>
+                        <div class="ml-4 flex-shrink-0">
+                            <span class="font-bold text-lg text-brand"><?= Helper::formatCurrency($product['revenue']) ?></span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <div class="text-center py-8">
+                <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500">No sales data yet</p>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -320,7 +317,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     { label: 'Revenue', data: chartData.revenue, color: '#8B4513' },
                     { label: 'Orders', data: chartData.orders, color: '#F4A460', secondary: true }
                 ],
-                ySuffix: '$'
+                ySuffix: '$',
+                maxLabels: 15
             });
         }
 
