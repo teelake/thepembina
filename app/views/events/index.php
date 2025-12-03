@@ -108,7 +108,9 @@ $content = ob_start();
                             <div class="w-full md:w-56">
                                 <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($event['image']) ?>"
                                      alt="<?= htmlspecialchars($event['title']) ?>"
-                                     class="w-full h-40 md:h-32 object-cover rounded-xl shadow-sm">
+                                     class="w-full h-40 md:h-32 object-cover rounded-xl shadow-sm"
+                                     loading="lazy"
+                                     decoding="async">
                             </div>
                         <?php endif; ?>
                     </article>

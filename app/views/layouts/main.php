@@ -5,7 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= isset($meta_description) ? htmlspecialchars($meta_description) : 'The Pembina Pint and Restaurant - Authentic African and Nigerian Cuisine in Morden, Manitoba' ?>">
     <meta name="keywords" content="African food, Nigerian restaurant, Morden, Manitoba, catering, bar">
+    <meta name="robots" content="index,follow">
     <title><?= isset($page_title) ? htmlspecialchars($page_title) . ' - ' : '' ?>The Pembina Pint and Restaurant</title>
+    <?php
+        // Canonical URL and Open Graph tags for SEO
+        $requestPath = $_SERVER['REQUEST_URI'] ?? '/';
+        // Strip query string
+        $requestPath = strtok($requestPath, '?');
+        $canonicalUrl = rtrim(BASE_URL . $requestPath, '/');
+        if ($canonicalUrl === BASE_URL) {
+            $canonicalUrl = BASE_URL . '/';
+        }
+        $ogTitle = isset($page_title)
+            ? htmlspecialchars($page_title) . ' - The Pembina Pint and Restaurant'
+            : 'The Pembina Pint and Restaurant';
+        $ogDescription = isset($meta_description)
+            ? htmlspecialchars($meta_description)
+            : 'The Pembina Pint and Restaurant - Authentic African and Nigerian Cuisine in Morden, Manitoba';
+    ?>
+    <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
+    <meta property="og:title" content="<?= $ogTitle ?>">
+    <meta property="og:description" content="<?= $ogDescription ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
+    <meta property="og:image" content="<?= BASE_URL ?>/public/images/logo.png">
     
     <!-- Tailwind CSS (local copy) -->
     <script src="<?= BASE_URL ?>/public/js/tailwindcdn.js"></script>
@@ -361,7 +384,7 @@ if (!$customNavEnabled) {
                     &copy; <?= date('Y') ?> The Pembina Pint and Restaurant. All rights reserved.
                 </p>
                 <p class="text-gray-400 mt-2">
-                    Website designed by <a href="https://www.webspace.ng" target="_blank" rel="noopener noreferrer" class="text-brand hover:text-brand-dark transition">Webspace</a>
+                    Website designed and developed by <a href="https://www.webspace.ng" target="_blank" rel="noopener noreferrer" class="text-brand hover:text-brand-dark transition">Webspace</a>
                 </p>
             </div>
         </div>

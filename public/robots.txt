@@ -1,0 +1,6 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://thepembina.ca/sitemap.xml
+
+

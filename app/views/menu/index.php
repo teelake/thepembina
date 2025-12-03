@@ -32,7 +32,9 @@ $content = ob_start();
                     <div class="relative h-48 overflow-hidden">
                         <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>" 
                              alt="<?= htmlspecialchars($product['name']) ?>" 
-                             class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
+                             class="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                             loading="lazy"
+                             decoding="async">
                         <div class="absolute top-2 right-2 bg-brand text-white px-3 py-1 rounded-full text-sm font-semibold">
                             Featured
                         </div>
@@ -98,7 +100,9 @@ $content = ob_start();
                     <div class="mb-4 overflow-hidden rounded-lg">
                         <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($category['image']) ?>" 
                              alt="<?= htmlspecialchars($category['name']) ?>" 
-                             class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300">
+                             class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300"
+                             loading="lazy"
+                             decoding="async">
                     </div>
                 <?php else: ?>
                     <div class="mb-4 h-32 bg-gradient-to-br from-brand/30 to-brand-dark/30 rounded-lg flex items-center justify-center group-hover:from-brand/50 group-hover:to-brand-dark/50 transition-all">

@@ -163,7 +163,9 @@ $content = ob_start();
                             <?php if ($related['image']): ?>
                                 <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($related['image']) ?>" 
                                      alt="<?= htmlspecialchars($related['name']) ?>" 
-                                     class="w-full h-40 object-cover">
+                                     class="w-full h-40 object-cover"
+                                     loading="lazy"
+                                     decoding="async">
                             <?php else: ?>
                                 <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
                                     <i class="fas fa-utensils text-4xl text-gray-400"></i>

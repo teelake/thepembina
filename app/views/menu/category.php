@@ -205,7 +205,9 @@ $currentMaxPrice = isset($filters['max_price']) ? (float)$filters['max_price'] :
                                 <div class="relative h-48 overflow-hidden">
                                     <img src="<?= BASE_URL ?>/public/<?= htmlspecialchars($product['image']) ?>"
                                          alt="<?= htmlspecialchars($product['name']) ?>" 
-                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                         loading="lazy"
+                                         decoding="async">
                                     <?php if ($product['is_featured']): ?>
                                         <div class="absolute top-2 right-2 bg-brand text-white px-2 py-1 rounded-full text-xs font-semibold">
                                             ⭐ Featured
