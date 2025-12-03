@@ -384,7 +384,7 @@ if (!$customNavEnabled) {
                     &copy; <?= date('Y') ?> The Pembina Pint and Restaurant. All rights reserved.
                 </p>
                 <p class="text-gray-400 mt-2">
-                    Website designed and developed by <a href="https://www.webspace.ng" target="_blank" rel="noopener noreferrer" class="text-brand hover:text-brand-dark transition">Webspace</a>
+                    Developed by <a href="https://www.webspace.ng" target="_blank" rel="noopener noreferrer" class="text-brand hover:text-brand-dark transition">Webspace</a>
                 </p>
             </div>
         </div>
