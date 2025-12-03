@@ -292,13 +292,20 @@ $content = ob_start();
                     </h2>
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-gray-700">
-                            Preferred Pickup Time
+                            Preferred Pickup Time <span class="text-red-500">*</span>
                         </label>
-                        <input type="datetime-local" name="pickup_time" 
+                        <input type="datetime-local" name="pickup_time" id="pickup_time" required
+                               min="<?= date('Y-m-d\TH:i', strtotime('+30 minutes')) ?>"
+                               max="<?= date('Y-12-31\T23:59') ?>"
+                               value="<?= htmlspecialchars($formData['pickup_time'] ?? '') ?>"
                                class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-brand focus:border-brand transition">
                         <p class="text-sm text-gray-600 mt-2 flex items-center">
                             <i class="fas fa-info-circle mr-2"></i>
-                            We'll prepare your order for this time. Please allow at least 30 minutes.
+                            We'll prepare your order for this time. Please allow at least 30 minutes from now.
+                        </p>
+                        <p id="pickup-time-error" class="text-sm text-red-600 mt-2 hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span id="pickup-time-error-text"></span>
                         </p>
                     </div>
                 </div>
@@ -465,8 +472,76 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Pickup time validation
+    const pickupTimeInput = document.getElementById('pickup_time');
+    const pickupTimeError = document.getElementById('pickup-time-error');
+    const pickupTimeErrorText = document.getElementById('pickup-time-error-text');
+    
+    function validatePickupTime() {
+        if (!pickupTimeInput || pickupSection.style.display === 'none') {
+            return true; // Not required if pickup section is hidden
+        }
+        
+        const selectedTime = pickupTimeInput.value;
+        if (!selectedTime) {
+            pickupTimeError.classList.remove('hidden');
+            pickupTimeErrorText.textContent = 'Please select a pickup time.';
+            return false;
+        }
+        
+        const selectedDate = new Date(selectedTime);
+        const now = new Date();
+        const minTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+        const currentYear = now.getFullYear();
+        const selectedYear = selectedDate.getFullYear();
+        
+        // Check if year is current year
+        if (selectedYear !== currentYear) {
+            pickupTimeError.classList.remove('hidden');
+            pickupTimeErrorText.textContent = `Please select a date in ${currentYear} only.`;
+            pickupTimeInput.setCustomValidity(`Please select a date in ${currentYear} only.`);
+            return false;
+        }
+        
+        // Check if time is at least 30 minutes in the future
+        if (selectedDate < minTime) {
+            pickupTimeError.classList.remove('hidden');
+            const minTimeStr = minTime.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            pickupTimeErrorText.textContent = `Please select a time at least 30 minutes from now (${minTimeStr}).`;
+            pickupTimeInput.setCustomValidity(`Please select a time at least 30 minutes from now.`);
+            return false;
+        }
+        
+        // Valid
+        pickupTimeError.classList.add('hidden');
+        pickupTimeInput.setCustomValidity('');
+        return true;
+    }
+    
+    if (pickupTimeInput) {
+        pickupTimeInput.addEventListener('change', validatePickupTime);
+        pickupTimeInput.addEventListener('blur', validatePickupTime);
+    }
+    
     // Form submission
     checkoutForm?.addEventListener('submit', function(e) {
+        // Validate pickup time if pickup is selected
+        if (pickupSection && pickupSection.style.display !== 'none') {
+            if (!validatePickupTime()) {
+                e.preventDefault();
+                pickupTimeInput.focus();
+                checkoutSubmitBtn.disabled = false;
+                checkoutSubmitBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> <span>Proceed to Payment</span>';
+                return false;
+            }
+        }
+        
         checkoutSubmitBtn.disabled = true;
         checkoutSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
     });

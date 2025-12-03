@@ -153,6 +153,10 @@ class CheckoutController extends Controller
             $rules['shipping_province'] = 'required';
             $rules['shipping_postal_code'] = 'required';
         }
+        
+        if ($orderType === 'pickup') {
+            $rules['pickup_time'] = 'required';
+        }
 
         // If "same as billing" is checked for delivery, copy billing to shipping in $_POST
         if ($orderType === 'delivery' && $this->post('same_as_billing')) {
@@ -187,6 +191,69 @@ class CheckoutController extends Controller
                 'csrfField' => $this->csrf->getTokenField()
             ]);
             return;
+        }
+        
+        // Validate pickup time if pickup order
+        if ($orderType === 'pickup') {
+            $pickupTime = $this->post('pickup_time');
+            if (empty($pickupTime)) {
+                $this->render('checkout/index', [
+                    'error' => 'Please select a pickup time.',
+                    'items' => $items,
+                    'subtotal' => $subtotal,
+                    'isGuest' => !$userId,
+                    'formData' => $formData,
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+                return;
+            }
+            
+            try {
+                $pickupDateTime = new \DateTime($pickupTime);
+                $now = new \DateTime();
+                $currentYear = (int)$now->format('Y');
+                $pickupYear = (int)$pickupDateTime->format('Y');
+                
+                // Validate year is current year
+                if ($pickupYear !== $currentYear) {
+                    $this->render('checkout/index', [
+                        'error' => "Please select a pickup time in {$currentYear} only.",
+                        'items' => $items,
+                        'subtotal' => $subtotal,
+                        'isGuest' => !$userId,
+                        'formData' => $formData,
+                        'csrfField' => $this->csrf->getTokenField()
+                    ]);
+                    return;
+                }
+                
+                // Validate time is at least 30 minutes in the future
+                $minTime = clone $now;
+                $minTime->modify('+30 minutes');
+                
+                if ($pickupDateTime < $minTime) {
+                    $minTimeStr = $minTime->format('M d, Y g:i A');
+                    $this->render('checkout/index', [
+                        'error' => "Please select a pickup time at least 30 minutes from now. Earliest available: {$minTimeStr}",
+                        'items' => $items,
+                        'subtotal' => $subtotal,
+                        'isGuest' => !$userId,
+                        'formData' => $formData,
+                        'csrfField' => $this->csrf->getTokenField()
+                    ]);
+                    return;
+                }
+            } catch (\Exception $e) {
+                $this->render('checkout/index', [
+                    'error' => 'Invalid pickup time format. Please try again.',
+                    'items' => $items,
+                    'subtotal' => $subtotal,
+                    'isGuest' => !$userId,
+                    'formData' => $formData,
+                    'csrfField' => $this->csrf->getTokenField()
+                ]);
+                return;
+            }
         }
 
         // Calculate totals
