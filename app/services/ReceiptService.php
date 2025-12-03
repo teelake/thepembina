@@ -46,7 +46,7 @@ class ReceiptService
             }
             
             $logoSize = 100; // Logo size in points
-            $logoY = $pageHeight - 50; // 50pt from top of page (minimal top margin)
+            $logoY = $pageHeight - 30; // 30pt from top of page (minimal top margin)
             
             if ($logoPath && file_exists($logoPath)) {
                 $logoX = $centerX - ($logoSize / 2); // Center the logo horizontally
@@ -101,7 +101,7 @@ class ReceiptService
             
             // "Your order has been confirmed..." text (left-aligned, outside boxes)
             $pdf->addLine('Your order has been confirmed and is being processed.', 11, $margin, self::TEXT_MAIN, 'left');
-            $pdf->addSpacing(15);
+            $pdf->addSpacing(20); // Increased spacing to ensure ORDER DETAILS is clearly outside green container
             
             // ===== ORDER DETAILS BOX (White background matching email) =====
             $detailsBoxTopY = $pdf->getCursor();
