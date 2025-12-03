@@ -70,7 +70,16 @@ class Application
      */
     private function handleError(\Exception $e)
     {
-        $code = $e->getCode() ?: 500;
+        // Normalize exception code to a valid HTTP status code
+        $rawCode = $e->getCode();
+        if (is_int($rawCode)) {
+            $code = ($rawCode >= 100 && $rawCode <= 599) ? $rawCode : 500;
+        } elseif (is_numeric($rawCode)) {
+            $intCode = (int)$rawCode;
+            $code = ($intCode >= 100 && $intCode <= 599) ? $intCode : 500;
+        } else {
+            $code = 500;
+        }
         http_response_code($code);
 
         Logger::error('Application exception', [
