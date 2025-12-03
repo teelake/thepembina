@@ -34,11 +34,21 @@ class ReceiptService
             $positions = [];
             
             // ===== LOGO (Centered at top, 100pt from top) =====
-            $logoPath = defined('PUBLIC_PATH') ? PUBLIC_PATH . '/images/logo.png' : __DIR__ . '/../../public/images/logo.png';
+            // Try JPG first (no background), then PNG (will convert with white background)
+            $basePath = defined('PUBLIC_PATH') ? PUBLIC_PATH . '/images' : __DIR__ . '/../../public/images';
+            $logoPath = null;
+            if (file_exists($basePath . '/the-pembina.jpg')) {
+                $logoPath = $basePath . '/the-pembina.jpg';
+            } elseif (file_exists($basePath . '/logo.jpg')) {
+                $logoPath = $basePath . '/logo.jpg';
+            } elseif (file_exists($basePath . '/logo.png')) {
+                $logoPath = $basePath . '/logo.png';
+            }
+            
             $logoSize = 100; // Logo size in points
             $logoY = $pageHeight - 100; // 100pt from top of page
             
-            if (file_exists($logoPath)) {
+            if ($logoPath && file_exists($logoPath)) {
                 $logoX = $centerX - ($logoSize / 2); // Center the logo horizontally
                 $pdf->addImage($logoPath, $logoX, $logoY, $logoSize);
             }
@@ -53,39 +63,42 @@ class ReceiptService
             $headerBottomY = $headerTopY - $headerHeight;
             $positions['header'] = ['top' => $headerTopY, 'bottom' => $headerBottomY];
             
-            // Draw header background
+            // Draw header background FIRST
             $pdf->addRectangle($margin, $headerBottomY, $contentWidth, $headerHeight, self::HEADER_BG, true);
             
             // Header text "Thank you for your order!" (centered in orange header, white, bold)
+            // Position text in the center of the header
             $headerTextY = $headerTopY - ($headerHeight / 2) + 6;
             $pdf->setCursor($headerTextY);
             $pdf->addLine('Thank you for your order!', 20, $centerX, self::TEXT_WHITE, 'center');
             
-            $currentY = $headerBottomY - 20;
+            // Move cursor below header
+            $currentY = $headerBottomY - 15;
             $pdf->setCursor($currentY);
             $contentStartY = $currentY;
             
-            // ===== NOTICE BOX =====
+            // ===== NOTICE BOX (Green background) =====
             $noticeBoxY = $pdf->getCursor();
             $noticeBoxHeight = 50;
             $noticePadding = 12;
             $positions['notice'] = ['top' => $noticeBoxY, 'bottom' => $noticeBoxY - $noticeBoxHeight];
             
-            // Draw notice background and border
+            // Draw notice background and border FIRST
             $pdf->addRectangle($margin, $noticeBoxY - $noticeBoxHeight, $contentWidth, $noticeBoxHeight, self::NOTICE_BG, true);
             $pdf->addRectangle($margin, $noticeBoxY - $noticeBoxHeight, 3, $noticeBoxHeight, self::NOTICE_BORDER, true);
             
-            // Notice text (left-aligned within padding)
+            // Notice text (left-aligned within padding) - goes in GREEN box
             $orderNumber = $order['order_number'] ?? $order['id'];
             $pdf->setCursor($noticeBoxY - $noticePadding);
             $pdf->addLine('📧 This email is your official receipt for Order #' . $orderNumber . '.', 11, $margin + $noticePadding, self::TEXT_MAIN, 'left');
             $pdf->addSpacing(6);
             $pdf->addLine('You can save or print this email, or download a PDF receipt anytime from your account or the Track Order page.', 10, $margin + $noticePadding, self::TEXT_MAIN, 'left');
             
-            $currentY = $noticeBoxY - $noticeBoxHeight - 20;
+            // Move cursor below notice box
+            $currentY = $noticeBoxY - $noticeBoxHeight - 15;
             $pdf->setCursor($currentY);
             
-            // "Your order has been confirmed..." text (left-aligned)
+            // "Your order has been confirmed..." text (left-aligned, outside boxes)
             $pdf->addLine('Your order has been confirmed and is being processed.', 12, $margin, self::TEXT_MAIN, 'left');
             $pdf->addSpacing(20);
             

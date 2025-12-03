@@ -137,9 +137,15 @@ class SimplePdf
             return;
         }
 
-        $jpegData = $this->convertToJpeg($data, $type);
-        if (!$jpegData) {
-            return;
+        // Handle JPEG directly, convert PNG with white background
+        $jpegData = null;
+        if ($type === IMAGETYPE_JPEG) {
+            $jpegData = $data; // Use JPEG directly
+        } else {
+            $jpegData = $this->convertToJpeg($data, $type);
+            if (!$jpegData) {
+                return;
+            }
         }
 
         $ratio = $heightPx / $widthPx;
@@ -176,6 +182,23 @@ class SimplePdf
         $image = @imagecreatefromstring($data);
         if (!$image) {
             return null;
+        }
+
+        // Handle PNG transparency by creating a white background
+        if ($type === IMAGETYPE_PNG) {
+            $width = imagesx($image);
+            $height = imagesy($image);
+            
+            // Create a new image with white background
+            $whiteBg = imagecreatetruecolor($width, $height);
+            $white = imagecolorallocate($whiteBg, 255, 255, 255);
+            imagefill($whiteBg, 0, 0, $white);
+            
+            // Copy the original image onto the white background (preserving transparency)
+            imagecopyresampled($whiteBg, $image, 0, 0, 0, 0, $width, $height, $width, $height);
+            
+            imagedestroy($image);
+            $image = $whiteBg;
         }
 
         ob_start();
