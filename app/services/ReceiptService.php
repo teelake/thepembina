@@ -46,19 +46,19 @@ class ReceiptService
             }
             
             $logoSize = 100; // Logo size in points
-            $logoY = $pageHeight - 100; // 100pt from top of page
+            $logoY = $pageHeight - 80; // 80pt from top of page (reduced from 100pt)
             
             if ($logoPath && file_exists($logoPath)) {
                 $logoX = $centerX - ($logoSize / 2); // Center the logo horizontally
                 $pdf->addImage($logoPath, $logoX, $logoY, $logoSize);
             }
             
-            // Position cursor after logo with proper spacing
-            $currentY = $logoY - $logoSize - 20; // 20pt spacing after logo
+            // Position cursor after logo with reduced spacing
+            $currentY = $logoY - $logoSize - 10; // 10pt spacing after logo (reduced from 20pt)
             $pdf->setCursor($currentY);
             
             // ===== HEADER (Orange background, white text) =====
-            $headerHeight = 50;
+            $headerHeight = 45; // Reduced height for better fit
             $headerTopY = $currentY;
             $headerBottomY = $headerTopY - $headerHeight;
             $positions['header'] = ['top' => $headerTopY, 'bottom' => $headerBottomY];
@@ -67,19 +67,19 @@ class ReceiptService
             $pdf->addRectangle($margin, $headerBottomY, $contentWidth, $headerHeight, self::HEADER_BG, true);
             
             // Header text "Thank you for your order!" (centered in orange header, white, bold)
-            // Position text in the center of the header
-            $headerTextY = $headerTopY - ($headerHeight / 2) + 6;
+            // Position text in the center of the header vertically
+            $headerTextY = $headerTopY - ($headerHeight / 2) + 5;
             $pdf->setCursor($headerTextY);
-            $pdf->addLine('Thank you for your order!', 20, $centerX, self::TEXT_WHITE, 'center');
+            $pdf->addLine('Thank you for your order!', 18, $centerX, self::TEXT_WHITE, 'center');
             
-            // Move cursor below header
-            $currentY = $headerBottomY - 15;
+            // Move cursor below header with minimal spacing
+            $currentY = $headerBottomY - 10;
             $pdf->setCursor($currentY);
             $contentStartY = $currentY;
             
             // ===== NOTICE BOX (Green background) =====
             $noticeBoxY = $pdf->getCursor();
-            $noticeBoxHeight = 50;
+            $noticeBoxHeight = 60; // Increased height to fit text properly
             $noticePadding = 12;
             $positions['notice'] = ['top' => $noticeBoxY, 'bottom' => $noticeBoxY - $noticeBoxHeight];
             
@@ -88,14 +88,15 @@ class ReceiptService
             $pdf->addRectangle($margin, $noticeBoxY - $noticeBoxHeight, 3, $noticeBoxHeight, self::NOTICE_BORDER, true);
             
             // Notice text (left-aligned within padding) - goes in GREEN box
+            // Removed emoji to avoid encoding issues
             $orderNumber = $order['order_number'] ?? $order['id'];
             $pdf->setCursor($noticeBoxY - $noticePadding);
-            $pdf->addLine('📧 This email is your official receipt for Order #' . $orderNumber . '.', 11, $margin + $noticePadding, self::TEXT_MAIN, 'left');
-            $pdf->addSpacing(6);
+            $pdf->addLine('This email is your official receipt for Order #' . $orderNumber . '.', 11, $margin + $noticePadding, self::TEXT_MAIN, 'left');
+            $pdf->addSpacing(8);
             $pdf->addLine('You can save or print this email, or download a PDF receipt anytime from your account or the Track Order page.', 10, $margin + $noticePadding, self::TEXT_MAIN, 'left');
             
             // Move cursor below notice box
-            $currentY = $noticeBoxY - $noticeBoxHeight - 15;
+            $currentY = $noticeBoxY - $noticeBoxHeight - 10;
             $pdf->setCursor($currentY);
             
             // "Your order has been confirmed..." text (left-aligned, outside boxes)
