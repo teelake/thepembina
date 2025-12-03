@@ -212,46 +212,41 @@ $content = ob_start();
     </div>
     
     <?php if (!empty($recentOrders)): ?>
-        <div class="overflow-x-auto">
-            <table class="w-full">
+        <div class="overflow-x-hidden">
+            <table class="w-full table-fixed">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Order #</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-32">Order #</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Customer</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-24">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-24">Total</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-32">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-28">Date</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <?php foreach ($recentOrders as $order): ?>
-                        <tr class="hover:bg-gray-50 transition-colors duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" class="text-brand hover:text-brand-dark font-semibold hover:underline">
+                        <tr class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onclick="window.location.href='<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>'">
+                            <td class="px-4 py-3">
+                                <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" class="text-brand hover:text-brand-dark font-semibold hover:underline text-sm" onclick="event.stopPropagation()">
                                     <?= htmlspecialchars($order['order_number']) ?>
                                 </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-                                        <i class="fas fa-user text-gray-500 text-xs"></i>
-                                    </div>
-                                    <span class="text-gray-900"><?= htmlspecialchars($order['email']) ?></span>
-                                </div>
+                            <td class="px-4 py-3">
+                                <span class="text-gray-900 text-sm truncate block max-w-xs" title="<?= htmlspecialchars($order['email']) ?>">
+                                    <?= htmlspecialchars($order['email']) ?>
+                                </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold <?= $order['order_type'] === 'pickup' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800' ?>">
-                                    <i class="fas <?= $order['order_type'] === 'pickup' ? 'fa-hand-paper' : 'fa-truck' ?> mr-1"></i>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold <?= $order['order_type'] === 'pickup' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800' ?>">
                                     <?= ucfirst($order['order_type']) ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="font-bold text-gray-900"><?= Helper::formatCurrency($order['total']) ?></span>
+                            <td class="px-4 py-3">
+                                <span class="font-bold text-gray-900 text-sm"><?= Helper::formatCurrency($order['total']) ?></span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold 
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold 
                                     <?php
                                     $statusColors = [
                                         'pending' => 'bg-amber-100 text-amber-800',
@@ -268,16 +263,8 @@ $content = ob_start();
                                     <?= ucfirst($order['status']) ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <i class="far fa-calendar mr-1"></i>
+                            <td class="px-4 py-3 text-sm text-gray-600">
                                 <?= date('M d, Y', strtotime($order['created_at'])) ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="<?= BASE_URL ?>/admin/orders/<?= $order['id'] ?>" 
-                                   class="inline-flex items-center px-3 py-1.5 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors duration-200 text-sm font-medium">
-                                    <i class="fas fa-eye mr-1"></i>
-                                    View
-                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
