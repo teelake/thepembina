@@ -6,110 +6,200 @@ use App\Core\Helper;
 
 class ReceiptService
 {
-    private const HEADER_COLS = [40, 500];
-    private const ADDRESS_COLS = [40, 300];
-    private const SUMMARY_COLS = [360, 520];
-    private const ITEMS_COLS = [40, 320, 420, 520];
-    private const PAYMENT_COLS = [40, 320, 420];
-    private const THEME_COLOR = [0.957, 0.643, 0.376];
-    private const TEXT_MAIN = [0.2, 0.2, 0.2];
-    private const TEXT_MUTED = [0.45, 0.45, 0.45];
-    private const TEXT_LIGHT = [1, 1, 1];
-    private const LINE_COLOR = [0.78, 0.78, 0.78];
+    // Colors matching email exactly - redesigned to match order confirmation email
+    // Updated: 2024-12-03 - PDF receipt now matches email design exactly
+    private const HEADER_BG = [0.957, 0.643, 0.376]; // #F4A460 (Sandy Brown)
+    private const CONTENT_BG = [0.976, 0.976, 0.976]; // #f9f9f9
+    private const NOTICE_BG = [0.910, 0.961, 0.914]; // #e8f5e9
+    private const NOTICE_BORDER = [0.298, 0.686, 0.314]; // #4caf50
+    private const ORDER_DETAILS_BG = [1, 1, 1]; // White
+    private const TABLE_HEADER_BG = [0.961, 0.961, 0.961]; // #f5f5f5
+    private const TEXT_MAIN = [0.2, 0.2, 0.2]; // #333
+    private const TEXT_WHITE = [1, 1, 1]; // White
+    private const TEXT_MUTED = [0.4, 0.4, 0.4]; // #666
+    private const BORDER_COLOR = [0.867, 0.867, 0.867]; // #ddd
+    private const BORDER_LIGHT = [0.933, 0.933, 0.933]; // #eee
 
     public function generate(array $order, array $payments = []): string
     {
         try {
             $pdf = new SimplePdf();
-            $logoPath = defined('PUBLIC_PATH') ? PUBLIC_PATH . '/images/logo.png' : __DIR__ . '/../../public/images/logo.png';
-            $currentTop = $pdf->getCursor();
+            $pageWidth = 612; // 8.5in
+            $pageHeight = 792; // 11in
+            $margin = 40;
+            $contentWidth = $pageWidth - ($margin * 2);
+            $centerX = $pageWidth / 2;
             
-            $businessName = defined('BUSINESS_NAME') ? BUSINESS_NAME : 'The Pembina Pint and Restaurant';
-            $businessPhone = defined('BUSINESS_PHONE') ? BUSINESS_PHONE : '';
-            $businessEmail = defined('BUSINESS_EMAIL') ? BUSINESS_EMAIL : 'no-reply@thepembina.ca';
+            // Track positions for background drawing
+            $positions = [];
             
-            // Simple centered design matching payment success page
-            $centerX = 306; // Center of page (612/2)
-            $startY = 50;
+            // Start from top
+            $startY = $pageHeight - $margin;
             $pdf->setCursor($startY);
             
-            // Logo at top center (smaller, like payment success)
-            if (file_exists($logoPath)) {
-                $logoX = $centerX - 40; // Center logo (80px wide / 2)
-                $pdf->addImage($logoPath, $logoX, $startY, 80);
-                $pdf->addSpacing(100);
+            // ===== HEADER (Orange background, white text) =====
+            $headerHeight = 60;
+            $headerTopY = $startY;
+            $headerBottomY = $headerTopY - $headerHeight;
+            $positions['header'] = ['top' => $headerTopY, 'bottom' => $headerBottomY];
+            
+            // Draw header background
+            $pdf->addRectangle($margin, $headerBottomY, $contentWidth, $headerHeight, self::HEADER_BG, true);
+            
+            // Header text (centered, white)
+            $pdf->setCursor($headerTopY - ($headerHeight / 2) + 8);
+            $pdf->addLine('The Pembina Pint and Restaurant', 20, $centerX, self::TEXT_WHITE, 'center');
+            
+            $currentY = $headerBottomY - 20;
+            $pdf->setCursor($currentY);
+            $contentStartY = $currentY;
+            
+            // ===== CONTENT AREA =====
+            // "Thank you for your order!" heading
+            $pdf->addLine('Thank you for your order!', 18, $margin, self::TEXT_MAIN);
+            $pdf->addSpacing(10);
+            
+            // ===== NOTICE BOX =====
+            $noticeBoxY = $pdf->getCursor();
+            $noticeBoxHeight = 50;
+            $noticePadding = 12;
+            $positions['notice'] = ['top' => $noticeBoxY, 'bottom' => $noticeBoxY - $noticeBoxHeight];
+            
+            // Draw notice background and border
+            $pdf->addRectangle($margin, $noticeBoxY - $noticeBoxHeight, $contentWidth, $noticeBoxHeight, self::NOTICE_BG, true);
+            $pdf->addRectangle($margin, $noticeBoxY - $noticeBoxHeight, 3, $noticeBoxHeight, self::NOTICE_BORDER, true);
+            
+            // Notice text
+            $orderNumber = $order['order_number'] ?? $order['id'];
+            $pdf->setCursor($noticeBoxY - $noticePadding);
+            $pdf->addLine('📧 This email is your official receipt for Order #' . $orderNumber . '.', 11, $margin + $noticePadding, self::TEXT_MAIN);
+            $pdf->addSpacing(6);
+            $pdf->addLine('You can save or print this email, or download a PDF receipt anytime from your account or the Track Order page.', 10, $margin + $noticePadding, self::TEXT_MAIN);
+            
+            $currentY = $noticeBoxY - $noticeBoxHeight - 20;
+            $pdf->setCursor($currentY);
+            
+            // "Your order has been confirmed..." text
+            $pdf->addLine('Your order has been confirmed and is being processed.', 12, $margin, self::TEXT_MAIN);
+            $pdf->addSpacing(20);
+            
+            // ===== ORDER DETAILS BOX (White background matching email) =====
+            $detailsBoxTopY = $pdf->getCursor();
+            
+            // Draw white background box first (will be behind text)
+            // Use a large estimated height to cover all order details
+            $estimatedDetailsHeight = 500; // Large enough for most orders - matches email white box
+            $pdf->addRectangle($margin, $detailsBoxTopY - $estimatedDetailsHeight, $contentWidth, $estimatedDetailsHeight, self::ORDER_DETAILS_BG, true);
+            
+            // "Order Details" heading
+            $pdf->setCursor($detailsBoxTopY);
+            $pdf->addLine('Order Details', 16, $margin, self::TEXT_MAIN);
+            $pdf->addSpacing(15);
+            
+            // Order info
+            $infoLeftX = $margin + 15;
+            $infoRightX = $margin + $contentWidth - 15;
+            
+            $orderType = ucfirst($order['order_type'] ?? 'pickup');
+            $orderDate = date('M d, Y g:i A', strtotime($order['created_at'] ?? 'now'));
+            
+            $pdf->addTableRow(['Order Number:', $orderNumber], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(8);
+            $pdf->addTableRow(['Order Type:', $orderType], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(8);
+            $pdf->addTableRow(['Order Date:', $orderDate], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(15);
+            
+            // ===== ITEMS TABLE =====
+            $tableStartY = $pdf->getCursor();
+            if (isset($order['items']) && !empty($order['items'])) {
+                // Table header background
+                $tableHeaderHeight = 30;
+                $tableHeaderY = $tableStartY;
+                $pdf->addRectangle($margin, $tableHeaderY - $tableHeaderHeight, $contentWidth, $tableHeaderHeight, self::TABLE_HEADER_BG, true);
+                
+                // Header text
+                $pdf->setCursor($tableHeaderY - 10);
+                $pdf->addTableRow(
+                    ['Item', 'Price'],
+                    [$infoLeftX, $infoRightX],
+                    12,
+                    self::TEXT_MAIN,
+                    ['left', 'right']
+                );
+                
+                // Header bottom border
+                $pdf->addHorizontalRule($margin, $contentWidth, 1, self::BORDER_COLOR);
+                
+                $pdf->setCursor($tableHeaderY - $tableHeaderHeight - 8);
+                
+                // Items rows
+                foreach ($order['items'] as $item) {
+                    $productName = htmlspecialchars($item['product_name'] ?? 'Unknown Product');
+                    $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
+                    $subtotal = isset($item['subtotal']) ? (float)$item['subtotal'] : 0;
+                    
+                    $itemText = $productName . ' x ' . $quantity;
+                    $priceText = Helper::formatCurrency($subtotal);
+                    
+                    $pdf->addTableRow([$itemText, $priceText], [$infoLeftX, $infoRightX], 11, self::TEXT_MAIN, ['left', 'right']);
+                    $pdf->addHorizontalRule($margin, $contentWidth, 0.5, self::BORDER_LIGHT);
+                    $pdf->addSpacing(4);
+                }
             }
             
-            // Success checkmark circle (exactly like payment success page)
-            $circleY = $pdf->getCursor();
-            $circleX = $centerX - 32; // Center circle (64px wide / 2)
-            $pdf->addRectangle($circleX, $circleY, 64, 64, [0.2, 0.7, 0.3], true); // Green circle background (square will look circular)
-            // Add checkmark - need to position it in the center of the circle
-            // The circle is at Y, so checkmark should be at Y + (64/2) - (fontSize/2) approximately
-            $checkmarkY = $circleY + 20; // Approximate center of 64px circle
-            $pdf->setCursor($checkmarkY);
-            $pdf->addLine('✓', 36, $centerX, [1, 1, 1], 'center'); // White checkmark
-            $pdf->setCursor($circleY + 64); // Move cursor past the circle
-            $pdf->addSpacing(25);
+            $pdf->addSpacing(15);
             
-            // Title - "Payment Successful!" (exactly like payment success page)
-            $pdf->addLine('Payment Successful!', 24, $centerX, self::TEXT_MAIN, 'center');
-            $pdf->addSpacing(8);
-            $pdf->addLine('Thank you for your order', 12, $centerX, self::TEXT_MUTED, 'center');
-            $pdf->addSpacing(25);
-            
-            // Order details in simple gray box (exactly like payment success page)
-            $detailsY = $pdf->getCursor();
-            $boxPadding = 24;
-            $boxWidth = 480;
-            $boxX = $centerX - ($boxWidth / 2);
-            
-            // Calculate height needed for 4 items
-            $detailsHeight = 110;
-            
-            $pdf->addRectangle($boxX, $detailsY, $boxWidth, $detailsHeight, [0.96, 0.96, 0.96]); // Light gray background
-            
-            // Format order number
-            $orderNumber = $order['order_number'] ?? $order['id'];
-            
-            // Calculate totals
+            // Totals
             $subtotal = isset($order['subtotal']) ? (float)$order['subtotal'] : 0;
             $taxAmount = isset($order['tax_amount']) ? (float)$order['tax_amount'] : 0;
             $shippingAmount = isset($order['shipping_amount']) ? (float)$order['shipping_amount'] : 0;
             $total = isset($order['total']) ? (float)$order['total'] : ($subtotal + $taxAmount + $shippingAmount);
-            $discount = isset($order['discount_amount']) ? (float)$order['discount_amount'] : 0;
-            $grandTotal = $total - $discount;
             
-            $detailsStartY = $detailsY + $boxPadding;
-            $pdf->setCursor($detailsStartY);
+            $pdf->addTableRow(['Subtotal:', Helper::formatCurrency($subtotal)], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(8);
+            $pdf->addTableRow(['Tax:', Helper::formatCurrency($taxAmount)], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(8);
             
-            // Simple key-value pairs (exactly like payment success page)
-            $leftX = $boxX + $boxPadding;
-            $rightX = $boxX + $boxWidth - $boxPadding;
-            $lineSpacing = 20;
+            if ($shippingAmount > 0) {
+                $pdf->addTableRow(['Delivery Fee:', Helper::formatCurrency($shippingAmount)], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+                $pdf->addSpacing(8);
+            }
             
-            // Order Number
-            $pdf->addTableRow(['Order Number:', $orderNumber], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
-            $pdf->addSpacing($lineSpacing - 12);
+            // Total Amount (larger, bold)
+            $pdf->addTableRow(['Total Amount:', Helper::formatCurrency($total)], [$infoLeftX, $infoRightX], 18, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(10);
             
-            // Order Type
-            $pdf->addTableRow(['Order Type:', ucfirst($order['order_type'] ?? 'pickup')], [$leftX, $rightX], 12, self::TEXT_MAIN, ['left', 'right']);
-            $pdf->addSpacing($lineSpacing - 12);
+            $paymentStatus = ucfirst($order['payment_status'] ?? 'pending');
+            $status = ucfirst($order['status'] ?? 'pending');
             
-            // Total Amount - highlighted in brand color (orange) like payment success page
-            $pdf->addTableRow(['Total Amount:', Helper::formatCurrency($grandTotal)], [$leftX, $rightX], 16, [0.957, 0.643, 0.376], ['left', 'right']); // Brand orange color
-            $pdf->addSpacing($lineSpacing - 12);
+            $pdf->addTableRow(['Payment Status:', $paymentStatus], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
+            $pdf->addSpacing(8);
+            $pdf->addTableRow(['Status:', $status], [$infoLeftX, $infoRightX], 12, self::TEXT_MAIN, ['left', 'right']);
             
-            // Payment Status - green if paid
-            $paymentStatus = isset($order['payment_status']) ? ucfirst($order['payment_status']) : 'Pending';
-            $statusColor = strtolower($paymentStatus) === 'paid' ? [0.2, 0.7, 0.3] : [0.85, 0.6, 0.2];
-            $pdf->addTableRow(['Payment Status:', $paymentStatus], [$leftX, $rightX], 12, $statusColor, ['left', 'right']);
+            $detailsBoxBottomY = $pdf->getCursor();
+            $positions['details'] = ['top' => $detailsBoxTopY, 'bottom' => $detailsBoxBottomY - 10];
             
-            $pdf->setCursor($detailsY + $detailsHeight);
-            $pdf->addSpacing(20);
+            $pdf->setCursor($detailsBoxBottomY - 30);
+            $pdf->addSpacing(15);
             
-            // Simple footer - centered like payment success page
-            $pdf->addLine('Thank you for choosing ' . $businessName . '!', 12, $centerX, self::TEXT_MAIN, 'center');
+            // "Current Status" and closing message
+            $pdf->addLine('Current Status: ' . $status, 12, $margin, self::TEXT_MAIN);
+            $pdf->addSpacing(8);
+            $pdf->addLine("We'll notify you when your order is ready!", 12, $margin, self::TEXT_MAIN);
+            
+            $contentEndY = $pdf->getCursor();
+            
+            // ===== FOOTER =====
+            $footerY = 60;
+            $pdf->setCursor($footerY);
+            $pdf->addLine('The Pembina Pint and Restaurant', 12, $centerX, self::TEXT_MUTED, 'center');
+            $pdf->addSpacing(6);
+            $pdf->addLine('282 Loren Drive, Morden, Manitoba, Canada', 12, $centerX, self::TEXT_MUTED, 'center');
+            
+            // Draw content background (light gray) - draw it behind everything
+            $contentHeight = $contentStartY - $contentEndY;
+            $pdf->addRectangle($margin, $contentEndY, $contentWidth, $contentHeight, self::CONTENT_BG, true);
 
             return $pdf->output();
         } catch (\Exception $e) {
@@ -140,228 +230,4 @@ class ReceiptService
     {
         return 'receipt-' . ($order['order_number'] ?? $order['id']) . '.pdf';
     }
-
-    private function looksLikeJson(string $value): bool
-    {
-        $value = trim($value);
-        if ($value === '') {
-            return false;
-        }
-        return ($value[0] === '{' && substr($value, -1) === '}')
-            || ($value[0] === '[' && substr($value, -1) === ']');
-    }
-
-    /**
-     * Render items table - very simple design matching payment success page
-     */
-    private function addItemsTable(SimplePdf $pdf, array $items): void
-    {
-        $centerX = 306;
-        $leftMargin = 80;
-        $rightMargin = 520;
-        
-        // Very simple header - no background, just text
-        $pdf->addTableRow(
-            ['Item', 'Qty', 'Price', 'Total'],
-            [$leftMargin, 200, 400, $rightMargin],
-            10,
-            self::TEXT_MUTED,
-            ['left', 'center', 'right', 'right']
-        );
-        $pdf->addHorizontalRule($leftMargin, $rightMargin, 0.5, self::LINE_COLOR);
-        $pdf->addSpacing(8);
-
-        if (empty($items)) {
-            $pdf->addTableRow(
-                ['No items found in order.', '', '', ''],
-                [$leftMargin, 200, 400, $rightMargin],
-                11,
-                self::TEXT_MUTED,
-                ['left', 'center', 'right', 'right']
-            );
-            $pdf->addSpacing(8);
-            return;
-        }
-
-        foreach ($items as $item) {
-            $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
-            $productName = isset($item['product_name']) ? $item['product_name'] : 'Unknown Product';
-            $price = isset($item['price']) ? (float)$item['price'] : 0;
-            
-            // Calculate subtotal - ensure we have a valid value
-            $subtotal = isset($item['subtotal']) ? (float)$item['subtotal'] : 0;
-            if ($subtotal == 0 && $price > 0) {
-                $subtotal = $price * $quantity;
-            }
-            // If price is 0 but subtotal exists, calculate price from subtotal
-            if ($price == 0 && $subtotal > 0 && $quantity > 0) {
-                $price = $subtotal / $quantity;
-            }
-            
-            // Ensure we have valid numeric values
-            $price = max(0, $price);
-            $subtotal = max(0, $subtotal);
-
-            $pdf->addTableRow(
-                [
-                    $productName,
-                    (string)$quantity,
-                    Helper::formatCurrency($price),
-                    Helper::formatCurrency($subtotal)
-                ],
-                [$leftMargin, 200, 400, $rightMargin],
-                11,
-                self::TEXT_MAIN,
-                ['left', 'center', 'right', 'right']
-            );
-
-            if (!empty($item['options'])) {
-                $options = $item['options'];
-                if (is_string($options) && $this->looksLikeJson($options)) {
-                    $decoded = json_decode($options, true);
-                    if (is_array($decoded)) {
-                        $options = implode(', ', array_map(
-                            function ($key, $value) {
-                                return ucfirst($key) . ': ' . $value;
-                            },
-                            array_keys($decoded),
-                            $decoded
-                        ));
-                    }
-                }
-                $pdf->addTableRow(
-                    ['   ' . strip_tags($options), '', '', ''],
-                    [$leftMargin, 200, 400, $rightMargin],
-                    9,
-                    self::TEXT_MUTED,
-                    ['left', 'center', 'right', 'right']
-                );
-            }
-            
-            $pdf->addSpacing(4);
-        }
-
-        $pdf->addSpacing(8);
-    }
-
-    /**
-     * Render payments information table.
-     */
-    private function addPaymentsTable(SimplePdf $pdf, array $payments): void
-    {
-        $columns = self::PAYMENT_COLS;
-        $headerY = $pdf->getCursor() + 16;
-        $pdf->addRectangle(40, $headerY, 520, 16, self::THEME_COLOR);
-        $pdf->addTableRow(['Method', 'Status', 'Amount'], $columns, 12, self::TEXT_LIGHT, ['left', 'center', 'right']);
-        $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-
-        if (empty($payments)) {
-            $pdf->addTableRow(
-                ['Payment record not found.', '', ''],
-                $columns,
-                11,
-                self::TEXT_MUTED,
-                ['left', 'center', 'right']
-            );
-            $pdf->addSpacing(4);
-            $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-            $pdf->addSpacing(6);
-            return;
-        }
-
-        foreach ($payments as $payment) {
-            $gateway = isset($payment['gateway']) ? ucfirst($payment['gateway']) : 'Unknown';
-            $status = isset($payment['status']) ? ucfirst($payment['status']) : 'Unknown';
-            $amount = isset($payment['amount']) ? Helper::formatCurrency($payment['amount']) : Helper::formatCurrency(0);
-
-            $pdf->addTableRow([$gateway, $status, $amount], $columns, 11, self::TEXT_MAIN, ['left', 'center', 'right']);
-
-            if (!empty($payment['transaction_id'])) {
-                $pdf->addTableRow(
-                    ['   Txn: ' . $payment['transaction_id'], '', ''],
-                    $columns,
-                    9,
-                    self::TEXT_MUTED,
-                    ['left', 'center', 'right']
-                );
-            }
-        }
-
-        $pdf->addSpacing(4);
-        $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-        $pdf->addSpacing(6);
-    }
-
-    /**
-     * Render totals table aligned to right.
-     */
-    private function addTotalsTable(SimplePdf $pdf, array $rows): void
-    {
-        foreach ($rows as $label => $value) {
-            if ($label === 'Total' || $label === 'Total Due') {
-                $highlightY = $pdf->getCursor() + 18;
-                $pdf->addRectangle(self::SUMMARY_COLS[0] - 20, $highlightY, 200, 18, self::THEME_COLOR);
-                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 13, self::TEXT_LIGHT, ['left', 'right']);
-            } else {
-                $pdf->addTableRow([$label, $value], self::SUMMARY_COLS, 11, self::TEXT_MAIN, ['left', 'right']);
-            }
-        }
-        $pdf->addSpacing(10);
-        $pdf->addHorizontalRule(40, 520, 0.6, self::LINE_COLOR);
-        $pdf->addSpacing(8);
-    }
-
-    /**
-     * Format address lines for output.
-     */
-    private function formatAddress(?array $address, string $fallbackTitle): array
-    {
-        if (empty($address)) {
-            return [$fallbackTitle . ' details not provided.'];
-        }
-
-        $lines = [];
-        $name = trim(($address['first_name'] ?? '') . ' ' . ($address['last_name'] ?? ''));
-        if ($name !== '') {
-            $lines[] = $name;
-        }
-        if (!empty($address['address_line1'])) {
-            $lines[] = $address['address_line1'];
-        }
-        if (!empty($address['address_line2'])) {
-            $lines[] = $address['address_line2'];
-        }
-        $cityLine = trim(($address['city'] ?? '') . ', ' . ($address['province'] ?? '') . ' ' . ($address['postal_code'] ?? ''));
-        if (trim($cityLine, ', ') !== '') {
-            $lines[] = $cityLine;
-        }
-        if (!empty($address['country'])) {
-            $lines[] = $address['country'];
-        }
-        if (!empty($address['email'])) {
-            $lines[] = $address['email'];
-        }
-        if (!empty($address['phone'])) {
-            $lines[] = 'Phone: ' . $address['phone'];
-        }
-
-        if (empty($lines)) {
-            $lines[] = $fallbackTitle . ' details not provided.';
-        }
-
-        return $lines;
-    }
-
-    private function calculatePaidAmount(array $payments): float
-    {
-        $total = 0;
-        foreach ($payments as $payment) {
-            $status = strtolower($payment['status'] ?? '');
-            if (in_array($status, ['paid', 'completed', 'success', 'approved'], true)) {
-                $total += (float)($payment['amount'] ?? 0);
-            }
-        }
-        return $total;
-    }
 }
-
