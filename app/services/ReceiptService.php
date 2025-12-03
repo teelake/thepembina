@@ -79,8 +79,8 @@ class ReceiptService
             
             // ===== NOTICE BOX (Green background) =====
             $noticeBoxY = $pdf->getCursor();
-            $noticeBoxHeight = 55; // Optimized height to fit text without overlap
-            $noticePadding = 10;
+            $noticePadding = 15; // Increased padding for green container
+            $noticeBoxHeight = 60; // Increased height to accommodate increased padding
             $positions['notice'] = ['top' => $noticeBoxY, 'bottom' => $noticeBoxY - $noticeBoxHeight];
             
             // Draw notice background and border FIRST
@@ -95,13 +95,13 @@ class ReceiptService
             $pdf->addSpacing(6);
             $pdf->addLine('You can save or print this email, or download a PDF receipt anytime from your account or the Track Order page.', 9, $margin + $noticePadding, self::TEXT_MAIN, 'left');
             
-            // Move cursor below notice box
-            $currentY = $noticeBoxY - $noticeBoxHeight - 8;
+            // Move cursor below notice box with proper spacing
+            $currentY = $noticeBoxY - $noticeBoxHeight - 12;
             $pdf->setCursor($currentY);
             
             // "Your order has been confirmed..." text (left-aligned, outside boxes)
             $pdf->addLine('Your order has been confirmed and is being processed.', 11, $margin, self::TEXT_MAIN, 'left');
-            $pdf->addSpacing(20); // Increased spacing to ensure ORDER DETAILS is clearly outside green container
+            $pdf->addSpacing(18); // Proper spacing to ensure ORDER DETAILS is clearly outside green container
             
             // ===== ORDER DETAILS BOX (White background matching email) =====
             $detailsBoxTopY = $pdf->getCursor();
@@ -111,10 +111,10 @@ class ReceiptService
             $estimatedDetailsHeight = 500; // Large enough for most orders - matches email white box
             $pdf->addRectangle($margin, $detailsBoxTopY - $estimatedDetailsHeight, $contentWidth, $estimatedDetailsHeight, self::ORDER_DETAILS_BG, true);
             
-            // "Order Details" heading (left-aligned)
+            // "Order Details" heading (left-aligned, properly aligned with margin)
             $pdf->setCursor($detailsBoxTopY);
             $pdf->addLine('Order Details', 16, $margin, self::TEXT_MAIN, 'left');
-            $pdf->addSpacing(12);
+            $pdf->addSpacing(14);
             
             // Order info
             $infoLeftX = $margin + 15;
@@ -134,12 +134,12 @@ class ReceiptService
             $tableStartY = $pdf->getCursor();
             if (isset($order['items']) && !empty($order['items'])) {
                 // Table header background
-                $tableHeaderHeight = 30;
+                $tableHeaderHeight = 28;
                 $tableHeaderY = $tableStartY;
                 $pdf->addRectangle($margin, $tableHeaderY - $tableHeaderHeight, $contentWidth, $tableHeaderHeight, self::TABLE_HEADER_BG, true);
                 
-                // Header text
-                $pdf->setCursor($tableHeaderY - 10);
+                // Header text (properly vertically centered in header)
+                $pdf->setCursor($tableHeaderY - ($tableHeaderHeight / 2) + 4);
                 $pdf->addTableRow(
                     ['Item', 'Price'],
                     [$infoLeftX, $infoRightX],
@@ -151,9 +151,10 @@ class ReceiptService
                 // Header bottom border
                 $pdf->addHorizontalRule($margin, $contentWidth, 1, self::BORDER_COLOR);
                 
-                $pdf->setCursor($tableHeaderY - $tableHeaderHeight - 8);
+                // Position cursor for first item row
+                $pdf->setCursor($tableHeaderY - $tableHeaderHeight - 6);
                 
-                // Items rows
+                // Items rows (properly aligned with increased padding)
                 foreach ($order['items'] as $item) {
                     $productName = htmlspecialchars($item['product_name'] ?? 'Unknown Product');
                     $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
@@ -164,11 +165,11 @@ class ReceiptService
                     
                     $pdf->addTableRow([$itemText, $priceText], [$infoLeftX, $infoRightX], 11, self::TEXT_MAIN, ['left', 'right']);
                     $pdf->addHorizontalRule($margin, $contentWidth, 0.5, self::BORDER_LIGHT);
-                    $pdf->addSpacing(4);
+                    $pdf->addSpacing(10); // Increased spacing between item rows
                 }
             }
             
-            $pdf->addSpacing(15);
+            $pdf->addSpacing(12);
             
             // Totals
             $subtotal = isset($order['subtotal']) ? (float)$order['subtotal'] : 0;
