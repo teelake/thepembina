@@ -57,6 +57,7 @@ $router->add('GET', 'payment/cancel', ['controller' => 'Payment', 'action' => 'c
 // Order tracking
 $router->add('GET', 'track-order', ['controller' => 'Order', 'action' => 'track']);
 $router->add('POST', 'track-order', ['controller' => 'Order', 'action' => 'track']);
+$router->add('GET', 'order/receipt', ['controller' => 'Order', 'action' => 'receipt']);
 
 // Customer account routes
 $router->add('GET', 'account', ['controller' => 'Account', 'action' => 'index']);

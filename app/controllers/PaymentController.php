@@ -179,24 +179,13 @@ class PaymentController extends Controller
                 'amount' => $order['total']
             ]);
 
-            // Send order confirmation email with receipt
+            // Send order confirmation email (email itself serves as receipt)
             try {
                 $orderWithItems = $this->orderModel->getWithItems($orderId);
-                $payments = $this->paymentModel->getByOrder($orderId);
-                
-                // Generate receipt PDF
-                $receiptService = new \App\Services\ReceiptService();
-                $pdf = $receiptService->generate($orderWithItems, $payments);
-                $filename = $receiptService->getFilename($orderWithItems);
-                
-                // Send email with receipt attachment
-                \App\Core\Email::sendOrderConfirmation($orderWithItems, [
-                    [
-                        'name' => $filename,
-                        'content' => $pdf,
-                        'type' => 'application/pdf'
-                    ]
-                ]);
+                if ($orderWithItems && !empty($orderWithItems['email'])) {
+                    // Send email without PDF attachment - email body contains all receipt details
+                    \App\Core\Email::sendOrderConfirmation($orderWithItems);
+                }
             } catch (\Exception $e) {
                 error_log("PaymentController::process() - Failed to send order confirmation email: " . $e->getMessage());
                 // Don't fail the payment if email fails

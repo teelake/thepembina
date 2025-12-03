@@ -248,6 +248,10 @@ class Email
                 </div>
                 <div class='content'>
                     <h2>Thank you for your order!</h2>
+                    <p style='background-color: #e8f5e9; padding: 12px; border-left: 4px solid #4caf50; border-radius: 4px; margin-bottom: 20px;'>
+                        <strong>📧 This email is your official receipt for Order #{$order['order_number']}.</strong><br>
+                        You can save or print this email, or download a PDF receipt anytime from your account or the Track Order page.
+                    </p>
                     <p>Your order has been confirmed and is being processed.</p>
                     
                     <div class='order-details'>
@@ -264,12 +268,14 @@ class Email
                         <p><strong>Status:</strong> " . ucfirst($order['status']) . "</p>
                     </div>
                     
-                    " . (!empty($attachments) ? "<p style='margin-top: 15px;'><strong>📎 Your receipt is attached to this email.</strong></p>" : "") . "
-                    
-                    <div style='margin: 20px 0; text-align: center;'>
+                    <div style='margin: 20px 0; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;'>
                         <a href='" . (defined('BASE_URL') ? BASE_URL : '') . "/track-order?order_number=" . urlencode($order['order_number']) . "&email=" . urlencode($order['email']) . "' 
                            style='display: inline-block; padding: 12px 24px; background-color: #F4A460; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>
-                            Track Your Order
+                            <i class='fas fa-search-location' style='margin-right: 8px;'></i> Track Your Order
+                        </a>
+                        <a href='" . (defined('BASE_URL') ? BASE_URL : '') . "/order/receipt?order_number=" . urlencode($order['order_number']) . "&email=" . urlencode($order['email']) . "' 
+                           style='display: inline-block; padding: 12px 24px; background-color: #8B4513; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                            <i class='fas fa-file-pdf' style='margin-right: 8px;'></i> Download PDF Receipt
                         </a>
                     </div>
                     

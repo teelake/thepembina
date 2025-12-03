@@ -166,6 +166,10 @@ $content = ob_start();
                     </div>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="<?= BASE_URL ?>/order/receipt?order_number=<?= urlencode($order['order_number']) ?>&email=<?= urlencode($order['email']) ?>" 
+                           class="bg-amber-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-900 transition text-center flex items-center justify-center gap-2">
+                            <i class="fas fa-file-pdf"></i> Download PDF Receipt
+                        </a>
                         <a href="<?= BASE_URL ?>/menu" class="bg-brand text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-dark transition text-center">
                             Continue Shopping
                         </a>

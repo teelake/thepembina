@@ -68,6 +68,71 @@ class OrderController extends Controller
         
         $this->render('order/track', $data);
     }
+
+    /**
+     * Download receipt PDF (public - requires order_number + email verification)
+     */
+    public function receipt()
+    {
+        $orderNumber = $this->get('order_number', '');
+        $email = $this->get('email', '');
+        
+        if (empty($orderNumber) || empty($email)) {
+            $this->redirect('/track-order?error=' . urlencode('Order number and email are required to download receipt.'));
+            return;
+        }
+        
+        // Find order by order number
+        $order = $this->orderModel->findByOrderNumber($orderNumber);
+        
+        if (!$order) {
+            $this->redirect('/track-order?error=' . urlencode('Order not found. Please check your order number.'));
+            return;
+        }
+        
+        // Verify email matches
+        if (strtolower(trim($order['email'])) !== strtolower(trim($email))) {
+            $this->redirect('/track-order?error=' . urlencode('The email address does not match this order.'));
+            return;
+        }
+        
+        // Get order with items
+        $orderWithItems = $this->orderModel->getWithItems($order['id']);
+        
+        if (!$orderWithItems) {
+            $this->redirect('/track-order?error=' . urlencode('Unable to load order details.'));
+            return;
+        }
+        
+        try {
+            // Get payments for receipt
+            $paymentModel = new \App\Models\Payment();
+            $payments = $paymentModel->getByOrder($order['id']);
+            
+            // Generate PDF receipt
+            $receiptService = new \App\Services\ReceiptService();
+            $pdf = $receiptService->generate($orderWithItems, $payments);
+            $filename = $receiptService->getFilename($orderWithItems);
+            
+            // Clear any output buffers
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            // Output PDF
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="' . htmlspecialchars($filename) . '"');
+            header('Content-Length: ' . strlen($pdf));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            
+            echo $pdf;
+            exit;
+        } catch (\Exception $e) {
+            error_log("OrderController::receipt() - Failed to generate receipt: " . $e->getMessage());
+            $this->redirect('/track-order?order_number=' . urlencode($orderNumber) . '&email=' . urlencode($email) . '&error=' . urlencode('Failed to generate receipt. Please try again.'));
+        }
+    }
 }
 
 
