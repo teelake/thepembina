@@ -179,6 +179,14 @@ if (!$customNavEnabled) {
                         <?php endif; ?>
                     <?php endif; ?>
                     
+                    <!-- Track Order - Secondary Utility Link -->
+                    <a href="<?= BASE_URL ?>/track-order" class="text-gray-600 hover:text-brand transition-colors duration-200 font-medium relative group flex items-center text-sm">
+                        <i class="fas fa-search-location mr-1.5 text-xs"></i>
+                        <span class="hidden lg:inline">Track Order</span>
+                        <span class="lg:hidden">Track</span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-brand transition-all duration-200 group-hover:w-full"></span>
+                    </a>
+                    
                     <!-- Cart - Primary CTA (Most Prominent) -->
                     <a href="<?= BASE_URL ?>/cart" class="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center relative">
                         <i class="fas fa-shopping-cart mr-2"></i> Cart
@@ -269,6 +277,9 @@ if (!$customNavEnabled) {
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <a href="<?= BASE_URL ?>/menu" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">All Menu</a>
+                <a href="<?= BASE_URL ?>/track-order" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium" role="menuitem">
+                    <i class="fas fa-search-location mr-2"></i> Track Your Order
+                </a>
                 <a href="<?= BASE_URL ?>/cart" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium flex items-center justify-between" role="menuitem">
                     <span>Cart</span>
                     <span id="cart-count-badge-mobile" class="bg-brand text-white rounded-full px-2 py-0.5 text-xs font-semibold min-w-[20px] text-center <?= (!isset($_SESSION['cart_count']) || $_SESSION['cart_count'] == 0) ? 'hidden' : '' ?>"><?= $_SESSION['cart_count'] ?? 0 ?></span>

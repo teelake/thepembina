@@ -418,7 +418,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Same as billing - copy values and make fields required
     sameAsBilling?.addEventListener('change', function() {
-        const billingFields = ['first_name', 'last_name', 'address_line1', 'address_line2', 'city', 'province', 'postal_code'];
+        // Do NOT include address_line2 here so it remains optional
+        const billingFields = ['first_name', 'last_name', 'address_line1', 'city', 'province', 'postal_code'];
         
         if (this.checked) {
             billingFields.forEach(field => {
@@ -444,7 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Also copy on form submit to ensure values are set
     checkoutForm?.addEventListener('submit', function(e) {
         if (sameAsBilling?.checked) {
-            const billingFields = ['first_name', 'last_name', 'address_line1', 'address_line2', 'city', 'province', 'postal_code'];
+            // Do NOT include address_line2 here so it remains optional
+            const billingFields = ['first_name', 'last_name', 'address_line1', 'city', 'province', 'postal_code'];
             billingFields.forEach(field => {
                 const billingField = document.querySelector(`input[name="billing_${field}"], select[name="billing_${field}"]`);
                 const shippingField = document.querySelector(`input[name="shipping_${field}"], select[name="shipping_${field}"]`);
