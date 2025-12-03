@@ -42,8 +42,11 @@ class Product extends Model
         // Apply filters
         if (!empty($filters['search'])) {
             // Search by product name and description (avoid columns that may not exist on older schemas)
-            $sql .= " AND (p.name LIKE :search OR p.description LIKE :search)";
-            $params['search'] = '%' . $filters['search'] . '%';
+            // Use separate parameter names since PDO requires unique placeholders
+            $searchTerm = '%' . $filters['search'] . '%';
+            $sql .= " AND (p.name LIKE :search_name OR p.description LIKE :search_desc)";
+            $params['search_name'] = $searchTerm;
+            $params['search_desc'] = $searchTerm;
         }
         
         if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {
@@ -127,8 +130,11 @@ class Product extends Model
         // Apply same filters as getByCategory
         if (!empty($filters['search'])) {
             // Search by product name and description (avoid columns that may not exist on older schemas)
-            $sql .= " AND (p.name LIKE :search OR p.description LIKE :search)";
-            $params['search'] = '%' . $filters['search'] . '%';
+            // Use separate parameter names since PDO requires unique placeholders
+            $searchTerm = '%' . $filters['search'] . '%';
+            $sql .= " AND (p.name LIKE :search_name OR p.description LIKE :search_desc)";
+            $params['search_name'] = $searchTerm;
+            $params['search_desc'] = $searchTerm;
         }
         
         if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {

@@ -56,19 +56,42 @@ class MenuController extends Controller
         }
 
         // Get filter parameters
-        $filters = [
-            'search' => trim($this->get('search', '')),
-            'sort' => $this->get('sort', 'default'),
-            'min_price' => $this->get('min_price', ''),
-            'max_price' => $this->get('max_price', ''),
-            'availability' => $this->get('availability', ''),
-            'featured' => $this->get('featured', '')
-        ];
+        $filters = [];
         
-        // Clean up empty filters
-        $filters = array_filter($filters, function($value) {
-            return $value !== '' && $value !== 'default';
-        });
+        // Search filter
+        $search = trim($this->get('search', ''));
+        if (!empty($search)) {
+            $filters['search'] = $search;
+        }
+        
+        // Sort filter
+        $sort = $this->get('sort', 'default');
+        if ($sort !== 'default' && !empty($sort)) {
+            $filters['sort'] = $sort;
+        }
+        
+        // Price filters - convert to numeric
+        $minPrice = $this->get('min_price', '');
+        if ($minPrice !== '' && is_numeric($minPrice)) {
+            $filters['min_price'] = (float)$minPrice;
+        }
+        
+        $maxPrice = $this->get('max_price', '');
+        if ($maxPrice !== '' && is_numeric($maxPrice)) {
+            $filters['max_price'] = (float)$maxPrice;
+        }
+        
+        // Availability filter
+        $availability = $this->get('availability', '');
+        if (!empty($availability) && in_array($availability, ['in_stock', 'out_of_stock', 'low_stock'])) {
+            $filters['availability'] = $availability;
+        }
+        
+        // Featured filter
+        $featured = $this->get('featured', '');
+        if ($featured === '1') {
+            $filters['featured'] = '1';
+        }
 
         $page = (int)($this->get('page', 1));
         $limit = 12;
