@@ -1,4 +1,6 @@
 <?php
+use App\Core\Helper;
+
 $content = ob_start();
 ?>
 
